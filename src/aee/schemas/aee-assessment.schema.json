@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://electrohire.com/schemas/aee-assessment-1.0.json",
+  "title": "Applied Epistemic Engineering Assessment",
+  "description": "A versioned record of claims, evidence, uncertainty, failures, recovery actions, and scores.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "methodology_version",
+    "project",
+    "phase",
+    "outcome",
+    "summary",
+    "created_at",
+    "claims",
+    "scores",
+    "recoveries"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "methodology_version": {"type": "string"},
+    "project": {"type": "string", "minLength": 1},
+    "phase": {"type": "string", "minLength": 1},
+    "outcome": {
+      "enum": ["pass", "warn", "iterate", "clarify", "gather_evidence", "block"]
+    },
+    "summary": {"type": "string"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "claims": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/claim"}
+    },
+    "scores": {
+      "type": "object",
+      "additionalProperties": {"$ref": "#/$defs/score"}
+    },
+    "recoveries": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/recovery"}
+    },
+    "metadata": {"type": "object"}
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "required": ["ref", "kind", "direction", "source_quality"],
+      "properties": {
+        "ref": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["observed", "inferred", "asserted", "contradicted", "unsupported"]},
+        "direction": {"enum": ["supports", "contradicts", "context"]},
+        "source_quality": {
+          "enum": ["primary", "secondary", "tertiary", "artifact", "test", "human", "model", "unknown"]
+        },
+        "description": {"type": "string"},
+        "source_id": {"type": "string"},
+        "independent_of": {"type": "array", "items": {"type": "string"}},
+        "observed_at": {"type": ["string", "null"], "format": "date-time"},
+        "content_hash": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "failure": {
+      "type": "object",
+      "required": ["id", "claim_id", "challenge", "breakpoint", "severity", "category"],
+      "properties": {
+        "id": {"type": "string"},
+        "claim_id": {"type": "string"},
+        "challenge": {"type": "string"},
+        "breakpoint": {"type": "string"},
+        "severity": {"enum": ["critical", "high", "medium", "low", "info"]},
+        "category": {"type": "string"},
+        "recovery_hint": {"type": "string"},
+        "resolved": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "claim": {
+      "type": "object",
+      "required": ["id", "text", "kind", "status", "boundary", "evidence", "uncertainty"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "text": {"type": "string"},
+        "kind": {
+          "enum": ["observation", "requirement", "assumption", "inference", "hypothesis", "decision", "prediction", "compliance"]
+        },
+        "status": {
+          "enum": ["draft", "supported", "partially_supported", "unsupported", "contradicted", "unverifiable", "superseded"]
+        },
+        "boundary": {"type": "array", "items": {"type": "string"}},
+        "depends_on": {"type": "array", "items": {"type": "string"}},
+        "conflicts_with": {"type": "array", "items": {"type": "string"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+        "assumptions": {"type": "array", "items": {"type": "string"}},
+        "alternatives": {"type": "array", "items": {"type": "string"}},
+        "falsification_tests": {"type": "array", "items": {"type": "string"}},
+        "uncertainty": {"enum": ["none", "low", "medium", "high", "insufficient_evidence"]},
+        "severity": {"enum": ["critical", "high", "medium", "low", "info"]},
+        "source_ref": {"type": "string"},
+        "domain": {"type": "string"},
+        "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "confidence_band": {"enum": ["unknown", "low", "medium", "high"]},
+        "failures": {"type": "array", "items": {"$ref": "#/$defs/failure"}},
+        "metadata": {"type": "object"}
+      }
+    },
+    "score": {
+      "type": "object",
+      "required": ["claim_id", "direct_score", "propagated_score", "band", "components"],
+      "properties": {
+        "claim_id": {"type": "string"},
+        "direct_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "propagated_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "band": {"enum": ["unknown", "low", "medium", "high"]},
+        "components": {"type": "object"},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "recovery": {
+      "type": "object",
+      "required": ["failure_id", "claim_id", "strategy", "action", "priority", "verification"],
+      "properties": {
+        "failure_id": {"type": "string"},
+        "claim_id": {"type": "string"},
+        "strategy": {
+          "enum": ["decompose", "narrow_boundary", "gather_evidence", "define_falsifier", "resolve_contradiction", "repair_provenance", "clarify", "supersede"]
+        },
+        "action": {"type": "string"},
+        "priority": {"type": "integer", "minimum": 1, "maximum": 5},
+        "verification": {"type": "string"}
+      }
+    }
+  }
+}
+

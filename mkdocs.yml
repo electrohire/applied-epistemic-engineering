@@ -1,0 +1,56 @@
+site_name: Applied Epistemic Engineering
+site_description: Evidence-centered claim engineering for Python and Spec Kit.
+site_url: https://applied-epistemic-engineering.readthedocs.io
+repo_url: https://github.com/electrohire/applied-epistemic-engineering
+repo_name: electrohire/applied-epistemic-engineering
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - content.code.copy
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - Getting Started: quickstart.md
+  - Foundations: concepts.md
+  - Scoring: scoring.md
+  - Ledger: ledger.md
+  - Spec Kit Integration: spec-kit.md
+  - Python API: api.md
+  - Security: security.md
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: true
+            members_order: source
+
+strict: true
+
