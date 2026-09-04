@@ -118,9 +118,9 @@ collection, and `2` for a hard block or invalid ledger.
 
 Full documentation is configured for Read the Docs at
 [applied-epistemic-engineering.readthedocs.io](https://applied-epistemic-engineering.readthedocs.io).
+Existing SpecSmith AEE users can follow the [migration guide](docs/migration.md).
 
 ## Ownership and license
 
 Designed and implemented by **ElectroHire Inc.** Copyright © 2026 ElectroHire Inc.
 Released under the [MIT License](LICENSE).
-

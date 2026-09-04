@@ -31,6 +31,7 @@ nav:
   - Scoring: scoring.md
   - Ledger: ledger.md
   - Spec Kit Integration: spec-kit.md
+  - Migrating from SpecSmith: migration.md
   - Python API: api.md
   - Security: security.md
 
@@ -53,4 +54,3 @@ plugins:
             members_order: source
 
 strict: true
-

@@ -3,6 +3,7 @@ import json
 import pytest
 
 from aee import Claim, ClaimKind, ClaimStatus, ConfidenceBand, Evidence, EvidenceKind
+from aee.schemas import assessment_schema_path
 
 
 def test_claim_requires_id() -> None:
@@ -39,3 +40,7 @@ def test_claim_round_trip() -> None:
     assert restored.id == claim.id
     assert restored.kind is ClaimKind.REQUIREMENT
     assert restored.evidence[0].kind is EvidenceKind.OBSERVED
+
+
+def test_assessment_schema_is_packaged() -> None:
+    assert assessment_schema_path().is_file()
