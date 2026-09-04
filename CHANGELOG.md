@@ -10,6 +10,7 @@ and [Semantic Versioning](https://semver.org/).
 - Generalize migration and project documentation.
 - Add structured bug-report and feature-request templates.
 - Add dependency review, Dependabot, OpenSSF Scorecard, and hash-locked CI installs.
+- Document the private disclosure process and response timeline.
 
 ## [1.0.0] - 2026-09-04
 
