@@ -1,6 +1,7 @@
 # Applied Epistemic Engineering for Python
 
 [![CI](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml)
 [![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
@@ -8,9 +9,8 @@ An evidence-centered Python toolkit for turning important claims into inspectabl
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
 falsification tests, recovery work, and decision history explicit.
 
-This is an original, ground-up ElectroHire implementation. It carries forward the useful AEE
-concepts previously embedded in SpecSmith while removing SpecSmith runtime coupling and aligning
-the result model directly with ElectroHire's Spec Kit Evaluator Contract.
+This is an original, ground-up ElectroHire implementation. Its result model aligns directly with
+ElectroHire's Spec Kit Evaluator Contract while the domain engine remains independently packaged.
 
 ## Why it exists
 
@@ -118,7 +118,7 @@ collection, and `2` for a hard block or invalid ledger.
 
 Full documentation is configured for Read the Docs at
 [applied-epistemic-engineering.readthedocs.io](https://applied-epistemic-engineering.readthedocs.io).
-Existing SpecSmith AEE users can follow the [migration guide](docs/migration.md).
+Users adopting AEE from another implementation can follow the [migration guide](docs/migration.md).
 
 ## Ownership and license
 

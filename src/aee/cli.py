@@ -27,7 +27,7 @@ from aee.model import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="aee", description="Applied Epistemic Engineering")
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 1.0.1")
     sub = parser.add_subparsers(dest="command", required=True)
 
     assess = sub.add_parser("assess", help="Assess claims from JSON or Markdown")

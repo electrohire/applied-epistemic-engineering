@@ -25,7 +25,7 @@ from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
 from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 __all__ = [
     "AEEEngine",

@@ -1,12 +1,12 @@
-# Migrating from SpecSmith AEE
+# Migration guide
 
-This package is a ground-up ElectroHire implementation, not a drop-in copy of SpecSmith's
-`epistemic` package. The concepts remain recognizable, while the types, serialization format,
-scoring model, CLI, and Spec Kit boundary are intentionally explicit and independently versioned.
+This package is a ground-up ElectroHire implementation, not a drop-in replacement for other AEE
+packages. The concepts remain recognizable, while the types, serialization format, scoring model,
+CLI, and Spec Kit boundary are intentionally explicit and independently versioned.
 
 ## Concept mapping
 
-| SpecSmith concept | ElectroHire AEE equivalent | Important change |
+| Prior concept | ElectroHire AEE equivalent | Important change |
 | --- | --- | --- |
 | Belief/claim | `aee.Claim` | Stable IDs, sources, boundaries, dependencies, conflicts, and falsifiers are first-class |
 | Evidence refs | `aee.Evidence` | Kind, direction, source quality, independence, observation time, and content hash are separate |
@@ -45,7 +45,7 @@ falsification test are attached. That is deliberate.
 
 ## Deliberate exclusions
 
-- No SpecSmith runtime dependency or private backend coupling.
+- No private runtime dependency or backend coupling.
 - No ChronoMemory code or commercial storage integration.
 - No model-generated confidence masquerading as observed evidence.
 - No compatibility aliases that obscure which implementation produced a record.

@@ -3,6 +3,14 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.0.1] - 2026-09-04
+
+### Changed
+
+- Generalize migration and project documentation.
+- Add structured bug-report and feature-request templates.
+- Add dependency review, Dependabot, and OpenSSF Scorecard automation.
+
 ## [1.0.0] - 2026-09-04
 
 ### Added
@@ -16,5 +24,5 @@ and [Semantic Versioning](https://semver.org/).
 - Dependency-free CLI and Python API.
 - Strict Read the Docs/MkDocs documentation and multi-platform CI.
 
+[1.0.1]: https://github.com/electrohire/applied-epistemic-engineering/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/electrohire/applied-epistemic-engineering/releases/tag/v1.0.0
-

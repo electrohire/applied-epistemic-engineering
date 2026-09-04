@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "applied-epistemic-engineering"
-version = "1.0.0"
+version = "1.0.1"
 description = "Evidence-centered claim evaluation, adversarial challenge, recovery, and tamper-evident epistemic records."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -77,4 +77,3 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 python_version = "3.11"
 strict = true
 packages = ["aee"]
-
