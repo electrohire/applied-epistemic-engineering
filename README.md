@@ -88,6 +88,8 @@ print(assessment.outcome, assessment.summary)
 aee assess --input claims.json --phase after_plan --output assessment.json \
   --evaluator-output evaluator-result.json --ledger .aee/epistemic-ledger.jsonl
 
+aee challenge --input claims.json --phase after_plan --output challenge.json
+aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAPS.md
 aee verify-ledger --ledger .aee/epistemic-ledger.jsonl
 aee graph --input claims.json --output claim-graph.mmd
 aee gate --input assessment.json
