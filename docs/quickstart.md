@@ -65,3 +65,23 @@ aee assess --input spec.md --phase after_specify
 
 Unidentified prose is not silently promoted into claims.
 
+## Challenge a claim set
+
+`challenge` runs the same deterministic assessment and projects only the failure modes and
+bounded recovery work (no scoring keys leak):
+
+```bash
+aee challenge --input claims.json --phase after_plan --output challenge.json
+```
+
+## Generate a gap register
+
+`gaps` cross-references a verification matrix against test evidence and writes a `GAPS.md`
+register. Use `--existing` to preserve previously closed gaps and `--close` to close one by ID:
+
+```bash
+aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAPS.md
+aee gaps --matrix specs/verification-matrix.md --evidence evidence/ \
+  --existing GAPS.md --close GAP-001 --output GAPS.md
+```
+
