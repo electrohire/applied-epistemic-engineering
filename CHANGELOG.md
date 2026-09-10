@@ -3,6 +3,18 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.0.2] - 2026-09-10
+
+### Added
+
+- `GapEngine` and the `gaps` CLI subcommand: generate and maintain a gap register from a verification matrix and test evidence.
+- Deterministic `challenge` CLI subcommand: a failures + recoveries projection over `assess` (no scoring keys leak).
+
+### Changed
+
+- Bump version `1.0.1` -> `1.0.2`.
+- Tests: gaps (13) + challenge CLI projection (2); core suite 59 passed.
+
 ## [1.0.1] - 2026-09-04
 
 ### Changed
@@ -25,5 +37,6 @@ and [Semantic Versioning](https://semver.org/).
 - Dependency-free CLI and Python API.
 - Strict Read the Docs/MkDocs documentation and multi-platform CI.
 
+[1.0.2]: https://github.com/electrohire/applied-epistemic-engineering/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/electrohire/applied-epistemic-engineering/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/electrohire/applied-epistemic-engineering/releases/tag/v1.0.0
