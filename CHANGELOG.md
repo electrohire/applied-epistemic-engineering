@@ -3,6 +3,18 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.0.4] - 2026-10-02
+
+### Fixed
+
+- Mermaid rendering no longer merges distinct claims: node IDs are encoded injectively (`A-B` and `A_B` previously both became `C_A_B`), and labels escape double quotes as `&quot;` entities and flatten newlines instead of only rewriting quotes in the claim text while interpolating the ID raw.
+- `load_claims` refuses a JSON object without a `claims` key (previously it silently loaded an empty claim set and produced a vacuous assessment), and markdown `depends_on` refs are uppercased to match the uppercased claim IDs (a lowercase ref previously never resolved).
+- Ledger appends are O(1) after the first verification instead of O(n) each (O(n²) over a session): appends trust a verified-tip cache keyed on the file's size and mtime, and any external change forces a full `verify()` before the next append. Chain semantics and the append lock are unchanged.
+
+### Documentation
+
+- The mutation contracts are now stated where they happen: `StressTester.run` replaces each claim's `failures` list wholesale (carried-in failures are not preserved), and `ScoringEngine.score` overwrites `claim.confidence` with the propagated score. Both behaviors are pinned by tests.
+
 ## [1.0.3] - 2026-10-02
 
 ### Fixed

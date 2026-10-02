@@ -39,6 +39,34 @@ def test_load_json(tmp_path) -> None:
     assert load_claims(path)[0].id == "A"
 
 
+def test_load_json_object_without_claims_key_raises(tmp_path) -> None:
+    """Regression: a JSON object without a 'claims' key silently
+    loaded as an empty claim set, producing a vacuous assessment."""
+    import pytest
+
+    path = tmp_path / "claims.json"
+    path.write_text(json.dumps({"claimz": [{"id": "A", "text": "A"}]}))
+    with pytest.raises(ValueError, match="'claims'"):
+        load_claims(path)
+
+
+def test_markdown_depends_on_case_normalized(tmp_path) -> None:
+    """Regression: markdown claim ids are uppercased but depends_on
+    refs were not, so a lowercase ref never matched its claim."""
+    path = tmp_path / "requirements.md"
+    path.write_text(
+        "## req-base-001 — The base claim\n"
+        "\n"
+        "## req-top-002 — The dependent claim\n"
+        "- **Depends on:** req-base-001\n",
+        encoding="utf-8",
+    )
+    claims = extract_markdown_claims(path)
+    by_id = {claim.id: claim for claim in claims}
+    assert set(by_id) == {"REQ-BASE-001", "REQ-TOP-002"}
+    assert by_id["REQ-TOP-002"].depends_on == ["REQ-BASE-001"]
+
+
 def test_session_save_load(tmp_path) -> None:
     path = tmp_path / "state.json"
     session = AEESession("project", state_file=path)

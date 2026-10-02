@@ -9,7 +9,7 @@ import pytest
 
 from aee import Claim, ClaimKind, ClaimStatus, Evidence, EvidenceDirection, EvidenceKind, cli
 from aee.challenge import StressTester
-from aee.model import SourceQuality
+from aee.model import FailureMode, SourceQuality
 
 
 def categories(claim: Claim) -> set[str]:
@@ -206,3 +206,17 @@ def test_failure_ids_unique_across_multiple_conflicts() -> None:
     failures = StressTester().run(claims)
     ids = [f.id for f in failures]
     assert len(ids) == len(set(ids))
+
+
+def test_run_replaces_carried_in_failures() -> None:
+    """Contract: StressTester.run replaces claim.failures wholesale;
+    failures carried in are not merged or preserved."""
+    stale = FailureMode(id="STALE-1", claim_id="A", challenge="old", breakpoint="old")
+    claim = Claim(
+        id="A",
+        text="The API returns HTTP 200 for authenticated requests",
+        boundary=["authenticated requests"],
+        failures=[stale],
+    )
+    StressTester().run([claim])
+    assert claim.failures == []

@@ -78,7 +78,14 @@ class ScoringEngine:
         against; the default is the current time. Pinning it makes an
         assessment replayable — previously the freshness penalty read
         the wall clock directly, so identical input scored differently
-        on different days."""
+        on different days.
+
+        Contract — mutation: each claim's ``confidence`` attribute is
+        overwritten with its propagated score, so consumers reading
+        the claim objects afterwards see the assessed values. The
+        returned mapping is the authoritative per-claim record;
+        re-scoring replaces the attribute again.
+        """
         as_of = as_of or datetime.now(UTC)
         items = list(claims)
         scores = {claim.id: self._direct(claim, as_of) for claim in items}

@@ -43,6 +43,22 @@ class HashChainLedger:
 
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
+        # Verified-tip cache: (entries, head_hash) plus the file
+        # (size, mtime_ns) that verification covered. Appends trust
+        # the cache only while the file stat is unchanged, which
+        # keeps repeated appends O(1) instead of re-verifying the
+        # whole chain per append (O(n^2) over n appends). Any
+        # external change invalidates the stat and forces a full
+        # verify() before the next append.
+        self._tip: tuple[int, str] | None = None
+        self._tip_stat: tuple[int, int] | None = None
+
+    def _stat_key(self) -> tuple[int, int] | None:
+        try:
+            stat = self.path.stat()
+        except FileNotFoundError:
+            return None
+        return (stat.st_size, stat.st_mtime_ns)
 
     @contextmanager
     def _append_lock(self):  # type: ignore[no-untyped-def]
@@ -89,18 +105,22 @@ class HashChainLedger:
     def _append_locked(
         self, event_type: str, payload: dict[str, Any], *, actor: str = "aee"
     ) -> dict[str, Any]:
-        verification = self.verify()
-        if not verification.valid:
-            raise ValueError(
-                "refusing to append to an invalid ledger: " + "; ".join(verification.errors)
-            )
+        if self._tip is not None and self._stat_key() == self._tip_stat:
+            entries, head_hash = self._tip
+        else:
+            verification = self.verify()
+            if not verification.valid:
+                raise ValueError(
+                    "refusing to append to an invalid ledger: " + "; ".join(verification.errors)
+                )
+            entries, head_hash = verification.entries, verification.head_hash
         entry: dict[str, Any] = {
             "ledger_version": "1.0",
-            "sequence": verification.entries + 1,
+            "sequence": entries + 1,
             "timestamp": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "event_type": event_type,
             "actor": actor,
-            "previous_hash": verification.head_hash,
+            "previous_hash": head_hash,
             "payload": payload,
         }
         entry["entry_hash"] = _entry_hash(entry)
@@ -109,6 +129,8 @@ class HashChainLedger:
             handle.write(_canonical(entry) + "\n")
             handle.flush()
             os.fsync(handle.fileno())
+        self._tip = (entries + 1, entry["entry_hash"])
+        self._tip_stat = self._stat_key()
         return entry
 
     def append_assessment(self, assessment: Any, *, actor: str = "aee") -> dict[str, Any]:

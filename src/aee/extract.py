@@ -20,7 +20,15 @@ def load_claims(path: str | Path) -> list[Claim]:
     source = Path(path)
     if source.suffix.lower() == ".json":
         value = json.loads(source.read_text(encoding="utf-8"))
-        rows = value.get("claims", []) if isinstance(value, dict) else value
+        if isinstance(value, dict):
+            if "claims" not in value:
+                raise ValueError(
+                    "JSON object input must contain a 'claims' list; "
+                    "refusing to treat a missing key as an empty claim set"
+                )
+            rows = value["claims"]
+        else:
+            rows = value
         if not isinstance(rows, list):
             raise ValueError("JSON input must be a claim list or contain a 'claims' list")
         return [Claim.from_dict(row) for row in rows]
@@ -51,7 +59,7 @@ def extract_markdown_claims(path: str | Path) -> list[Claim]:
                 kind=kind,
                 status=ClaimStatus.DRAFT,
                 boundary=list(active.pop("boundary", [])),
-                depends_on=list(active.pop("depends_on", [])),
+                depends_on=[str(ref).upper() for ref in active.pop("depends_on", [])],
                 falsification_tests=list(active.pop("falsification_tests", [])),
                 source_ref=f"{source.as_posix()}#{claim_id}",
                 uncertainty=Uncertainty.INSUFFICIENT_EVIDENCE,

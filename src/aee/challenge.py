@@ -31,6 +31,15 @@ class StressTester:
     """Apply transparent checks; it does not pretend to establish truth."""
 
     def run(self, claims: Iterable[Claim]) -> list[FailureMode]:
+        """Run every challenge against the claims.
+
+        Contract — mutation: each claim's ``failures`` list is
+        REPLACED with the failures this run produced for it (an
+        empty list when it passes). Failures a claim carried in —
+        loaded from a file or produced by an earlier run — are not
+        merged or preserved. Snapshot ``claim.failures`` before
+        calling if you need them.
+        """
         items = list(claims)
         graph = ClaimGraph()
         failures: list[FailureMode] = []
