@@ -6,10 +6,21 @@ import hashlib
 import json
 import os
 from collections.abc import Iterable
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+try:
+    import fcntl
+except ImportError:  # Windows
+    fcntl = None  # type: ignore[assignment]
+
+try:
+    import msvcrt
+except ImportError:  # non-Windows
+    msvcrt = None  # type: ignore[assignment]
 
 GENESIS_HASH = "0" * 64
 
@@ -33,7 +44,49 @@ class HashChainLedger:
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
 
+    @contextmanager
+    def _append_lock(self):  # type: ignore[no-untyped-def]
+        """Exclusive advisory lock around verify+append.
+
+        Without it, two concurrent appends can both verify the same
+        head and fork the chain (each writing sequence N+1 against
+        the same previous_hash). The lock file sits beside the ledger
+        and is held only for the append itself. Uses fcntl on POSIX
+        and msvcrt byte-range locking on Windows; where neither
+        exists the append proceeds unlocked.
+        """
+        if fcntl is None and msvcrt is None:
+            yield
+            return
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        lock_path = self.path.with_name(self.path.name + ".lock")
+        with lock_path.open("a+") as handle:
+            if fcntl is not None:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+                try:
+                    yield
+                finally:
+                    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            else:
+                handle.seek(0, os.SEEK_END)
+                if handle.tell() == 0:
+                    handle.write("\0")
+                    handle.flush()
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+                try:
+                    yield
+                finally:
+                    handle.seek(0)
+                    msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+
     def append(
+        self, event_type: str, payload: dict[str, Any], *, actor: str = "aee"
+    ) -> dict[str, Any]:
+        with self._append_lock():
+            return self._append_locked(event_type, payload, actor=actor)
+
+    def _append_locked(
         self, event_type: str, payload: dict[str, Any], *, actor: str = "aee"
     ) -> dict[str, Any]:
         verification = self.verify()
@@ -107,11 +160,19 @@ class HashChainLedger:
     def entries(self) -> Iterable[dict[str, Any]]:
         if not self.path.exists():
             return ()
-        return tuple(
-            json.loads(raw)
-            for raw in self.path.read_text(encoding="utf-8").splitlines()
-            if raw.strip()
-        )
+        parsed: list[dict[str, Any]] = []
+        for line_number, raw in enumerate(self.path.read_text(encoding="utf-8").splitlines(), 1):
+            if not raw.strip():
+                continue
+            try:
+                parsed.append(json.loads(raw))
+            except json.JSONDecodeError as exc:
+                # Agree with verify(): corruption is reported, never
+                # silently skipped or surfaced as a bare decode error.
+                raise ValueError(
+                    f"corrupt ledger line {line_number} in {self.path}: {exc.msg}"
+                ) from exc
+        return tuple(parsed)
 
 
 def _canonical(value: Any) -> str:

@@ -57,9 +57,13 @@ class ClaimGraph:
         return sorted(pairs)
 
     def cycles(self) -> list[list[str]]:
-        """Return dependency cycles, each normalized to a stable representation."""
+        """Return dependency cycles, each normalized to a stable representation.
+
+        Iterative DFS: the previous recursive implementation raised
+        RecursionError on dependency chains beyond ~1,000 claims,
+        crashing assess() instead of reporting the graph.
+        """
         color: dict[str, int] = defaultdict(int)
-        stack: list[str] = []
         found: set[tuple[str, ...]] = set()
 
         def normalize(cycle: list[str]) -> tuple[str, ...]:
@@ -68,23 +72,31 @@ class ClaimGraph:
             chosen = min(rotations)
             return (*chosen, chosen[0])
 
-        def visit(node: str) -> None:
-            color[node] = 1
-            stack.append(node)
-            for dep in self.claims[node].depends_on:
-                if dep not in self.claims:
-                    continue
-                if color[dep] == 0:
-                    visit(dep)
-                elif color[dep] == 1:
-                    start = stack.index(dep)
-                    found.add(normalize([*stack[start:], dep]))
-            stack.pop()
-            color[node] = 2
-
-        for claim_id in sorted(self.claims):
-            if color[claim_id] == 0:
-                visit(claim_id)
+        for root in sorted(self.claims):
+            if color[root] != 0:
+                continue
+            color[root] = 1
+            path: list[str] = [root]
+            frames = [(root, iter(self.claims[root].depends_on))]
+            while frames:
+                node, deps_iter = frames[-1]
+                descended = False
+                for dep in deps_iter:
+                    if dep not in self.claims:
+                        continue
+                    if color[dep] == 0:
+                        color[dep] = 1
+                        path.append(dep)
+                        frames.append((dep, iter(self.claims[dep].depends_on)))
+                        descended = True
+                        break
+                    if color[dep] == 1:
+                        start = path.index(dep)
+                        found.add(normalize([*path[start:], dep]))
+                if not descended:
+                    frames.pop()
+                    path.pop()
+                    color[node] = 2
         return [list(item) for item in sorted(found)]
 
     def topological_order(self) -> list[str]:

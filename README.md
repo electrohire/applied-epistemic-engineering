@@ -93,6 +93,7 @@ aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAP
 aee verify-ledger --ledger .aee/epistemic-ledger.jsonl
 aee graph --input claims.json --output claim-graph.mmd
 aee gate --input assessment.json
+aee demo   # self-contained demonstration assessment
 ```
 
 Exit codes are CI-friendly: `0` for pass/warn, `1` for iteration/clarification/evidence

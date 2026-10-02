@@ -71,11 +71,29 @@ class ClaimScore:
 class ScoringEngine:
     """Score claims using published components, never hidden model confidence."""
 
-    def score(self, claims: Iterable[Claim]) -> dict[str, ClaimScore]:
+    def score(
+        self, claims: Iterable[Claim], *, as_of: datetime | None = None
+    ) -> dict[str, ClaimScore]:
+        """Score claims. ``as_of`` pins the instant freshness is judged
+        against; the default is the current time. Pinning it makes an
+        assessment replayable — previously the freshness penalty read
+        the wall clock directly, so identical input scored differently
+        on different days."""
+        as_of = as_of or datetime.now(UTC)
         items = list(claims)
-        scores = {claim.id: self._direct(claim) for claim in items}
+        scores = {claim.id: self._direct(claim, as_of) for claim in items}
         graph = ClaimGraph(items)
-        if not graph.cycles():
+        cycles = graph.cycles()
+        if cycles:
+            # Propagation is skipped on cyclic graphs. That must be
+            # visible on the scores themselves, not only in the
+            # challenge pass — an uncapped score otherwise looks
+            # unconditional.
+            for claim_score in scores.values():
+                claim_score.notes.append(
+                    f"Dependency propagation skipped: cycle(s) present: {cycles}"
+                )
+        else:
             for claim_id in graph.topological_order():
                 deps = graph.dependencies(claim_id)
                 if deps:
@@ -91,7 +109,7 @@ class ScoringEngine:
             claim.confidence = scores[claim.id].propagated_score
         return scores
 
-    def _direct(self, claim: Claim) -> ClaimScore:
+    def _direct(self, claim: Claim, as_of: datetime) -> ClaimScore:
         support = [item for item in claim.evidence if item.direction == EvidenceDirection.SUPPORTS]
         contradict = [
             item for item in claim.evidence if item.direction == EvidenceDirection.CONTRADICTS
@@ -116,7 +134,7 @@ class ScoringEngine:
                 for item in contradict
             ),
         )
-        freshness_penalty = self._freshness_penalty(support)
+        freshness_penalty, unparseable_dates = self._freshness_penalty(support, as_of)
 
         direct = (
             0.55 * evidence_score
@@ -136,6 +154,11 @@ class ScoringEngine:
             notes.append("Fewer than two independent supporting sources")
         if freshness_penalty:
             notes.append(f"Freshness penalty {freshness_penalty:.3f}")
+        if unparseable_dates:
+            notes.append(
+                f"{unparseable_dates} supporting evidence item(s) had an "
+                "unparseable observed_at and were ignored for freshness"
+            )
         if contradiction_penalty:
             notes.append(f"Contradiction penalty {contradiction_penalty:.3f}")
         return ClaimScore(
@@ -151,8 +174,10 @@ class ScoringEngine:
         )
 
     @staticmethod
-    def _freshness_penalty(evidence: Sequence[Evidence]) -> float:
+    def _freshness_penalty(evidence: Sequence[Evidence], as_of: datetime) -> tuple[float, int]:
+        """Return (penalty, count of unparseable observed_at values)."""
         observed_dates: list[datetime] = []
+        unparseable = 0
         for item in evidence:
             observed_at = item.observed_at
             if not observed_at:
@@ -160,15 +185,17 @@ class ScoringEngine:
             try:
                 observed_dates.append(datetime.fromisoformat(observed_at.replace("Z", "+00:00")))
             except ValueError:
-                continue
+                unparseable += 1
         if not observed_dates:
-            return 0.0
+            return 0.0, unparseable
         newest = max(observed_dates)
         if newest.tzinfo is None:
             newest = newest.replace(tzinfo=UTC)
-        age_days = (datetime.now(UTC) - newest).days
+        if as_of.tzinfo is None:
+            as_of = as_of.replace(tzinfo=UTC)
+        age_days = (as_of - newest).days
         if age_days <= 90:
-            return 0.0
+            return 0.0, unparseable
         if age_days <= 365:
-            return 0.05
-        return 0.10
+            return 0.05, unparseable
+        return 0.10, unparseable
