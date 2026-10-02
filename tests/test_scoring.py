@@ -129,3 +129,12 @@ def test_unparseable_observed_at_is_noted() -> None:
     )
     score = ScoringEngine().score([claim])["A"]
     assert any("unparseable observed_at" in n for n in score.notes)
+
+
+def test_score_writes_confidence_back_to_claim() -> None:
+    """Contract: ScoringEngine.score overwrites claim.confidence
+    with the propagated score; the returned mapping is authoritative."""
+    claim = Claim(id="A", text="A", confidence=0.123)
+    scores = ScoringEngine().score([claim])
+    assert claim.confidence == scores["A"].propagated_score
+    assert claim.confidence != 0.123

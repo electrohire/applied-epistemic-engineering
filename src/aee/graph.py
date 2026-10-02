@@ -133,8 +133,8 @@ class ClaimGraph:
         lines = ["flowchart TD"]
         for claim_id in sorted(self.claims):
             safe = _safe_id(claim_id)
-            label = self.claims[claim_id].text.replace('"', "'")[:80]
-            lines.append(f'    {safe}["{claim_id}: {label}"]')
+            label = _mermaid_label(f"{claim_id}: {self.claims[claim_id].text}")
+            lines.append(f'    {safe}["{label}"]')
         for claim in self.claims.values():
             for dep in claim.depends_on:
                 if dep in self.claims:
@@ -146,4 +146,35 @@ class ClaimGraph:
 
 
 def _safe_id(value: str) -> str:
-    return "C_" + "".join(char if char.isalnum() else "_" for char in value)
+    """Map a claim id to a mermaid node id, injectively.
+
+    The previous scheme replaced every non-alphanumeric character
+    with "_", so distinct ids collided ("A-B" and "A_B" both became
+    "C_A_B") and their nodes silently merged in the rendered graph.
+    Here ASCII alphanumerics pass through, a literal "_" doubles,
+    and any other character is escaped as "_x<hex>_" — because a
+    single "_" only ever begins an escape or a doubled pair, the
+    encoding is reversible and collision-free.
+    """
+    parts = ["C_"]
+    for char in value:
+        if char.isascii() and char.isalnum():
+            parts.append(char)
+        elif char == "_":
+            parts.append("__")
+        else:
+            parts.append(f"_x{ord(char):x}_")
+    return "".join(parts)
+
+
+def _mermaid_label(value: str) -> str:
+    """Escape free text for a quoted mermaid node label.
+
+    Double quotes would terminate the label early (the old code
+    rewrote them to apostrophes in the text but interpolated the
+    claim id unescaped), and raw newlines break the line-based
+    syntax. Quotes become &quot; entities and line breaks collapse
+    to spaces; the label truncates at 80 characters as before.
+    """
+    flattened = value.replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+    return flattened[:80].replace('"', "&quot;")
