@@ -124,10 +124,10 @@ def test_close_gap(matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path) 
 def test_close_nonexistent_gap(matrix_file: Path, evidence_dir_empty: Path) -> None:
     engine = GapEngine()
     register = engine.generate(matrix_file, evidence_dir_empty)
-    closed_register = engine.close_gap(register, "GAP-999")
-    # No gap was closed, counts unchanged
-    assert closed_register.open_count == 3
-    assert closed_register.closed_count == 0
+    # Previously this silently returned the register unchanged and the
+    # CLI reported success; a typo'd ID must be an error.
+    with pytest.raises(KeyError):
+        engine.close_gap(register, "GAP-999")
 
 
 def test_to_markdown_format(matrix_file: Path, evidence_dir_empty: Path) -> None:
@@ -226,9 +226,75 @@ def test_gap_entry_to_row() -> None:
         evidence="T-API-001 pass",
     )
     row = entry.to_row(False)
-    assert row == "| GAP-001 | API returns 200 | gate-1 | open | T-API-001 pass |"
+    assert row == "| GAP-001 | T-API-001 | API returns 200 | gate-1 | open | T-API-001 pass |"
 
     entry.closed_at = "2026-01-01T00:00:00Z"
     entry.status = "closed"
     row = entry.to_row(True)
-    assert row == "| GAP-001 | API returns 200 | gate-1 | 2026-01-01T00:00:00Z | T-API-001 pass |"
+    assert row == (
+        "| GAP-001 | T-API-001 | API returns 200 | gate-1 | 2026-01-01T00:00:00Z | T-API-001 pass |"
+    )
+
+
+def test_preservation_survives_matrix_row_insertion(
+    matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path
+) -> None:
+    """Regression: preservation keyed on positional GAP IDs moved a
+    closure onto a different test after any matrix edit. Identity is
+    the test_id."""
+    engine = GapEngine()
+    register = engine.generate(matrix_file, evidence_dir_empty)
+    register = engine.close_gap(register, "GAP-002")  # T-API-002
+    gaps_path = tmp_path / "GAPS.md"
+    gaps_path.write_text(register.to_markdown(), encoding="utf-8")
+
+    edited = tmp_path / "matrix-v2.md"
+    edited.write_text(
+        MATRIX_CONTENT.replace(
+            "| T-API-001 |",
+            "| T-NEW-001 | Inserted row | unit | gate-0 |\n| T-API-001 |",
+        ),
+        encoding="utf-8",
+    )
+    register2 = engine.generate(edited, evidence_dir_empty, existing_gaps_path=gaps_path)
+    by_test = {e.test_id: e for e in register2.entries}
+    assert by_test["T-API-002"].status == "closed"
+    assert by_test["T-API-002"].id == "GAP-003"  # renumbered, closure followed the test
+    assert by_test["T-NEW-001"].status == "open"
+
+
+def test_nonclosed_statuses_survive_roundtrip(
+    matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path
+) -> None:
+    """in_progress / blocked must survive load + regenerate; the old
+    parser reset every open row to plain "open"."""
+    engine = GapEngine()
+    register = engine.generate(matrix_file, evidence_dir_empty)
+    register.entries[0].status = "in_progress"
+    register.entries[1].status = "blocked"
+    gaps_path = tmp_path / "GAPS.md"
+    gaps_path.write_text(register.to_markdown(), encoding="utf-8")
+
+    loaded = engine.load_register(gaps_path)
+    by_id = {e.id: e for e in loaded.entries}
+    assert by_id["GAP-001"].status == "in_progress"
+    assert by_id["GAP-002"].status == "blocked"
+    assert by_id["GAP-001"].test_id == "T-API-001"
+
+    register2 = engine.generate(matrix_file, evidence_dir_empty, existing_gaps_path=gaps_path)
+    by_test = {e.test_id: e for e in register2.entries}
+    assert by_test["T-API-001"].status == "in_progress"
+    assert by_test["T-API-002"].status == "blocked"
+
+
+def test_corrupt_evidence_file_warns(
+    matrix_file: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Corrupt evidence must be loud, never indistinguishable from
+    'no evidence'."""
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "broken.json").write_text("{not json", encoding="utf-8")
+    register = GapEngine().generate(matrix_file, evidence)
+    assert register.open_count == 3
+    assert "broken.json" in capsys.readouterr().err

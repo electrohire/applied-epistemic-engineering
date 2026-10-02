@@ -9,6 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
+from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.engine import AEEEngine
 from aee.extract import load_claims
@@ -30,7 +31,7 @@ from aee.model import (
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="aee", description="Applied Epistemic Engineering")
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0.2")
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
     assess = sub.add_parser("assess", help="Assess claims from JSON or Markdown")
@@ -88,20 +89,29 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.command == "assess":
-        return _assess(args)
-    if args.command == "challenge":
-        return _challenge(args)
-    if args.command == "verify-ledger":
-        return _verify_ledger(args)
-    if args.command == "gate":
-        return _gate(args)
-    if args.command == "graph":
-        return _graph(args)
-    if args.command == "gaps":
-        return _gaps(args)
-    if args.command == "demo":
-        return _demo()
+    # Exit-code contract (README): 0 = pass/warn, 1 = soft outcome
+    # (iterate/clarify/gather_evidence), 2 = block/error. Input and
+    # usage errors must land on 2 with a clean message — previously a
+    # malformed input crashed with a traceback and Python's exit 1,
+    # indistinguishable from a legitimate soft verdict in CI.
+    try:
+        if args.command == "assess":
+            return _assess(args)
+        if args.command == "challenge":
+            return _challenge(args)
+        if args.command == "verify-ledger":
+            return _verify_ledger(args)
+        if args.command == "gate":
+            return _gate(args)
+        if args.command == "graph":
+            return _graph(args)
+        if args.command == "gaps":
+            return _gaps(args)
+        if args.command == "demo":
+            return _demo()
+    except (ValueError, KeyError, AttributeError, TypeError, OSError) as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 2
     raise AssertionError("unreachable")
 
 
@@ -200,7 +210,11 @@ def _gaps(args: argparse.Namespace) -> int:
             )
             return 2
         register = engine.load_register(args.output)
-        register = engine.close_gap(register, args.close)
+        try:
+            register = engine.close_gap(register, args.close)
+        except KeyError:
+            print(f"Error: no such gap: {args.close}", file=sys.stderr)
+            return 2
         _write_gaps(register, args.output)
         print(f"Closed {args.close}")
         return 0

@@ -34,3 +34,17 @@
 
 ::: aee.adapters.evaluator.EvaluatorAdapter
 
+## Gap register
+
+::: aee.gaps.GapEngine
+
+::: aee.gaps.GapRegister
+
+::: aee.gaps.GapEntry
+
+## Extraction
+
+::: aee.extract.load_claims
+
+::: aee.extract.extract_markdown_claims
+

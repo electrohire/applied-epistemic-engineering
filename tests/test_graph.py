@@ -48,3 +48,24 @@ def test_mermaid_is_stable() -> None:
     assert value.startswith("flowchart TD")
     assert "REQ-1" in value
     assert "'quoted'" in value
+
+
+def test_cycles_deep_chain_no_recursion_error() -> None:
+    """Regression: cycles() was recursive DFS and raised
+    RecursionError on chains beyond ~1,000 claims."""
+    n = 3000
+    claims = [
+        Claim(id=f"C{i:05d}", text="x", depends_on=[f"C{i + 1:05d}"] if i + 1 < n else [])
+        for i in range(n)
+    ]
+    graph = ClaimGraph(claims)
+    assert graph.cycles() == []
+    assert len(graph.topological_order()) == n
+
+
+def test_cycles_deep_ring_detected() -> None:
+    n = 3000
+    claims = [Claim(id=f"C{i:05d}", text="x", depends_on=[f"C{(i + 1) % n:05d}"]) for i in range(n)]
+    cycles = ClaimGraph(claims).cycles()
+    assert len(cycles) == 1
+    assert len(cycles[0]) == n + 1

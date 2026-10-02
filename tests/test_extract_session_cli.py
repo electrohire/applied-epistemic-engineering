@@ -85,3 +85,44 @@ def test_cli_assess_and_ledger(tmp_path) -> None:
     assert output_path.exists()
     assert evaluator_path.exists()
     assert main(["verify-ledger", "--ledger", str(ledger_path)]) == 0
+
+
+def test_cli_malformed_input_exits_2(tmp_path) -> None:
+    """Exit-code contract: input errors are exit 2 with a clean
+    message, never a traceback with Python's exit 1 (which the README
+    defines as a soft outcome)."""
+    bad = tmp_path / "claims.json"
+    bad.write_text("{not json", encoding="utf-8")
+    assert main(["assess", "--input", str(bad)]) == 2
+    missing = tmp_path / "nope.json"
+    assert main(["assess", "--input", str(missing)]) == 2
+
+
+def test_cli_gaps_close_unknown_id_exits_2(tmp_path) -> None:
+    from aee import GapEngine
+
+    matrix = tmp_path / "matrix.md"
+    matrix.write_text(
+        "| Test ID | Requirements | Layer | Gate |\n"
+        "|---------|-------------|-------|------|\n"
+        "| T-X-001 | Test X | unit | gate-1 |\n",
+        encoding="utf-8",
+    )
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    gaps = tmp_path / "GAPS.md"
+    gaps.write_text(GapEngine().generate(matrix, evidence).to_markdown(), encoding="utf-8")
+    rc = main(
+        [
+            "gaps",
+            "--matrix",
+            str(matrix),
+            "--evidence",
+            str(evidence),
+            "--output",
+            str(gaps),
+            "--close",
+            "GAP-999",
+        ]
+    )
+    assert rc == 2

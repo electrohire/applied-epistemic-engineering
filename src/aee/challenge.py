@@ -89,6 +89,18 @@ class StressTester:
             )
         failures.extend(self._implicit_negation_conflicts(items))
 
+        # Failure IDs must identify one failure instance. The ID is
+        # built from claim + challenge name, so the same challenge
+        # firing against several peers (e.g. three declared conflicts)
+        # produced identical IDs, and recovery proposals / evaluator
+        # findings keyed by ID collided. Suffix repeats in encounter
+        # order; the first instance keeps the bare ID.
+        counts: Counter[str] = Counter()
+        for failure in failures:
+            counts[failure.id] += 1
+            if counts[failure.id] > 1:
+                failure.id = f"{failure.id}-{counts[failure.id]}"
+
         by_claim: dict[str, list[FailureMode]] = {}
         for failure in failures:
             by_claim.setdefault(failure.claim_id, []).append(failure)
