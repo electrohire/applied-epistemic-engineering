@@ -192,3 +192,17 @@ def test_challenge_is_deterministic(tmp_path: Path) -> None:
     first.pop("created_at", None)
     second.pop("created_at", None)
     assert first == second
+
+
+def test_failure_ids_unique_across_multiple_conflicts() -> None:
+    """Regression: the same challenge firing against several peers
+    produced identical failure IDs."""
+    claims = [
+        Claim(id="A", text="Feature is enabled", boundary=["x"], conflicts_with=["B", "C", "D"]),
+        Claim(id="B", text="Feature is disabled", boundary=["x"]),
+        Claim(id="C", text="Feature is off", boundary=["x"]),
+        Claim(id="D", text="Feature is absent", boundary=["x"]),
+    ]
+    failures = StressTester().run(claims)
+    ids = [f.id for f in failures]
+    assert len(ids) == len(set(ids))

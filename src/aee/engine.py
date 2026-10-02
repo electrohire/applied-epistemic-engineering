@@ -78,10 +78,11 @@ class AEEEngine:
         project: str = "project",
         phase: str = "after_plan",
         metadata: dict[str, Any] | None = None,
+        as_of: datetime | None = None,
     ) -> Assessment:
         items = list(claims)
         failures = self.stress_tester.run(items)
-        scores = self.scoring_engine.score(items)
+        scores = self.scoring_engine.score(items, as_of=as_of)
         recoveries = self.recovery_operator.propose(failures)
         outcome = self._outcome(items, scores)
         below = sum(score.propagated_score < self.threshold for score in scores.values())

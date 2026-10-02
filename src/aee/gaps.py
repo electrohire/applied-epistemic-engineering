@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -23,15 +24,21 @@ class GapEntry:
     test_id: str
     requirement: str
     gate: str
-    status: str  # "open" | "closed"
+    status: str  # "open" | "in_progress" | "blocked" | "closed"
     evidence: str = ""
     closed_at: str | None = None
 
     def to_row(self, is_closed: bool) -> str:
         if is_closed:
             closed = self.closed_at or ""
-            return f"| {self.id} | {self.requirement} | {self.gate} | {closed} | {self.evidence} |"
-        return f"| {self.id} | {self.requirement} | {self.gate} | {self.status} | {self.evidence} |"
+            return (
+                f"| {self.id} | {self.test_id} | {self.requirement} | "
+                f"{self.gate} | {closed} | {self.evidence} |"
+            )
+        return (
+            f"| {self.id} | {self.test_id} | {self.requirement} | "
+            f"{self.gate} | {self.status} | {self.evidence} |"
+        )
 
 
 @dataclass(slots=True)
@@ -61,11 +68,12 @@ class GapRegister:
 
     def to_markdown(self) -> str:
         open_rows = (
-            "\n".join(e.to_row(False) for e in self.open_gaps) or "| - | - | No open gaps | - | - |"
+            "\n".join(e.to_row(False) for e in self.open_gaps)
+            or "| - | - | - | No open gaps | - | - |"
         )
         closed_rows = (
             "\n".join(e.to_row(True) for e in self.closed_gaps)
-            or "| - | - | No closed gaps | - | - |"
+            or "| - | - | - | No closed gaps | - | - |"
         )
         return (
             f"# Gap Register\n"
@@ -76,14 +84,14 @@ class GapRegister:
             f"\n"
             f"## Open Gaps\n"
             f"\n"
-            f"| ID | Requirement | Gap | Status | Evidence Needed |\n"
-            f"|----|-------------|-----|--------|-----------------|\n"
+            f"| ID | Test | Requirement | Gap | Status | Evidence Needed |\n"
+            f"|----|------|-------------|-----|--------|-----------------|\n"
             f"{open_rows}\n"
             f"\n"
             f"## Closed Gaps\n"
             f"\n"
-            f"| ID | Requirement | Gap | Closed | Evidence |\n"
-            f"|----|-------------|-----|--------|----------|\n"
+            f"| ID | Test | Requirement | Gap | Closed | Evidence |\n"
+            f"|----|------|-------------|-----|--------|----------|\n"
             f"{closed_rows}\n"
             f"\n"
             f"## Notes\n"
@@ -149,9 +157,14 @@ class GapEngine:
                         closed_at=datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     )
                 )
-            elif gap_id in existing_gaps:
-                # Preserve existing status
-                existing = existing_gaps[gap_id]
+            elif test_id in existing_gaps or gap_id in existing_gaps:
+                # Preserve existing status. Identity is the test_id,
+                # which is stable across matrix edits; the positional
+                # gap_id key is only a fallback for registers written
+                # before the Test column existed. Keying preservation
+                # on gap_id alone silently moved closures onto
+                # different tests after any matrix insert/delete.
+                existing = existing_gaps.get(test_id) or existing_gaps[gap_id]
                 entries.append(
                     GapEntry(
                         id=gap_id,
@@ -191,7 +204,14 @@ class GapEngine:
 
         Returns:
             A new GapRegister with the gap marked closed.
+
+        Raises:
+            KeyError: If no gap with that ID exists. (Previously this
+                silently returned the register unchanged and the CLI
+                reported success for a typo'd ID.)
         """
+        if all(entry.id != gap_id for entry in register.entries):
+            raise KeyError(f"no such gap: {gap_id}")
         closed_at = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
         new_entries = []
         for entry in register.entries:
@@ -277,23 +297,43 @@ class GapEngine:
             if match:
                 gap_id = match.group(1)
                 cells = [p.strip() for p in line.split("|")]
-                # cells: ['', 'ID', 'Req', 'Gap', 'Status/Closed', 'Evidence', '']
-                if len(cells) >= 6:
-                    status = "closed" if in_closed else "open"
-                    closed_at = None
-                    if in_closed:
-                        closed_at = cells[4] if cells[4] and cells[4] != "-" else None
-                    entries.append(
-                        GapEntry(
-                            id=gap_id,
-                            test_id="",
-                            requirement=cells[2],
-                            gate=cells[3],
-                            status=status,
-                            evidence=cells[5] if cells[5] != "-" else "",
-                            closed_at=closed_at,
-                        )
+                # Two row shapes exist. Current (with Test column):
+                # ['', ID, Test, Req, Gap, Status/Closed, Evidence, '']
+                # Legacy (pre-1.0.3, no Test column):
+                # ['', ID, Req, Gap, Status/Closed, Evidence, '']
+                if len(cells) >= 8:
+                    test_id = cells[2]
+                    requirement, gate = cells[3], cells[4]
+                    status_cell, evidence = cells[5], cells[6]
+                elif len(cells) >= 7:
+                    test_id = ""
+                    requirement, gate = cells[2], cells[3]
+                    status_cell, evidence = cells[4], cells[5]
+                else:
+                    continue
+                if in_closed:
+                    status = "closed"
+                    closed_at = status_cell if status_cell and status_cell != "-" else None
+                else:
+                    # The documented statuses must survive a
+                    # load/regenerate cycle; previously every open
+                    # row was re-read as plain "open", silently
+                    # resetting in_progress / blocked.
+                    status = (
+                        status_cell if status_cell in ("open", "in_progress", "blocked") else "open"
                     )
+                    closed_at = None
+                entries.append(
+                    GapEntry(
+                        id=gap_id,
+                        test_id=test_id,
+                        requirement=requirement,
+                        gate=gate,
+                        status=status,
+                        evidence=evidence if evidence != "-" else "",
+                        closed_at=closed_at,
+                    )
+                )
 
         return GapRegister(
             entries=entries,
@@ -315,7 +355,13 @@ class GapEngine:
                 continue
             try:
                 data = json.loads(fpath.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError):
+            except (json.JSONDecodeError, OSError) as exc:
+                # Loud, not silent: corrupt evidence must never be
+                # indistinguishable from "no evidence".
+                print(
+                    f"warning: skipping unreadable evidence file {fpath}: {exc}",
+                    file=sys.stderr,
+                )
                 continue
             if not isinstance(data, dict):
                 continue
@@ -332,7 +378,9 @@ class GapEngine:
         return passing
 
     def _load_existing_gaps(self, gaps_path: Path | None) -> dict[str, dict[str, Any]]:
-        """Load existing gap entries keyed by gap ID."""
+        """Load existing gap entries keyed by test_id where the register
+        carries one (stable across matrix edits), else by gap ID
+        (legacy registers written before the Test column existed)."""
         if gaps_path is None or not gaps_path.is_file():
             return {}
 
@@ -343,7 +391,7 @@ class GapEngine:
 
         result: dict[str, dict[str, Any]] = {}
         for entry in register.entries:
-            result[entry.id] = {
+            result[entry.test_id or entry.id] = {
                 "status": entry.status,
                 "evidence": entry.evidence,
                 "closed_at": entry.closed_at,
