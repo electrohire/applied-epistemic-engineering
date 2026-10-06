@@ -25,10 +25,11 @@ from aee.model import (
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
 from aee.reliability import ReliabilityTable, SourceRecord
+from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queue
 from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 __all__ = [
     "AEEEngine",
@@ -56,6 +57,8 @@ __all__ = [
     "RecoveryProposal",
     "RecoveryStrategy",
     "ReliabilityTable",
+    "ReviewItem",
+    "ReviewQueue",
     "ScoringEngine",
     "Severity",
     "SourceQuality",
@@ -63,4 +66,6 @@ __all__ = [
     "StressTester",
     "Uncertainty",
     "Verdict",
+    "VerdictChange",
+    "build_review_queue",
 ]
