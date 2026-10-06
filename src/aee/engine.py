@@ -11,6 +11,7 @@ from aee.challenge import StressTester
 from aee.model import Claim, Severity
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
+from aee.reliability import ReliabilityTable
 from aee.scoring import ClaimScore, ScoringEngine
 
 _SEVERITY_ORDER = {
@@ -70,13 +71,16 @@ class AEEEngine:
         self,
         threshold: float = 0.70,
         policy: AssessmentPolicy | None = None,
+        reliability: ReliabilityTable | None = None,
+        *,
+        reliability_alpha: float = 0.5,
     ) -> None:
         if not 0.0 <= threshold <= 1.0:
             raise ValueError("threshold must be between 0 and 1")
         self.threshold = threshold
         self.policy = policy
         self.stress_tester = StressTester()
-        self.scoring_engine = ScoringEngine()
+        self.scoring_engine = ScoringEngine(reliability, reliability_alpha=reliability_alpha)
         self.recovery_operator = RecoveryOperator()
 
     def assess(

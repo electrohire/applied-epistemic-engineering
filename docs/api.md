@@ -18,6 +18,12 @@
 
 ::: aee.policy.evaluate_policy
 
+## Reliability
+
+::: aee.reliability.ReliabilityTable
+
+::: aee.reliability.SourceRecord
+
 ## Model
 
 ::: aee.model.Claim

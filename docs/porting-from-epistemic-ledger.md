@@ -35,18 +35,24 @@ above scores without mutating them:
 With a policy attached, an assessment containing an ABSTAIN or
 CHALLENGE verdict cannot report `pass`.
 
-## Planned
-
-### Per-source reliability (learned entrenchment)
+### Per-source reliability — `aee.reliability` (1.2.0)
 
 The ledger learns each claim's entrenchment from outcomes
 (1 − Brier of the score live at each outcome's timestamp) instead
-of trusting static tiers — and its OVERRIDE-CAL-01 study showed the
-loop absorbs even a reviewer who is wrong 20% of the time. The
-analog here: per-`source_id` reliability estimated from resolved
-claims, modulating the static `SourceQuality` prior in scoring.
-Ported as an opt-in scoring input, with the static weights as the
-prior for unmeasured sources.
+of trusting static tiers — and its OVERRIDE-CAL-01 study showed
+the loop absorbs even a reviewer who is wrong 20% of the time.
+The analog here: a `ReliabilityTable` records, per `source_id`,
+the propagated score of each resolved claim the source supported
+and its outcome; measured reliability is 1 − Brier over those
+observations. In scoring, a supporting source's static
+`SourceQuality` weight blends toward its measurement by
+`reliability_alpha` (default 0.5) once it reaches
+`min_observations` (default 3); below that, and for contradicting
+evidence, the static weight stands. Every substitution is noted
+on the claim score. Opt-in throughout: without a table, scoring
+is bit-identical to earlier releases.
+
+## Planned
 
 ### Materiality review queue
 
