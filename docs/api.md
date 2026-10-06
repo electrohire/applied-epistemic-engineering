@@ -24,6 +24,12 @@
 
 ::: aee.reliability.SourceRecord
 
+## Review queue
+
+::: aee.review.build_review_queue
+
+::: aee.review.ReviewQueue
+
 ## Model
 
 ::: aee.model.Claim

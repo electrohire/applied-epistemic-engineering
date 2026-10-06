@@ -52,19 +52,20 @@ evidence, the static weight stands. Every substitution is noted
 on the claim score. Opt-in throughout: without a table, scoring
 is bit-identical to earlier releases.
 
-## Planned
-
-### Materiality review queue
+### Materiality review queue — `aee.review` (1.3.0)
 
 The ledger's revisit loop flags dependents for review only when
 their score moves by at least a materiality threshold (default
 0.05, validated by its TRIGGER-STRESS-01 epsilon sweep: recall
 0.960 at epsilon 0.005, with flag volume — mean ≈ 17–37 per event —
-the binding cost). The analog here: diffing two assessments of the
-same claim set and emitting a bounded review list of claims whose
-propagated score moved ≥ materiality, largest first, with an
-optional top-k budget. In the Spec Kit flow this turns a
+the binding cost). The analog here: `build_review_queue` diffs
+two assessments of the same claim set and emits the bounded list
+a reviewer owes attention — score moves ≥ materiality, largest
+first, with an optional top-k budget — plus policy verdict flips
+and added/removed claims. In the Spec Kit flow this turns a
 phase-to-phase re-read into a bounded review queue.
+
+## Standing rule
 
 ### Calibrated threshold provenance
 

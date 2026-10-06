@@ -3,6 +3,12 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-10-06
+
+### Added
+
+- Materiality review queue (`aee.review`), slice 3 of the epistemic-ledger port: `build_review_queue(previous, current, materiality=0.05, limit=None)` diffs two assessments (or two score mappings) and returns a `ReviewQueue` — claims whose propagated score moved by at least the materiality threshold (largest first, optional top-k budget), policy verdict flips, and added/removed claim ids, each item carrying its before/after scores and confidence bands. The 0.05 default is the ledger's validated hysteresis point (CHURN-01 / TRIGGER-STRESS-01). This completes the three ported mechanisms in `docs/porting-from-epistemic-ledger.md`.
+
 ## [1.2.0] - 2026-10-06
 
 ### Added
