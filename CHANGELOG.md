@@ -3,6 +3,13 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-10-06
+
+### Added
+
+- Assessment policy gates (`aee.policy`), ported from the epistemic-ledger program's measured production rules: `AEEEngine(policy=AssessmentPolicy())` attaches a per-claim verdict (ACCEPT / CHALLENGE / ABSTAIN, with reasons) to every assessment. Corroboration gate: fewer than `min_independent_sources` (default 2) independent supporting sources → CHALLENGE. Forced abstention: no supporting evidence, or support consisting solely of model self-attestation → ABSTAIN. Contested gate: contradiction penalty ≥ `contested_penalty_threshold` (default 0.25) → CHALLENGE at best. An assessment containing an ABSTAIN verdict reports outcome `abstain` instead of `pass`; one containing a CHALLENGE verdict reports `iterate` instead of `pass`. Verdicts layer above scores and never mutate them, so scoring stays replayable. Without a policy, behavior is unchanged; `Assessment.to_dict()` now always includes a `verdicts` object (empty when no policy is attached).
+- `docs/porting-from-epistemic-ledger.md`: the transfer map — which measured mechanisms from AXIOVEX/epistemic-ledger are ported (policy gates now; per-source reliability and the materiality review queue planned), and which are deliberately not (LLM extraction, bitemporal event sourcing, the measurement harness).
+
 ## [1.0.4] - 2026-10-02
 
 ### Fixed

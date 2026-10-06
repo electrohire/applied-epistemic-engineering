@@ -10,6 +10,14 @@
 
 ::: aee.engine.Assessment
 
+## Policy
+
+::: aee.policy.AssessmentPolicy
+
+::: aee.policy.ClaimVerdict
+
+::: aee.policy.evaluate_policy
+
 ## Model
 
 ::: aee.model.Claim

@@ -22,21 +22,24 @@ from aee.model import (
     SourceQuality,
     Uncertainty,
 )
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
 from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
-__version__ = "1.0.4"
+__version__ = "1.1.0"
 
 __all__ = [
     "AEEEngine",
     "AEESession",
     "Assessment",
+    "AssessmentPolicy",
     "Claim",
     "ClaimGraph",
     "ClaimKind",
     "ClaimScore",
     "ClaimStatus",
+    "ClaimVerdict",
     "ConfidenceBand",
     "EvaluatorAdapter",
     "Evidence",
@@ -56,4 +59,5 @@ __all__ = [
     "SourceQuality",
     "StressTester",
     "Uncertainty",
+    "Verdict",
 ]

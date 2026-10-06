@@ -30,6 +30,7 @@ nav:
   - Foundations: concepts.md
   - Scoring: scoring.md
   - Ledger: ledger.md
+  - Porting from the Epistemic Ledger: porting-from-epistemic-ledger.md
   - Spec Kit Integration: spec-kit.md
   - Migration guide: migration.md
   - Python API: api.md
