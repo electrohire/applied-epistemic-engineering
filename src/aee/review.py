@@ -29,13 +29,27 @@ ledger's follow-up lesson from hub facts flooding the queue.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol
 
 from aee.model import ConfidenceBand
 
 if TYPE_CHECKING:
-    from aee.engine import Assessment
+    from aee.policy import ClaimVerdict
     from aee.scoring import ClaimScore
+
+
+class AssessmentView(Protocol):
+    """Anything carrying score and verdict mappings: an Assessment
+    qualifies structurally, as does a view rebuilt from a
+    serialized assessment (see the CLI's review subcommand).
+    Members are read-only properties so frozen views qualify."""
+
+    @property
+    def scores(self) -> dict[str, ClaimScore]: ...
+
+    @property
+    def verdicts(self) -> dict[str, ClaimVerdict]: ...
+
 
 DEFAULT_MATERIALITY = 0.05
 
@@ -92,18 +106,20 @@ class ReviewQueue:
         }
 
 
-def _scores(source: Assessment | dict[str, ClaimScore]) -> dict[str, ClaimScore]:
+def _scores(
+    source: AssessmentView | dict[str, ClaimScore],
+) -> dict[str, ClaimScore]:
     return source.scores if hasattr(source, "scores") else source
 
 
-def _verdicts(source: Assessment | dict[str, ClaimScore]) -> dict[str, str]:
+def _verdicts(source: AssessmentView | dict[str, ClaimScore]) -> dict[str, str]:
     verdicts = getattr(source, "verdicts", None) or {}
     return {key: verdict.verdict.value for key, verdict in verdicts.items()}
 
 
 def build_review_queue(
-    previous: Assessment | dict[str, ClaimScore],
-    current: Assessment | dict[str, ClaimScore],
+    previous: AssessmentView | dict[str, ClaimScore],
+    current: AssessmentView | dict[str, ClaimScore],
     *,
     materiality: float = DEFAULT_MATERIALITY,
     limit: int | None = None,

@@ -94,10 +94,15 @@ aee verify-ledger --ledger .aee/epistemic-ledger.jsonl
 aee graph --input claims.json --output claim-graph.mmd
 aee gate --input assessment.json
 aee demo   # self-contained demonstration assessment
+
+# With the epistemic-ledger policy gates and measured source reliability:
+aee assess --input claims.json --policy --reliability reliability.json
+# Diff two assessments into a materiality-filtered review queue:
+aee review --previous assessment-t1.json --current assessment-t2.json
 ```
 
 Exit codes are CI-friendly: `0` for pass/warn, `1` for iteration/clarification/evidence
-collection, and `2` for a hard block or invalid ledger.
+collection/abstention, and `2` for a hard block or invalid ledger.
 
 ## Architecture
 

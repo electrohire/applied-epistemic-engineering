@@ -3,6 +3,16 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-10-06
+
+### Added
+
+- CLI wiring for the ported mechanisms (the Spec Kit extension drives the engine through this CLI): `aee assess --policy` attaches the policy gates, with `--min-independent-sources` and `--contested-threshold` overrides; `aee assess --reliability <table.json>` (plus `--reliability-alpha`) blends measured per-source reliability into scoring; new `aee review --previous A.json --current B.json [--materiality] [--limit] [--output]` subcommand emits the materiality review queue for two serialized assessments.
+
+### Fixed
+
+- The `abstain` assessment outcome (introduced with the policy gates in 1.1.0) now maps to the soft exit code 1 like the other non-pass verdicts, instead of falling through to 2, which the exit-code contract reserves for hard blocks and errors.
+
 ## [1.3.0] - 2026-10-06
 
 ### Added

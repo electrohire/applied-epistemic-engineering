@@ -6,8 +6,9 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 
 from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
@@ -27,6 +28,10 @@ from aee.model import (
     SourceQuality,
     Uncertainty,
 )
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
+from aee.reliability import ReliabilityTable
+from aee.review import build_review_queue
+from aee.scoring import ClaimScore
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -45,6 +50,21 @@ def build_parser() -> argparse.ArgumentParser:
     assess.add_argument("--model")
     assess.add_argument("--ledger", type=Path)
     assess.add_argument("--actor", default="aee")
+    assess.add_argument(
+        "--policy",
+        action="store_true",
+        help="Attach the assessment policy gates (aee.policy): per-claim "
+        "ACCEPT / CHALLENGE / ABSTAIN verdicts in the output",
+    )
+    assess.add_argument("--min-independent-sources", type=int, default=2)
+    assess.add_argument("--contested-threshold", type=float, default=0.25)
+    assess.add_argument(
+        "--reliability",
+        type=Path,
+        help="ReliabilityTable JSON (aee.reliability): measured per-source "
+        "reliability blends into scoring",
+    )
+    assess.add_argument("--reliability-alpha", type=float, default=0.5)
 
     challenge = sub.add_parser(
         "challenge", help="Emit a deterministic failure-mode projection of an assessment"
@@ -83,6 +103,13 @@ def build_parser() -> argparse.ArgumentParser:
         "--existing", type=Path, help="Path to existing GAPS.md to preserve closed gaps"
     )
 
+    review = sub.add_parser("review", help="Diff two assessment JSON files into a review queue")
+    review.add_argument("--previous", type=Path, required=True)
+    review.add_argument("--current", type=Path, required=True)
+    review.add_argument("--materiality", type=float, default=0.05)
+    review.add_argument("--limit", type=int)
+    review.add_argument("--output", type=Path)
+
     sub.add_parser("demo", help="Run a self-contained AEE demonstration")
     return parser
 
@@ -90,7 +117,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     # Exit-code contract (README): 0 = pass/warn, 1 = soft outcome
-    # (iterate/clarify/gather_evidence), 2 = block/error. Input and
+    # (iterate/clarify/gather_evidence/abstain), 2 = block/error. Input and
     # usage errors must land on 2 with a clean message — previously a
     # malformed input crashed with a traceback and Python's exit 1,
     # indistinguishable from a legitimate soft verdict in CI.
@@ -107,6 +134,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _graph(args)
         if args.command == "gaps":
             return _gaps(args)
+        if args.command == "review":
+            return _review(args)
         if args.command == "demo":
             return _demo()
     except (ValueError, KeyError, AttributeError, TypeError, OSError) as exc:
@@ -117,7 +146,24 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 def _assess(args: argparse.Namespace) -> int:
     claims = load_claims(args.input)
-    assessment = AEEEngine(args.threshold).assess(
+    policy = None
+    if args.policy:
+        policy = AssessmentPolicy(
+            min_independent_sources=args.min_independent_sources,
+            contested_penalty_threshold=args.contested_threshold,
+        )
+    reliability = None
+    if args.reliability:
+        reliability = ReliabilityTable.from_dict(
+            json.loads(args.reliability.read_text(encoding="utf-8"))
+        )
+    engine = AEEEngine(
+        args.threshold,
+        policy=policy,
+        reliability=reliability,
+        reliability_alpha=args.reliability_alpha,
+    )
+    assessment = engine.assess(
         claims,
         project=args.project,
         phase=args.phase,
@@ -271,6 +317,54 @@ def _demo() -> int:
     return _exit_code(result.outcome)
 
 
+def _score_view(value: dict[str, Any]) -> ClaimScore:
+    components = value.get("components", {})
+    return ClaimScore(
+        claim_id=str(value.get("claim_id", "")),
+        direct_score=float(value.get("direct_score", 0.0)),
+        propagated_score=float(value.get("propagated_score", 0.0)),
+        evidence_score=float(components.get("evidence", 0.0)),
+        independence_score=float(components.get("independence", 0.0)),
+        falsifiability_score=float(components.get("falsifiability", 0.0)),
+        boundary_score=float(components.get("boundary", 0.0)),
+        contradiction_penalty=float(components.get("contradiction_penalty", 0.0)),
+        notes=[str(note) for note in value.get("notes", [])],
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class _AssessmentView:
+    scores: dict[str, ClaimScore]
+    verdicts: dict[str, ClaimVerdict]
+
+
+def _assessment_view(path: Path) -> _AssessmentView:
+    """Rebuild the score/verdict views build_review_queue consumes
+    from a serialized assessment (Assessment.to_dict output)."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    scores = {claim_id: _score_view(score) for claim_id, score in data.get("scores", {}).items()}
+    verdicts = {
+        claim_id: ClaimVerdict(
+            claim_id,
+            Verdict(str(verdict["verdict"])),
+            [str(reason) for reason in verdict.get("reasons", [])],
+        )
+        for claim_id, verdict in data.get("verdicts", {}).items()
+    }
+    return _AssessmentView(scores=scores, verdicts=verdicts)
+
+
+def _review(args: argparse.Namespace) -> int:
+    queue = build_review_queue(
+        _assessment_view(args.previous),
+        _assessment_view(args.current),
+        materiality=args.materiality,
+        limit=args.limit,
+    )
+    _write_or_print(queue.to_dict(), args.output)
+    return 0
+
+
 def _write_or_print(value: dict[str, object], output: Path | None) -> None:
     if output:
         _write_json(value, output)
@@ -286,7 +380,7 @@ def _write_json(value: dict[str, object], output: Path) -> None:
 def _exit_code(outcome: str) -> int:
     if outcome in {"pass", "warn"}:
         return 0
-    if outcome in {"iterate", "clarify", "gather_evidence"}:
+    if outcome in {"iterate", "clarify", "gather_evidence", "abstain"}:
         return 1
     return 2
 
