@@ -29,7 +29,7 @@ from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queu
 from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 __all__ = [
     "AEEEngine",
