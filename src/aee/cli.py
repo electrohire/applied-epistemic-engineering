@@ -6,9 +6,9 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
@@ -317,7 +317,7 @@ def _demo() -> int:
     return _exit_code(result.outcome)
 
 
-def _score_view(value: dict) -> ClaimScore:
+def _score_view(value: dict[str, Any]) -> ClaimScore:
     components = value.get("components", {})
     return ClaimScore(
         claim_id=str(value.get("claim_id", "")),
@@ -332,7 +332,13 @@ def _score_view(value: dict) -> ClaimScore:
     )
 
 
-def _assessment_view(path: Path) -> SimpleNamespace:
+@dataclass(frozen=True, slots=True)
+class _AssessmentView:
+    scores: dict[str, ClaimScore]
+    verdicts: dict[str, ClaimVerdict]
+
+
+def _assessment_view(path: Path) -> _AssessmentView:
     """Rebuild the score/verdict views build_review_queue consumes
     from a serialized assessment (Assessment.to_dict output)."""
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -345,7 +351,7 @@ def _assessment_view(path: Path) -> SimpleNamespace:
         )
         for claim_id, verdict in data.get("verdicts", {}).items()
     }
-    return SimpleNamespace(scores=scores, verdicts=verdicts)
+    return _AssessmentView(scores=scores, verdicts=verdicts)
 
 
 def _review(args: argparse.Namespace) -> int:
