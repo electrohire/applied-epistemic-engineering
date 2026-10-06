@@ -15,6 +15,7 @@ from aee.model import (
     EvidenceKind,
     SourceQuality,
 )
+from aee.reliability import ReliabilityTable, blended_weight
 
 _SOURCE_WEIGHTS = {
     SourceQuality.TEST: 1.0,
@@ -69,7 +70,26 @@ class ClaimScore:
 
 
 class ScoringEngine:
-    """Score claims using published components, never hidden model confidence."""
+    """Score claims using published components, never hidden model confidence.
+
+    With a ``reliability`` table attached, a supporting source's
+    static quality weight blends toward its measured reliability
+    (``1 - Brier`` over resolved claims it supported; see
+    aee.reliability) by ``reliability_alpha``. Every substitution
+    is recorded on the claim score's notes. Without a table the
+    scoring is unchanged.
+    """
+
+    def __init__(
+        self,
+        reliability: ReliabilityTable | None = None,
+        *,
+        reliability_alpha: float = 0.5,
+    ) -> None:
+        if not 0.0 <= reliability_alpha <= 1.0:
+            raise ValueError("reliability_alpha must be between 0 and 1")
+        self.reliability = reliability
+        self.reliability_alpha = reliability_alpha
 
     def score(
         self, claims: Iterable[Claim], *, as_of: datetime | None = None
@@ -121,10 +141,24 @@ class ScoringEngine:
         contradict = [
             item for item in claim.evidence if item.direction == EvidenceDirection.CONTRADICTS
         ]
-        weighted = [
-            max(0.0, _KIND_WEIGHTS[item.kind]) * _SOURCE_WEIGHTS[item.source_quality]
-            for item in support
-        ]
+        weighted = []
+        reliability_notes: list[str] = []
+        noted_sources: set[str] = set()
+        for item in support:
+            static = _SOURCE_WEIGHTS[item.source_quality]
+            weight, measured = blended_weight(
+                item, static, self.reliability, self.reliability_alpha
+            )
+            if measured is not None:
+                source_id = item.source_id or item.ref
+                if source_id not in noted_sources:
+                    noted_sources.add(source_id)
+                    reliability_notes.append(
+                        f"Source {source_id} weight {static:.2f} -> "
+                        f"{weight:.2f} (measured reliability "
+                        f"{measured:.3f})"
+                    )
+            weighted.append(max(0.0, _KIND_WEIGHTS[item.kind]) * weight)
         evidence_score = 1.0
         for value in weighted:
             evidence_score *= 1.0 - value
@@ -168,6 +202,7 @@ class ScoringEngine:
             )
         if contradiction_penalty:
             notes.append(f"Contradiction penalty {contradiction_penalty:.3f}")
+        notes.extend(reliability_notes)
         return ClaimScore(
             claim_id=claim.id,
             direct_score=direct,

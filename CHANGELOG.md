@@ -3,6 +3,12 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-10-06
+
+### Added
+
+- Per-source reliability (`aee.reliability`), slice 2 of the epistemic-ledger port: a `ReliabilityTable` records resolved outcomes per `source_id` (the propagated score live at assessment time plus the claim's eventual truth) and derives measured reliability as 1 − Brier. `ScoringEngine(reliability=table, reliability_alpha=0.5)` — also forwarded by `AEEEngine` — blends a supporting source's static `SourceQuality` weight toward its measured reliability once the source reaches `min_observations` (default 3); below that the prior stands, contradicting evidence always keeps its static weight, and every substitution is written onto the claim score's notes. `ReliabilityTable.observe_claim` credits a resolved claim to each distinct supporting source. Without a table, scoring is bit-identical to 1.1.0. The table serializes with `to_dict`/`from_dict`.
+
 ## [1.1.0] - 2026-10-06
 
 ### Added
