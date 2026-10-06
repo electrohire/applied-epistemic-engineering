@@ -34,7 +34,7 @@ weights are inspectable, never silent.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from aee.model import Claim, Evidence, EvidenceDirection
 
@@ -67,7 +67,7 @@ class SourceRecord:
         }
 
     @classmethod
-    def from_dict(cls, value: dict) -> SourceRecord:
+    def from_dict(cls, value: dict[str, Any]) -> SourceRecord:
         return cls(
             observations=int(value.get("observations", 0)),
             brier_sum=float(value.get("brier_sum", 0.0)),
@@ -134,7 +134,7 @@ class ReliabilityTable:
         }
 
     @classmethod
-    def from_dict(cls, value: dict) -> ReliabilityTable:
+    def from_dict(cls, value: dict[str, Any]) -> ReliabilityTable:
         return cls(
             min_observations=int(value.get("min_observations", 3)),
             records={
