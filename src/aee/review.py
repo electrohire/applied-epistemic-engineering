@@ -41,10 +41,14 @@ if TYPE_CHECKING:
 class AssessmentView(Protocol):
     """Anything carrying score and verdict mappings: an Assessment
     qualifies structurally, as does a view rebuilt from a
-    serialized assessment (see the CLI's review subcommand)."""
+    serialized assessment (see the CLI's review subcommand).
+    Members are read-only properties so frozen views qualify."""
 
-    scores: dict[str, ClaimScore]
-    verdicts: dict[str, ClaimVerdict]
+    @property
+    def scores(self) -> dict[str, ClaimScore]: ...
+
+    @property
+    def verdicts(self) -> dict[str, ClaimVerdict]: ...
 
 
 DEFAULT_MATERIALITY = 0.05
