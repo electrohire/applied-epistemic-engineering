@@ -9,6 +9,7 @@ from typing import Any
 
 from aee.challenge import StressTester
 from aee.model import Claim, Severity
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.scoring import ClaimScore, ScoringEngine
 
@@ -33,6 +34,7 @@ class Assessment:
     outcome: str
     summary: str
     created_at: str
+    verdicts: dict[str, ClaimVerdict] = field(default_factory=dict)
     methodology_version: str = "1.0"
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -55,6 +57,7 @@ class Assessment:
             "created_at": self.created_at,
             "claims": [claim.to_dict() for claim in self.claims],
             "scores": {key: score.to_dict() for key, score in self.scores.items()},
+            "verdicts": {key: verdict.to_dict() for key, verdict in self.verdicts.items()},
             "recoveries": [item.to_dict() for item in self.recoveries],
             "metadata": dict(self.metadata),
         }
@@ -63,10 +66,15 @@ class Assessment:
 class AEEEngine:
     """Run stress testing, scoring, and recovery in a deterministic order."""
 
-    def __init__(self, threshold: float = 0.70) -> None:
+    def __init__(
+        self,
+        threshold: float = 0.70,
+        policy: AssessmentPolicy | None = None,
+    ) -> None:
         if not 0.0 <= threshold <= 1.0:
             raise ValueError("threshold must be between 0 and 1")
         self.threshold = threshold
+        self.policy = policy
         self.stress_tester = StressTester()
         self.scoring_engine = ScoringEngine()
         self.recovery_operator = RecoveryOperator()
@@ -85,17 +93,46 @@ class AEEEngine:
         scores = self.scoring_engine.score(items, as_of=as_of)
         recoveries = self.recovery_operator.propose(failures)
         outcome = self._outcome(items, scores)
+        verdicts: dict[str, ClaimVerdict] = {}
+        if self.policy is not None:
+            verdicts = {
+                claim.id: evaluate_policy(
+                    claim, scores[claim.id], self.policy, threshold=self.threshold
+                )
+                for claim in items
+            }
+            # The gates bound the outcome from above only: they can
+            # demote a pass, never promote a failure-driven outcome.
+            if outcome == "pass" and any(
+                verdict.verdict == Verdict.ABSTAIN for verdict in verdicts.values()
+            ):
+                outcome = "abstain"
+            elif outcome == "pass" and any(
+                verdict.verdict == Verdict.CHALLENGE for verdict in verdicts.values()
+            ):
+                outcome = "iterate"
         below = sum(score.propagated_score < self.threshold for score in scores.values())
         summary = (
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
             f"{below} claim(s) below the {self.threshold:.2f} confidence threshold."
         )
+        if verdicts:
+            counts = {
+                verdict: sum(1 for item in verdicts.values() if item.verdict == verdict)
+                for verdict in Verdict
+            }
+            summary += (
+                f" Policy verdicts: {counts[Verdict.ACCEPT]} accept, "
+                f"{counts[Verdict.CHALLENGE]} challenge, "
+                f"{counts[Verdict.ABSTAIN]} abstain."
+            )
         return Assessment(
             project=project,
             phase=phase,
             claims=items,
             scores=scores,
             recoveries=recoveries,
+            verdicts=verdicts,
             outcome=outcome,
             summary=summary,
             created_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
