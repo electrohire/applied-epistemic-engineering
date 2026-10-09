@@ -1,0 +1,551 @@
+{
+  "schema_version": "1.0",
+  "methodology_version": "1.0",
+  "project": "project",
+  "phase": "after_specify",
+  "outcome": "iterate",
+  "summary": "Assessed 6 claim(s); found 7 failure mode(s); 0 claim(s) below the 0.70 confidence threshold.",
+  "created_at": "2026-10-09T02:01:09.019144Z",
+  "claims": [
+    {
+      "id": "C-001",
+      "text": "The engine assesses bounded, evidence-linked claims deterministically and preserves the rich AEE model through the Evaluator adapter (state.aee)",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/engine.py, src/aee/scoring.py, src/aee/adapters/evaluator.py",
+        "identical input pinned to the same as_of instant"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "tests/ (PYTHONPATH=src python -m pytest -q -> 118 passed, 2026-10-08)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Full test suite passed on this checkout at v1.4.0",
+          "source_id": "baseline-pytest-2026-10-08",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "docs/spec-kit.md",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Documents that rich AEE data is preserved inside the evaluator contract's opaque state.aee field",
+          "source_id": "docs-spec-kit",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Assess the same pinned claims file twice with a fixed as_of and observe any difference in scores or outcomes beyond timestamps",
+        "Convert an assessment with EvaluatorAdapter and observe rich claim/score data missing from the evaluator result's state.aee field"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-001",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-001-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-001",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "C-002",
+      "text": "Scoring is transparent (published formula in docs/scoring.md) and propagates by the weakest-link rule: no dependent claim outscores its weakest required premise",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/scoring.py",
+        "required dependencies only (depends_on)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "docs/scoring.md",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Publishes the direct-score formula and propagated(claim) = min(direct, propagated(each required dependency))",
+          "source_id": "docs-scoring",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_scoring.py",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Scoring tests pass as part of the 118-test baseline suite",
+          "source_id": "tests-scoring",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Construct a claim whose direct score exceeds its required premise's propagated score and observe a propagated score above the premise's"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-002",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-002-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-002",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "C-003",
+      "text": "The hash-chained ledger provides tamper evidence only - it does not prove truth, authorship, identity, or trusted time",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/ledger.py, local JSONL ledger files only",
+        "wholesale replacement of the ledger head is out of the chain's detection scope (docs/ledger.md)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "docs/ledger.md",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "States the chain detects modification/reordering/insertion/mid-chain deletion and explicitly does not prove author, time, or payload truth",
+          "source_id": "docs-ledger",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_ledger.py",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Ledger tests pass as part of the 118-test baseline suite",
+          "source_id": "tests-ledger",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Edit a middle ledger entry and observe the chain still verifying",
+        "Find ledger-facing documentation or CLI output that presents verification as proof of truth, authorship, or time"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-003",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-003-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-003",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "C-004",
+      "text": "The ported mechanisms (policy gates 1.1.0, per-source reliability 1.2.0, materiality review queue 1.3.0, CLI wiring 1.4.0) are opt-in and leave default scoring behavior unchanged when not attached",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/policy.py, src/aee/reliability.py, src/aee/review.py",
+        "verdicts layer above scores and never mutate them"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "docs/porting-from-epistemic-ledger.md",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Records each ported mechanism, the measurement behind it, and that without a table/policy behavior is unchanged (scoring bit-identical)",
+          "source_id": "docs-porting",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_policy.py, tests/test_reliability.py, tests/test_review.py, tests/test_cli_policy.py",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Policy, reliability, review, and CLI-policy tests pass as part of the 118-test baseline suite",
+          "source_id": "tests-ported-mechanisms",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Assess a fixed claims file without a policy or reliability table and observe any score differing from the pre-1.1.0 behavior recorded in CHANGELOG.md"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-004",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-004-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-004",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-C-004-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "C-004",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "C-004 may contradict C-005",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "C-005",
+      "text": "The aee CLI exposes assess, challenge, verify-ledger, gate, graph, gaps, review, and demo with the CI exit-code contract 0=pass/warn, 1=iterate/clarify/gather-evidence/abstain, 2=hard block/invalid ledger/usage error",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/cli.py",
+        "usage errors exit 2 with a clean message, never a traceback exiting 1 (CHANGELOG 1.0.3)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "PYTHONPATH=src python -m aee --help (2026-10-08)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Help output lists all eight subcommands: assess, challenge, verify-ledger, gate, graph, gaps, review, demo",
+          "source_id": "baseline-cli-help-2026-10-08",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "README.md (CLI section)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Documents the exit-code contract: 0 pass/warn, 1 iteration/clarification/evidence/abstention, 2 hard block or invalid ledger",
+          "source_id": "readme-cli",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Run aee --help and observe any of the eight subcommands missing",
+        "Feed malformed input to a subcommand and observe a traceback or exit code 1"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-005",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-005-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-005",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "C-006",
+      "text": "The core package is deterministic, offline, and runtime-dependency-free, and assertions are never recorded as observations without an independently inspectable source",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/ core package (dev/docs extras in pyproject.toml are not runtime dependencies)",
+        "host applications adding model-backed review are outside the core package boundary (docs/security.md)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "pyproject.toml",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Project declares no runtime dependencies; pytest/ruff/mypy and mkdocs appear only under optional dev/docs extras",
+          "source_id": "pyproject",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "docs/security.md",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "States the core library is offline, has no network dependencies, and does not contact a model",
+          "source_id": "docs-security",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "README.md (Core principles 1 and 6)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Principle 1: assertions never become observations because a model repeats them; Principle 6: deterministic checks run before probabilistic review",
+          "source_id": "readme-principles",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Find a runtime (non-optional) dependency declared for the aee package or a network call inside src/aee/",
+        "Find a code path that records model output as EvidenceKind.OBSERVED without an independently inspectable source"
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-006",
+      "domain": "",
+      "confidence": 0.99945,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-C-006-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "C-006",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    }
+  ],
+  "scores": {
+    "C-001": {
+      "claim_id": "C-001",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "C-002": {
+      "claim_id": "C-002",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "C-003": {
+      "claim_id": "C-003",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "C-004": {
+      "claim_id": "C-004",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "C-005": {
+      "claim_id": "C-005",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "C-006": {
+      "claim_id": "C-006",
+      "direct_score": 0.99945,
+      "propagated_score": 0.99945,
+      "band": "high",
+      "components": {
+        "evidence": 0.999,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    }
+  },
+  "verdicts": {},
+  "recoveries": [
+    {
+      "failure_id": "AEE-C-001-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-001",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-C-002-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-002",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-C-003-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-003",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-C-004-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-004",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-C-004-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "C-004",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-C-005-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-005",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-C-006-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "C-006",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    }
+  ],
+  "metadata": {
+    "threshold": 0.7,
+    "input": "specs/001-baseline-current-state/claims.json"
+  }
+}

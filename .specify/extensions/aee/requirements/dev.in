@@ -1,0 +1,6 @@
+hypothesis>=6.168.3
+pytest>=8.0
+pyyaml>=6.0
+ruff>=0.16.9
+applied-epistemic-engineering==1.4.0
+specify-cli==1.0.13

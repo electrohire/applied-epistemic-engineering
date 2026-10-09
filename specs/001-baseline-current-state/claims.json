@@ -1,0 +1,233 @@
+{
+  "claims": [
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/engine.py, src/aee/scoring.py, src/aee/adapters/evaluator.py",
+        "identical input pinned to the same as_of instant"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "Full test suite passed on this checkout at v1.4.0",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/ (PYTHONPATH=src python -m pytest -q -> 118 passed, 2026-10-08)",
+          "source_id": "baseline-pytest-2026-10-08",
+          "source_quality": "test"
+        },
+        {
+          "description": "Documents that rich AEE data is preserved inside the evaluator contract's opaque state.aee field",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "docs/spec-kit.md",
+          "source_id": "docs-spec-kit",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Assess the same pinned claims file twice with a fixed as_of and observe any difference in scores or outcomes beyond timestamps",
+        "Convert an assessment with EvaluatorAdapter and observe rich claim/score data missing from the evaluator result's state.aee field"
+      ],
+      "id": "C-001",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-001",
+      "status": "supported",
+      "text": "The engine assesses bounded, evidence-linked claims deterministically and preserves the rich AEE model through the Evaluator adapter (state.aee)",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/scoring.py",
+        "required dependencies only (depends_on)"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "Publishes the direct-score formula and propagated(claim) = min(direct, propagated(each required dependency))",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "docs/scoring.md",
+          "source_id": "docs-scoring",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Scoring tests pass as part of the 118-test baseline suite",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_scoring.py",
+          "source_id": "tests-scoring",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Construct a claim whose direct score exceeds its required premise's propagated score and observe a propagated score above the premise's"
+      ],
+      "id": "C-002",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-002",
+      "status": "supported",
+      "text": "Scoring is transparent (published formula in docs/scoring.md) and propagates by the weakest-link rule: no dependent claim outscores its weakest required premise",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/ledger.py, local JSONL ledger files only",
+        "wholesale replacement of the ledger head is out of the chain's detection scope (docs/ledger.md)"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "States the chain detects modification/reordering/insertion/mid-chain deletion and explicitly does not prove author, time, or payload truth",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "docs/ledger.md",
+          "source_id": "docs-ledger",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Ledger tests pass as part of the 118-test baseline suite",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_ledger.py",
+          "source_id": "tests-ledger",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Edit a middle ledger entry and observe the chain still verifying",
+        "Find ledger-facing documentation or CLI output that presents verification as proof of truth, authorship, or time"
+      ],
+      "id": "C-003",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-003",
+      "status": "supported",
+      "text": "The hash-chained ledger provides tamper evidence only - it does not prove truth, authorship, identity, or trusted time",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/policy.py, src/aee/reliability.py, src/aee/review.py",
+        "verdicts layer above scores and never mutate them"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "Records each ported mechanism, the measurement behind it, and that without a table/policy behavior is unchanged (scoring bit-identical)",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "docs/porting-from-epistemic-ledger.md",
+          "source_id": "docs-porting",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Policy, reliability, review, and CLI-policy tests pass as part of the 118-test baseline suite",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_policy.py, tests/test_reliability.py, tests/test_review.py, tests/test_cli_policy.py",
+          "source_id": "tests-ported-mechanisms",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Assess a fixed claims file without a policy or reliability table and observe any score differing from the pre-1.1.0 behavior recorded in CHANGELOG.md"
+      ],
+      "id": "C-004",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-004",
+      "status": "supported",
+      "text": "The ported mechanisms (policy gates 1.1.0, per-source reliability 1.2.0, materiality review queue 1.3.0, CLI wiring 1.4.0) are opt-in and leave default scoring behavior unchanged when not attached",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/cli.py",
+        "usage errors exit 2 with a clean message, never a traceback exiting 1 (CHANGELOG 1.0.3)"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "Help output lists all eight subcommands: assess, challenge, verify-ledger, gate, graph, gaps, review, demo",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PYTHONPATH=src python -m aee --help (2026-10-08)",
+          "source_id": "baseline-cli-help-2026-10-08",
+          "source_quality": "test"
+        },
+        {
+          "description": "Documents the exit-code contract: 0 pass/warn, 1 iteration/clarification/evidence/abstention, 2 hard block or invalid ledger",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "README.md (CLI section)",
+          "source_id": "readme-cli",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Run aee --help and observe any of the eight subcommands missing",
+        "Feed malformed input to a subcommand and observe a traceback or exit code 1"
+      ],
+      "id": "C-005",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-005",
+      "status": "supported",
+      "text": "The aee CLI exposes assess, challenge, verify-ledger, gate, graph, gaps, review, and demo with the CI exit-code contract 0=pass/warn, 1=iterate/clarify/gather-evidence/abstain, 2=hard block/invalid ledger/usage error",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "applied-epistemic-engineering v1.4.0",
+        "src/aee/ core package (dev/docs extras in pyproject.toml are not runtime dependencies)",
+        "host applications adding model-backed review are outside the core package boundary (docs/security.md)"
+      ],
+      "conflicts_with": [],
+      "depends_on": [],
+      "evidence": [
+        {
+          "description": "Project declares no runtime dependencies; pytest/ruff/mypy and mkdocs appear only under optional dev/docs extras",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "pyproject.toml",
+          "source_id": "pyproject",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "States the core library is offline, has no network dependencies, and does not contact a model",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "docs/security.md",
+          "source_id": "docs-security",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Principle 1: assertions never become observations because a model repeats them; Principle 6: deterministic checks run before probabilistic review",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "README.md (Core principles 1 and 6)",
+          "source_id": "readme-principles",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Find a runtime (non-optional) dependency declared for the aee package or a network call inside src/aee/",
+        "Find a code path that records model output as EvidenceKind.OBSERVED without an independently inspectable source"
+      ],
+      "id": "C-006",
+      "kind": "requirement",
+      "source_ref": "specs/001-baseline-current-state/spec.md#C-006",
+      "status": "supported",
+      "text": "The core package is deterministic, offline, and runtime-dependency-free, and assertions are never recorded as observations without an independently inspectable source",
+      "uncertainty": "low"
+    }
+  ],
+  "schema_version": "1.0"
+}
