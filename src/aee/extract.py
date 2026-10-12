@@ -134,8 +134,14 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
                     f"claims[{index}]: claim must be an object, got {type(row).__name__}"
                 )
             row_id = row.get("id") if isinstance(row, dict) else None
+            # FR-5.6: a load error names the row index AND, once the
+            # row carries one, the claim id — a bare position is
+            # unfindable in a large bundle, and a bare id does not
+            # say which of several same-id rows failed.
             context = (
-                f"claim '{row_id}'" if isinstance(row_id, str) and row_id else f"claims[{index}]"
+                f"claims[{index}] claim '{row_id}'"
+                if isinstance(row_id, str) and row_id
+                else f"claims[{index}]"
             )
             claims.append(Claim.from_dict(row, strict=strict, context=context))
         return claims
@@ -322,7 +328,11 @@ def migrate_bundle(value: Any) -> tuple[dict[str, Any], list[str]]:
                 f"claims[{index}]: claim must be an object, got {type(row).__name__}"
             )
         raw_id = row.get("id")
-        ctx = f"claim '{raw_id}'" if isinstance(raw_id, str) and raw_id else f"claims[{index}]"
+        ctx = (
+            f"claims[{index}] claim '{raw_id}'"
+            if isinstance(raw_id, str) and raw_id
+            else f"claims[{index}]"
+        )
         out: dict[str, Any] = {}
         for key, val in row.items():
             target = LEGACY_CLAIM_FIELD_MAP.get(key, key)
@@ -363,8 +373,8 @@ def migrate_bundle(value: Any) -> tuple[dict[str, Any], list[str]]:
         migrated_rows.append(out)
     bundle["claims"] = migrated_rows
     # Guarantee: a migrated bundle strict-loads (migrate -> assess round-trip).
-    for row in migrated_rows:
-        Claim.from_dict(row)
+    for index, row in enumerate(migrated_rows):
+        Claim.from_dict(row, context=f"claims[{index}]")
     return bundle, report
 
 
