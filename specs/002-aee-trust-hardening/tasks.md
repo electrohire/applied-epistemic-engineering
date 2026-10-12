@@ -65,10 +65,10 @@
 
 ## FR-7 — Reference evaluator [evaluator]
 
-- [ ] T701 [evaluator] Deterministic spec-structure evaluator script (spec/plan/tasks presence, claims bundle presence + strict-load validity, assessment presence) emitting schema-valid evaluator results.
-- [ ] T702 [evaluator] `evaluators.yml` registration for the reference evaluator.
-- [ ] T703 [evaluator] Fixture specs (passing + failing) and a README walkthrough: discovery → `speckit.evaluator.run` → compose, with schema validation of the emitted result.
-- [ ] T704 [evaluator] Tests for the walkthrough in a clean checkout (no hand registration).
+- [x] T701 [evaluator] Deterministic spec-structure evaluator script (spec/plan/tasks presence, claims bundle presence + strict-load validity, assessment presence) emitting schema-valid evaluator results. — Done: spec-kit-evaluator PR #1 (squash 9a27431); `scripts/python/spec_structure_evaluator.py` shipped.
+- [x] T702 [evaluator] `evaluators.yml` registration for the reference evaluator. — Done: spec-kit-evaluator PR #1 (squash 9a27431); `evaluators.yml` registers the spec-structure reference evaluator.
+- [x] T703 [evaluator] Fixture specs (passing + failing) and a README walkthrough: discovery → `speckit.evaluator.run` → compose, with schema validation of the emitted result. — Done: spec-kit-evaluator PR #1 (squash 9a27431); passing/failing fixtures + README walkthrough shipped.
+- [x] T704 [evaluator] Tests for the walkthrough in a clean checkout (no hand registration). — Done: spec-kit-evaluator PR #1 (squash 9a27431); evaluator main eee9fef carries 32 combined tests (31 passed, 1 skipped, +33 subtests) across the FR-7 and Spec 003 FR-6 suites, coordinator-verified 2026-10-12.
 
 ## FR-8a — Ledger parity [engine + extension]
 
