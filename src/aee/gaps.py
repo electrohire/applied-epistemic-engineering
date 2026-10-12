@@ -15,6 +15,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from aee.extract import duplicate_key_hook
+
 
 @dataclass(slots=True)
 class GapEntry:
@@ -361,8 +363,15 @@ class GapEngine:
             if not fpath.is_file():
                 continue
             try:
-                data = json.loads(fpath.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError) as exc:
+                # FR-5.4: duplicate JSON keys are refused here too —
+                # a doubled "results" key must not silently mean the
+                # last list wins. The refusal lands in the same loud
+                # warning path as other unreadable evidence.
+                data = json.loads(
+                    fpath.read_text(encoding="utf-8"),
+                    object_pairs_hook=duplicate_key_hook(fpath.as_posix()),
+                )
+            except (ValueError, OSError) as exc:
                 # Loud, not silent: corrupt evidence must never be
                 # indistinguishable from "no evidence".
                 print(

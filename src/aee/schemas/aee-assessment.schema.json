@@ -142,6 +142,14 @@
             "string",
             "null"
           ]
+        },
+        "content_hash_status": {
+          "description": "Verification state of the declared content_hash (Spec 003 FR-5.10), present only when a hash is declared: verified = recomputed and matched in this run; declared_not_verified = declared but not recomputed; mismatched = recomputed and differed.",
+          "enum": [
+            "verified",
+            "declared_not_verified",
+            "mismatched"
+          ]
         }
       },
       "additionalProperties": false

@@ -7,8 +7,9 @@ from pathlib import Path
 from typing import Any
 
 from aee.engine import AEEEngine, Assessment
+from aee.extract import duplicate_key_hook
 from aee.ledger import HashChainLedger
-from aee.model import Claim, ClaimKind, Evidence
+from aee.model import Claim, ClaimKind, Evidence, normalize_claim_id
 
 
 class AEESession:
@@ -38,21 +39,26 @@ class AEESession:
         depends_on: list[str] | None = None,
         source_ref: str = "",
     ) -> Claim:
-        if claim_id in self.claims:
-            raise ValueError(f"duplicate claim id: {claim_id}")
+        # FR-5.7: the session facade applies the same single id rule
+        # as the loaders, so a claim added as "clm-1" IS "CLM-1" —
+        # the duplicate check, the stored key, and later lookups all
+        # see the one canonical identity.
+        normalised_id = normalize_claim_id(claim_id)
+        if normalised_id in self.claims:
+            raise ValueError(f"duplicate claim id: {normalised_id}")
         claim = Claim(
-            id=claim_id,
+            id=normalised_id,
             text=text,
             kind=kind,
             boundary=boundary or [],
-            depends_on=depends_on or [],
+            depends_on=[normalize_claim_id(ref) for ref in depends_on or []],
             source_ref=source_ref,
         )
-        self.claims[claim_id] = claim
+        self.claims[normalised_id] = claim
         return claim
 
     def add_evidence(self, claim_id: str, evidence: Evidence) -> None:
-        self.claims[claim_id].add_evidence(evidence)
+        self.claims[normalize_claim_id(claim_id)].add_evidence(evidence)
 
     def assess(self, *, seal: bool = True, metadata: dict[str, Any] | None = None) -> Assessment:
         result = self.engine.assess(
@@ -79,7 +85,22 @@ class AEESession:
     def load(self) -> int:
         if self.state_file is None or not self.state_file.exists():
             return 0
-        value = json.loads(self.state_file.read_text(encoding="utf-8"))
+        # FR-5.4: the state file is a claims bundle on disk, so it
+        # loads under the bundle rules — duplicate JSON keys refused
+        # (never last-wins) and bare NaN/Infinity refused (FR-3.3).
+        state_file = self.state_file
+
+        def _reject_constant(name: str) -> None:
+            raise ValueError(
+                f"session state file {state_file.as_posix()}: non-finite "
+                f"number {name!r} is not allowed (Spec 003 FR-3.3)"
+            )
+
+        value = json.loads(
+            state_file.read_text(encoding="utf-8"),
+            parse_constant=_reject_constant,
+            object_pairs_hook=duplicate_key_hook(f"session state file {state_file.as_posix()}"),
+        )
         self.project = str(value.get("project", self.project))
         self.phase = str(value.get("phase", self.phase))
         loaded = list(map(Claim.from_dict, value.get("claims", [])))

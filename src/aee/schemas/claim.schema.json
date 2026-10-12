@@ -197,6 +197,9 @@
             "null"
           ]
         },
+        "content_hash_status": {
+          "description": "Known field, accepted and ignored on load (the state is set only by evidence verification in the run that emits it, never trusted from input); deliberately unconstrained so the schema accepts exactly what the strict loader accepts."
+        },
         "description": {
           "type": "string"
         },

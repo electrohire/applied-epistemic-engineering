@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import math
 import os
@@ -12,6 +11,7 @@ import sys
 import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
@@ -19,10 +19,15 @@ from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.engine import AEEEngine
 from aee.evidence_check import check_evidence
-from aee.extract import load_claims, migrate_bundle, validate_bundle_structure
+from aee.extract import (
+    duplicate_key_hook,
+    load_claims,
+    migrate_bundle,
+    validate_bundle_structure,
+)
 from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
-from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger
+from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger, assessment_content_digest
 from aee.model import (
     Claim,
     ClaimKind,
@@ -38,6 +43,22 @@ from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.reliability import ReliabilityTable
 from aee.review import build_review_queue
 from aee.scoring import ClaimScore
+
+
+def _parse_as_of(raw: str) -> datetime:
+    """Parse the ``--as-of`` value (FR-5.8). A bad value is an
+    argparse type error — usage error, exit 2, no traceback. A naive
+    value is read as UTC, matching the scoring engine's treatment of
+    a naive ``as_of``."""
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        raise argparse.ArgumentTypeError(
+            f"--as-of value {raw!r} is not an ISO 8601 date/datetime"
+        ) from None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -77,6 +98,16 @@ def build_parser() -> argparse.ArgumentParser:
         "is echoed into the assessment metadata, never silent.",
     )
     assess.add_argument("--actor", default="aee")
+    assess.add_argument(
+        "--as-of",
+        type=_parse_as_of,
+        default=None,
+        metavar="ISO8601",
+        help="Pin the scoring clock (Spec 003 FR-5.8): freshness is "
+        "judged as of this instant instead of the wall clock, so a "
+        "replayed assessment is reproducible. A date or ISO 8601 "
+        "datetime; a naive value is read as UTC.",
+    )
     assess.add_argument(
         "--policy",
         action="store_true",
@@ -151,6 +182,13 @@ def build_parser() -> argparse.ArgumentParser:
     challenge.add_argument("--threshold", type=float, default=0.70)
     challenge.add_argument("--output", type=Path)
     challenge.add_argument("--actor", default="aee")
+    challenge.add_argument(
+        "--as-of",
+        type=_parse_as_of,
+        default=None,
+        metavar="ISO8601",
+        help="Pin the scoring clock (Spec 003 FR-5.8), as for assess.",
+    )
 
     verify = sub.add_parser("verify-ledger", help="Verify every hash-chain link")
     verify.add_argument("--ledger", type=Path, required=True)
@@ -410,6 +448,9 @@ def _assess(args: argparse.Namespace) -> int:
             json.loads(
                 args.reliability.read_text(encoding="utf-8"),
                 parse_constant=_reject_constant,
+                object_pairs_hook=duplicate_key_hook(
+                    f"reliability file {args.reliability.as_posix()}"
+                ),
             )
         )
     engine = AEEEngine(
@@ -419,6 +460,10 @@ def _assess(args: argparse.Namespace) -> int:
         reliability_alpha=args.reliability_alpha,
     )
     metadata: dict[str, Any] = {"input": args.input.as_posix(), "ledger": ledger_meta}
+    if args.as_of is not None:
+        # FR-5.8: a pinned scoring clock is part of the run record —
+        # a replay that pins the same instant is the same assessment.
+        metadata["as_of"] = args.as_of.isoformat().replace("+00:00", "Z")
     if args.lenient:
         # FR-1.3: lenient mode is never silent — its use is on the record.
         metadata["loading_mode"] = "lenient"
@@ -439,6 +484,7 @@ def _assess(args: argparse.Namespace) -> int:
         project=args.project,
         phase=args.phase,
         metadata=metadata,
+        as_of=args.as_of,
         additional_failures=evidence_failures,
     )
     value = assessment.to_dict()
@@ -476,6 +522,7 @@ def _challenge(args: argparse.Namespace) -> int:
         project=args.project,
         phase=args.phase,
         metadata={"input": args.input.as_posix(), "mode": "challenge"},
+        as_of=args.as_of,
     )
     failures = [cast(FailureMode, failure).to_dict() for failure in assessment.failures]
     value: dict[str, object] = {
@@ -735,14 +782,11 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
             f"gate: cross-check failed for {source}: ledger "
             f"{ledger_path_value} does not verify ({'; '.join(verification.errors)})"
         )
-    # The canonical form is aee.ledger._canonical; duplicated here to
-    # keep the gate's digest definition visible at the check site.
-    # allow_nan=False (FR-5.5): a non-finite value raises ValueError
-    # here instead of digesting an invalid-JSON serialisation.
-    canonical = json.dumps(
-        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
-    )
-    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    # FR-5.8: the digest is the ledger's own content digest
+    # (aee.ledger.assessment_content_digest — assessment content with
+    # the wall-clock created_at excluded), shared with
+    # append_assessment so the gate checks exactly what was recorded.
+    digest = assessment_content_digest(value)
     recorded = {
         entry.get("payload", {}).get("assessment_sha256")
         for entry in ledger.entries()
@@ -1004,7 +1048,14 @@ def _load_json_strict(path: Path, *, what: str) -> Any:
         )
 
     try:
-        return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+        # Duplicate keys are refused here too (FR-5.4): a gate or
+        # review reasoning over a last-wins parse of a doubled field
+        # would be reasoning over whichever value came last.
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            parse_constant=_reject_constant,
+            object_pairs_hook=duplicate_key_hook(f"{what} file {path.as_posix()}"),
+        )
     except RecursionError:
         raise ValueError(
             f"{what} file {path.as_posix()}: JSON nesting too deep to process"

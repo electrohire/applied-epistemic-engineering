@@ -402,13 +402,17 @@ class HashChainLedger:
         ``payload.duplicate_of_sequence``.
         """
         value = assessment.to_dict()
-        digest = hashlib.sha256(_canonical(value).encode("utf-8")).hexdigest()
+        # FR-5.8: the recorded digest is over the assessment CONTENT
+        # (created_at excluded — see assessment_content_digest); the
+        # run's wall-clock stamp is recorded separately alongside it.
+        digest = assessment_content_digest(value)
         payload = {
             "project": value["project"],
             "phase": value["phase"],
             "outcome": value["outcome"],
             "claim_ids": [claim["id"] for claim in value["claims"]],
             "assessment_sha256": digest,
+            "assessment_created_at": value.get("created_at"),
         }
         with self._append_lock():
             return self._append_locked(
@@ -919,4 +923,24 @@ def _canonical(value: Any) -> str:
 
 def _entry_hash(entry: dict[str, Any]) -> str:
     material = {key: value for key, value in entry.items() if key != "entry_hash"}
+    return hashlib.sha256(_canonical(material).encode("utf-8")).hexdigest()
+
+
+def assessment_content_digest(value: dict[str, Any]) -> str:
+    """SHA-256 of an assessment's CONTENT (Spec 003 FR-5.8, RT2-M12).
+
+    The digest is computed over the assessment dict with the
+    wall-clock ``created_at`` stamp EXCLUDED: the stamp records when
+    this particular run happened, not what was assessed, and while
+    it was included, replaying identical input produced a different
+    digest on every run — the hash was not a function of the input.
+    ``created_at`` is not lost: ``append_assessment`` records it in
+    the ledger payload as ``assessment_created_at``, separately from
+    the digest. Identical input replayed (same bundle, same pinned
+    scoring clock — see the CLI's ``--as-of``) now yields an
+    identical digest, which is also what makes FR-4.6's duplicate
+    refusal able to recognise a replay. The gate's ledger leg uses
+    this same function, so writer and checker can never drift.
+    """
+    material = {key: item for key, item in value.items() if key != "created_at"}
     return hashlib.sha256(_canonical(material).encode("utf-8")).hexdigest()
