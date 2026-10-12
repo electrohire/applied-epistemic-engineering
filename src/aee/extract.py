@@ -22,6 +22,33 @@ from aee.model import (
     Uncertainty,
 )
 
+# Spec 003 FR-5.3: explicit JSON nesting ceiling for bundles. The
+# interpreter's own limit is version-dependent (CPython 3.13's C JSON
+# scanner accepts nesting 3.12 rejects), so a bundle this deep is a
+# named input error on every version, not just where the parser
+# happens to run out of stack. Real bundles nest a handful of levels;
+# 500 is generous headroom, not a workflow constraint.
+_MAX_JSON_DEPTH = 500
+
+
+def _json_depth(value: Any) -> int:
+    """Iterative nesting depth of a parsed JSON value (no recursion,
+    so measuring a hostile value cannot itself overflow the stack)."""
+    deepest = 0
+    stack: list[tuple[Any, int]] = [(value, 1)]
+    while stack:
+        node, depth = stack.pop()
+        if depth > deepest:
+            deepest = depth
+            if deepest > _MAX_JSON_DEPTH:
+                return deepest
+        if isinstance(node, dict):
+            stack.extend((child, depth + 1) for child in node.values())
+        elif isinstance(node, list):
+            stack.extend((child, depth + 1) for child in node)
+    return deepest
+
+
 _ID = r"(?:REQ|CLM|HYP|DEC|ASM|COMP)-[A-Z0-9][A-Z0-9-]*"
 _HEADING = re.compile(rf"^#{{1,6}}\s+({_ID})(?:\s*[-—:.]\s*(.*))?$", re.IGNORECASE)
 _INLINE_ID = re.compile(rf"^\s*[-*]\s+\*\*ID:?\*\*:?\s*({_ID})\s*$", re.IGNORECASE)
@@ -34,7 +61,24 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
     (FR-1.3) and exists for internal extraction use."""
     source = Path(path)
     if source.suffix.lower() == ".json":
-        value = json.loads(source.read_text(encoding="utf-8"))
+
+        def _reject_constant(name: str) -> None:
+            raise ValueError(
+                f"{source.as_posix()}: non-finite number {name!r} is not "
+                "allowed in a claims bundle (Spec 003 FR-3.3)"
+            )
+
+        try:
+            value = json.loads(source.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+        except RecursionError:
+            # Spec 003 FR-5.3 (RT2-M6): nesting deeper than the
+            # interpreter stack is a named input error, not a leaked
+            # RecursionError traceback.
+            raise BundleValidationError(
+                f"{source.as_posix()}: JSON nesting too deep to process"
+            ) from None
+        if _json_depth(value) > _MAX_JSON_DEPTH:
+            raise BundleValidationError(f"{source.as_posix()}: JSON nesting too deep to process")
         if isinstance(value, dict):
             if "claims" not in value:
                 raise ValueError(
@@ -554,7 +598,11 @@ def derived_claim_id(text: str, prefix: str = "CLM") -> str:
 
 
 def dump_claims(claims: list[Claim]) -> str:
-    return json.dumps({"schema_version": "1.0", "claims": [c.to_dict() for c in claims]}, indent=2)
+    return json.dumps(
+        {"schema_version": "1.0", "claims": [c.to_dict() for c in claims]},
+        indent=2,
+        allow_nan=False,
+    )
 
 
 def _kind_from_id(claim_id: str) -> ClaimKind:

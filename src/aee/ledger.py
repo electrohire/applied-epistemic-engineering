@@ -896,11 +896,16 @@ def _fsync_directory(path: Path) -> None:
 
 
 def _canonical(value: Any) -> str:
+    # allow_nan=False (Spec 003 FR-5.5): a non-finite payload value
+    # raises instead of writing a bare NaN/Infinity token strict
+    # parsers reject. Finite values serialise byte-identically, so
+    # existing entry hashes are unaffected.
     raw = json.dumps(
         value,
         sort_keys=True,
         separators=(",", ":"),
         ensure_ascii=False,
+        allow_nan=False,
     )
     # Escape exactly the characters Python's line splitting treats as
     # boundaries beyond LF. Other Unicode stays raw, preserving the

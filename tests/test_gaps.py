@@ -298,3 +298,104 @@ def test_corrupt_evidence_file_warns(
     register = GapEngine().generate(matrix_file, evidence)
     assert register.open_count == 3
     assert "broken.json" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------
+# Spec 003 FR-5: round-trip fidelity. generate -> load -> close ->
+# rewrite must change ONLY the closed gap's own state: headers,
+# statuses/severities, evidence text, and timestamps are preserved
+# byte-for-byte (a split(":", 1) header parse used to corrupt the
+# Updated/Source lines on every cycle).
+# ---------------------------------------------------------------------
+
+
+def test_register_round_trip_preserves_header_fields(
+    matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path
+) -> None:
+    engine = GapEngine()
+    register = engine.generate(matrix_file, evidence_dir_empty)
+    loaded = engine.load_register(_write_register(register, tmp_path))
+    assert loaded.generated_at == register.generated_at
+    assert loaded.source_matrix == register.source_matrix
+    assert loaded.source_evidence == register.source_evidence
+
+
+def _write_register(register: GapRegister, tmp_path: Path) -> Path:
+    path = tmp_path / "GAPS.md"
+    path.write_text(register.to_markdown(), encoding="utf-8")
+    return path
+
+
+def test_close_round_trip_diff_is_only_the_closed_gap(
+    matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path
+) -> None:
+    engine = GapEngine()
+    register = engine.generate(matrix_file, evidence_dir_empty)
+    before = register.to_markdown()
+    # A human hand-edit: one gap's status and evidence note must
+    # survive the close of a DIFFERENT gap exactly.
+    open_row = (
+        "| GAP-002 | T-API-002 | API returns 400 on invalid input "
+        "| gate-1 | open | T-API-002 pass |"
+    )
+    edited_row = (
+        "| GAP-002 | T-API-002 | API returns 400 on invalid input "
+        "| gate-1 | blocked | see vendor thread #42 (alice) |"
+    )
+    before = before.replace(open_row, edited_row)
+    assert "vendor thread #42" in before  # the edit actually landed
+    path = tmp_path / "GAPS.md"
+    path.write_text(before, encoding="utf-8")
+
+    closed = engine.close_gap(engine.load_register(path), "GAP-001")
+    after = closed.to_markdown()
+
+    before_lines = before.splitlines()
+    after_lines = after.splitlines()
+    # Headers are byte-identical.
+    assert [line for line in after_lines if line.startswith("**Updated:**")] == [
+        line for line in before_lines if line.startswith("**Updated:**")
+    ]
+    assert [line for line in after_lines if line.startswith("**Source:**")] == [
+        line for line in before_lines if line.startswith("**Source:**")
+    ]
+    # Every untouched row survives verbatim.
+    for line in before_lines:
+        if line.startswith(("| GAP-002", "| GAP-003")):
+            assert line in after_lines
+    # The closed gap's row carries its original test/requirement/
+    # gate/evidence into the Closed section, with a timestamp.
+    closed_row = next(line for line in after_lines if line.startswith("| GAP-001"))
+    assert "T-API-001" in closed_row
+    assert "API returns 200 on valid input" in closed_row
+    assert "gate-1" in closed_row
+    assert "T-API-001 pass" in closed_row
+    # The derived counts moved by exactly the one closure.
+    assert "**Open:** 2 | **Closed:** 1" in after
+
+
+def test_two_register_loads_produce_independent_objects(
+    matrix_file: Path, evidence_dir_empty: Path, tmp_path: Path
+) -> None:
+    engine = GapEngine()
+    path = _write_register(engine.generate(matrix_file, evidence_dir_empty), tmp_path)
+    first = engine.load_register(path)
+    second = engine.load_register(path)
+    first.entries[0].evidence = "MUTATED"
+    first.entries[0].status = "blocked"
+    assert second.entries[0].evidence != "MUTATED"
+    assert second.entries[0].status != "blocked"
+
+
+def test_generate_matrix_directory_is_a_named_error(tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    with pytest.raises(ValueError, match="directory"):
+        GapEngine().generate(tmp_path, evidence)
+
+
+def test_generate_evidence_file_is_a_named_error(matrix_file: Path, tmp_path: Path) -> None:
+    evidence_file = tmp_path / "evidence.json"
+    evidence_file.write_text("{}", encoding="utf-8")
+    with pytest.raises(ValueError, match="not a directory"):
+        GapEngine().generate(matrix_file, evidence_file)

@@ -723,13 +723,27 @@ class Claim:
                 f"{ctx}: field 'metadata' must be an object, got {type(metadata).__name__}"
             )
         confidence = value.get("confidence")
-        if confidence is not None and (
-            isinstance(confidence, bool) or not isinstance(confidence, (int, float))
-        ):
-            raise BundleValidationError(
-                f"{ctx}: field 'confidence' must be a number or null, "
-                f"got {type(confidence).__name__}"
-            )
+        confidence_value: float | None = None
+        if confidence is not None:
+            if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+                raise BundleValidationError(
+                    f"{ctx}: field 'confidence' must be a number or null, "
+                    f"got {type(confidence).__name__}"
+                )
+            try:
+                confidence_value = float(confidence)
+            except OverflowError:
+                # A several-hundred-digit integer literal is a valid
+                # JSON number but not a valid confidence (RT2-M6):
+                # name it here instead of leaking OverflowError from
+                # the constructor call below.
+                raise BundleValidationError(
+                    f"{ctx}: field 'confidence' is out of range; must be between 0 and 1"
+                ) from None
+            if not 0.0 <= confidence_value <= 1.0:
+                raise BundleValidationError(
+                    f"{ctx}: field 'confidence' must be between 0 and 1, got {confidence_value!r}"
+                )
         falsification_tests = _str_list_field(value, "falsification_tests", context=ctx)
         # FR-2.3: a falsification test still carrying the drafting
         # TODO marker is an unfinished draft, not a claim. Strict
@@ -784,7 +798,7 @@ class Claim:
                 ),
                 source_ref=_str_field(value, "source_ref", context=ctx),
                 domain=_str_field(value, "domain", context=ctx),
-                confidence=float(confidence) if confidence is not None else None,
+                confidence=confidence_value,
                 failures=[
                     FailureMode.from_dict(item, context=f"{ctx} failures[{index}]")
                     for index, item in enumerate(failures_raw)

@@ -5,9 +5,12 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
+import os
 import re
 import sys
-from collections.abc import Sequence
+import tempfile
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -247,6 +250,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (ValueError, KeyError, AttributeError, TypeError, OSError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
+    except (RecursionError, OverflowError) as exc:
+        # Spec 003 FR-5.3 (RT2-M6): input-driven parser/conversion
+        # failures — JSON nested deeper than the interpreter stack, a
+        # several-hundred-digit integer literal hitting float() — are
+        # input errors (exit 2), never a traceback at exit 1, which
+        # the contract reserves for scored soft verdicts.
+        print(f"Error: input exceeds processing limits: {exc}", file=sys.stderr)
+        return 2
     raise AssertionError("unreachable")
 
 
@@ -267,6 +278,8 @@ def _verify_evidence(args: argparse.Namespace) -> int:
     claims = load_claims(args.bundle)
     root = args.project_root if args.project_root is not None else Path.cwd()
     report = check_evidence(claims, root)
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.bundle, "the input bundle")])
     _write_or_print(report.to_dict(), args.output)
     if report.findings:
         for finding in report.findings:
@@ -285,7 +298,9 @@ def _verify_evidence(args: argparse.Namespace) -> int:
 
 
 def _migrate(args: argparse.Namespace) -> int:
-    value = json.loads(args.bundle.read_text(encoding="utf-8"))
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.bundle, "the input bundle")])
+    value = _load_json_strict(args.bundle, what="bundle")
     migrated, report = migrate_bundle(value)
     for line in report:
         print(f"migrate: {line}", file=sys.stderr)
@@ -293,7 +308,7 @@ def _migrate(args: argparse.Namespace) -> int:
         _write_json(migrated, args.output)
         print(f"migrated bundle written to {args.output.as_posix()}")
     else:
-        print(json.dumps(migrated, indent=2))
+        print(_dumps(migrated, indent=2))
     return 0
 
 
@@ -312,10 +327,12 @@ def _assess(args: argparse.Namespace) -> int:
     # opt-out. Whichever happened is echoed into the assessment
     # metadata (the FR-1.3 lenient-echo pattern): ledgering is never
     # silent in either direction.
-    # Seam for Spec 003 FR-5 (path-collision guards: output == ledger,
-    # output == input, symlink targets) — deliberately NOT built here;
-    # this resolution is the single place those guards will hook in,
-    # because the final ledger path is decided exactly once, below.
+    # Spec 003 FR-5.1 path-collision guards hook in here, where the
+    # final ledger path is decided exactly once: no output of this run
+    # may resolve (symlinks followed) onto the input bundle, the
+    # reliability file, the ledger, or its anchor sidecar — the
+    # artifacts the trust story rests on (RT2-H4). The refusal happens
+    # before anything is written or appended.
     ledger_path: Path | None
     if args.no_ledger:
         ledger_path = None
@@ -327,6 +344,35 @@ def _assess(args: argparse.Namespace) -> int:
         root = args.project_root if args.project_root is not None else Path.cwd()
         ledger_path = root / DEFAULT_LEDGER_PATH
         ledger_meta = {"mode": "default", "path": ledger_path.as_posix()}
+    protected: list[tuple[Path, str]] = [(args.input, "the --input bundle")]
+    if args.reliability is not None:
+        protected.append((args.reliability, "the --reliability file"))
+    if ledger_path is not None:
+        protected.append((ledger_path, "the ledger"))
+        protected.append(
+            (
+                ledger_path.with_name(ledger_path.name + ".anchor.json"),
+                "the ledger anchor sidecar",
+            )
+        )
+    if args.output is not None:
+        _guard_output_path(args.output, protected)
+    if args.evaluator_output is not None:
+        evaluator_protected = list(protected)
+        if args.output is not None:
+            evaluator_protected.append((args.output, "the --output assessment"))
+        _guard_output_path(args.evaluator_output, evaluator_protected, flag="--evaluator-output")
+    # RT2-L3 (FR-5.1): writes that resolve outside the project root
+    # are permitted (a local CLI has latitude) but never silent —
+    # warn loudly on stderr; the paths themselves are already in the
+    # run record (metadata.ledger / metadata.input).
+    warn_root = args.project_root if args.project_root is not None else Path.cwd()
+    if ledger_path is not None:
+        _warn_if_outside_root(ledger_path, warn_root, flag="--ledger")
+    if args.output is not None:
+        _warn_if_outside_root(args.output, warn_root, flag="--output")
+    if args.evaluator_output is not None:
+        _warn_if_outside_root(args.evaluator_output, warn_root, flag="--evaluator-output")
     claims = load_claims(args.input, strict=not args.lenient)
     if not claims:
         # Spec 003 FR-1.1 (OD-2, CLI half): an explicitly empty bundle
@@ -395,9 +441,11 @@ def _assess(args: argparse.Namespace) -> int:
         metadata=metadata,
         additional_failures=evidence_failures,
     )
-    if ledger_path is not None:
-        HashChainLedger(ledger_path).append_assessment(assessment, actor=args.actor)
     value = assessment.to_dict()
+    # Spec 003 FR-5.2 (RT2-M3): the artifacts are written BEFORE the
+    # ledger append, so a failed write can never leave a ledger entry
+    # attesting to an assessment file that was never produced. Writes
+    # themselves are atomic (temp file + rename, see _write_json).
     _write_or_print(value, args.output)
     if args.evaluator_output:
         evaluator = EvaluatorAdapter().to_evaluator_result(
@@ -407,10 +455,14 @@ def _assess(args: argparse.Namespace) -> int:
             deterministic=args.model is None,
         )
         _write_json(evaluator, args.evaluator_output)
+    if ledger_path is not None:
+        HashChainLedger(ledger_path).append_assessment(assessment, actor=args.actor)
     return _exit_code(assessment.outcome)
 
 
 def _challenge(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.input, "the --input bundle")])
     claims = load_claims(args.input)
     if not claims:
         print(
@@ -443,6 +495,18 @@ def _challenge(args: argparse.Namespace) -> int:
 
 def _verify_ledger(args: argparse.Namespace) -> int:
     ledger = HashChainLedger(args.ledger)
+    if args.write_anchor:
+        # FR-5.1: an anchor write aimed at the ledger itself would
+        # destroy the chain it is meant to anchor (RT2-H4 class).
+        anchor_path = args.anchor if args.anchor is not None else ledger.anchor_path
+        if anchor_path.resolve() == args.ledger.resolve():
+            print(
+                f"Error: --anchor {anchor_path.as_posix()} resolves to the ledger "
+                f"{args.ledger.as_posix()} itself; refusing to overwrite the ledger "
+                "with an anchor",
+                file=sys.stderr,
+            )
+            return 2
     written_anchor = None
     if args.write_anchor:
         written_anchor = ledger.write_anchor(args.anchor)
@@ -455,7 +519,7 @@ def _verify_ledger(args: argparse.Namespace) -> int:
     output = result.to_dict()
     if written_anchor is not None:
         output["anchor_written"] = written_anchor.to_dict()
-    print(json.dumps(output, indent=2))
+    print(_dumps(output, indent=2))
     return 0 if result.valid else 2
 
 
@@ -475,7 +539,11 @@ _SUMMARY_COUNTS = re.compile(
 
 
 def _gate(args: argparse.Namespace) -> int:
-    value = json.loads(args.input.read_text(encoding="utf-8"))
+    # Spec 003 FR-5.5 (RT2-L3/L4 seams): the gate parses strictly —
+    # bare NaN/Infinity tokens are refused at load (parse_constant),
+    # never reaching the cross-check, whose recompute only ever sees
+    # finite numbers and whose digest serialisation refuses them.
+    value = _load_json_strict(args.input, what="assessment")
     outcome = _gate_cross_check(value, source=args.input.as_posix())
     print(f"AEE gate: {outcome}")
     return _exit_code(outcome)
@@ -669,7 +737,11 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
         )
     # The canonical form is aee.ledger._canonical; duplicated here to
     # keep the gate's digest definition visible at the check site.
-    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    # allow_nan=False (FR-5.5): a non-finite value raises ValueError
+    # here instead of digesting an invalid-JSON serialisation.
+    canonical = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     recorded = {
         entry.get("payload", {}).get("assessment_sha256")
@@ -684,10 +756,11 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
 
 
 def _graph(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.input, "the --input bundle")])
     rendered = ClaimGraph(load_claims(args.input)).to_mermaid()
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered, encoding="utf-8")
+        _atomic_write_text(args.output, rendered)
     else:
         print(rendered, end="")
     return 0
@@ -717,7 +790,16 @@ def _gaps(args: argparse.Namespace) -> int:
         print(f"Closed {args.close}")
         return 0
 
-    # Generate mode
+    # Generate mode. FR-5.1: the register output must not resolve onto
+    # the matrix it is generated from or the existing register it
+    # preserves closures from. (--close above is the deliberate
+    # exception: it updates the register artifact in place, read fully
+    # before the atomic write replaces it.)
+    if args.output is not None:
+        gaps_protected: list[tuple[Path, str]] = [(args.matrix, "the --matrix file")]
+        if args.existing is not None:
+            gaps_protected.append((args.existing, "the --existing register"))
+        _guard_output_path(args.output, gaps_protected)
     try:
         register = engine.generate(
             matrix_path=args.matrix,
@@ -739,8 +821,7 @@ def _gaps(args: argparse.Namespace) -> int:
 
 
 def _write_gaps(register: GapRegister, output: Path) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(register.to_markdown(), encoding="utf-8")
+    _atomic_write_text(output, register.to_markdown())
 
 
 def _demo() -> int:
@@ -765,22 +846,58 @@ def _demo() -> int:
         ],
     )
     result = AEEEngine().assess([claim], project="demo", phase="after_specify")
-    print(json.dumps(result.to_dict(), indent=2))
+    print(_dumps(result.to_dict(), indent=2))
     return _exit_code(result.outcome)
 
 
-def _score_view(value: dict[str, Any]) -> ClaimScore:
+def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimScore:
+    """Rebuild one ClaimScore from its serialized form, validating as
+    we go (Spec 003 FR-5.3): malformed-but-readable review inputs get
+    a named error (file, claim, field), never a bare conversion
+    traceback or an opaque AttributeError."""
+
+    def _number(container: dict[str, Any], key: str) -> float:
+        raw = container.get(key, 0.0)
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} must be a number, got {type(raw).__name__}"
+            )
+        try:
+            number = float(raw)
+        except OverflowError:
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} is out of range"
+            ) from None
+        if not math.isfinite(number):
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} must be finite"
+            )
+        return number
+
     components = value.get("components", {})
+    if not isinstance(components, dict):
+        raise ValueError(
+            f"review: {source.as_posix()}: score 'components' for claim "
+            f"{claim_id!r} must be an object"
+        )
+    notes = value.get("notes", [])
+    if not isinstance(notes, list):
+        raise ValueError(
+            f"review: {source.as_posix()}: score 'notes' for claim {claim_id!r} must be a list"
+        )
     return ClaimScore(
-        claim_id=str(value.get("claim_id", "")),
-        direct_score=float(value.get("direct_score", 0.0)),
-        propagated_score=float(value.get("propagated_score", 0.0)),
-        evidence_score=float(components.get("evidence", 0.0)),
-        independence_score=float(components.get("independence", 0.0)),
-        falsifiability_score=float(components.get("falsifiability", 0.0)),
-        boundary_score=float(components.get("boundary", 0.0)),
-        contradiction_penalty=float(components.get("contradiction_penalty", 0.0)),
-        notes=[str(note) for note in value.get("notes", [])],
+        claim_id=str(value.get("claim_id", claim_id)),
+        direct_score=_number(value, "direct_score"),
+        propagated_score=_number(value, "propagated_score"),
+        evidence_score=_number(components, "evidence"),
+        independence_score=_number(components, "independence"),
+        falsifiability_score=_number(components, "falsifiability"),
+        boundary_score=_number(components, "boundary"),
+        contradiction_penalty=_number(components, "contradiction_penalty"),
+        notes=[str(note) for note in notes],
     )
 
 
@@ -792,21 +909,68 @@ class _AssessmentView:
 
 def _assessment_view(path: Path) -> _AssessmentView:
     """Rebuild the score/verdict views build_review_queue consumes
-    from a serialized assessment (Assessment.to_dict output)."""
-    data = json.loads(path.read_text(encoding="utf-8"))
-    scores = {claim_id: _score_view(score) for claim_id, score in data.get("scores", {}).items()}
-    verdicts = {
-        claim_id: ClaimVerdict(
-            claim_id,
-            Verdict(str(verdict["verdict"])),
-            [str(reason) for reason in verdict.get("reasons", [])],
+    from a serialized assessment (Assessment.to_dict output).
+
+    The file is parsed as strict JSON (bare NaN/Infinity refused,
+    FR-5.5) and structurally validated: any malformed-but-readable
+    input raises a ValueError naming the file and the offending
+    field, which main() reports as a clean exit 2 (FR-5.3)."""
+    data = _load_json_strict(path, what="assessment")
+    if not isinstance(data, dict):
+        raise ValueError(f"review: {path.as_posix()} is not an assessment (expected a JSON object)")
+    raw_scores = data.get("scores", {})
+    if not isinstance(raw_scores, dict):
+        raise ValueError(
+            f"review: {path.as_posix()}: 'scores' must be an object mapping claim ids to scores"
         )
-        for claim_id, verdict in data.get("verdicts", {}).items()
-    }
+    scores: dict[str, ClaimScore] = {}
+    for claim_id, score in raw_scores.items():
+        if not isinstance(score, dict):
+            raise ValueError(
+                f"review: {path.as_posix()}: score for claim {claim_id!r} must be an object"
+            )
+        scores[claim_id] = _score_view(score, source=path, claim_id=claim_id)
+    raw_verdicts = data.get("verdicts", {})
+    if not isinstance(raw_verdicts, dict):
+        raise ValueError(
+            f"review: {path.as_posix()}: 'verdicts' must be an object mapping claim ids to verdicts"
+        )
+    verdicts: dict[str, ClaimVerdict] = {}
+    for claim_id, verdict in raw_verdicts.items():
+        if not isinstance(verdict, dict) or "verdict" not in verdict:
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict for claim {claim_id!r} "
+                "must be an object with a 'verdict' field"
+            )
+        try:
+            parsed_verdict = Verdict(str(verdict["verdict"]))
+        except ValueError:
+            valid = ", ".join(member.value for member in Verdict)
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict for claim {claim_id!r} "
+                f"has invalid value {verdict['verdict']!r}; valid values: {valid}"
+            ) from None
+        reasons = verdict.get("reasons", [])
+        if not isinstance(reasons, list):
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict 'reasons' for claim "
+                f"{claim_id!r} must be a list"
+            )
+        verdicts[claim_id] = ClaimVerdict(
+            claim_id, parsed_verdict, [str(reason) for reason in reasons]
+        )
     return _AssessmentView(scores=scores, verdicts=verdicts)
 
 
 def _review(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(
+            args.output,
+            [
+                (args.previous, "the --previous assessment"),
+                (args.current, "the --current assessment"),
+            ],
+        )
     queue = build_review_queue(
         _assessment_view(args.previous),
         _assessment_view(args.current),
@@ -817,16 +981,110 @@ def _review(args: argparse.Namespace) -> int:
     return 0
 
 
+def _dumps(value: Any, **kwargs: Any) -> str:
+    """Spec 003 FR-5.5 (RT2-M11): every CLI JSON emission is strict
+    JSON — ``allow_nan=False``, so a non-finite value fails loudly at
+    serialisation time (ValueError -> clean exit 2) instead of
+    landing on disk or stdout as a bare ``NaN``/``Infinity`` token
+    that strict parsers (and non-Python tooling) reject."""
+    return json.dumps(value, allow_nan=False, **kwargs)
+
+
+def _load_json_strict(path: Path, *, what: str) -> Any:
+    """Load a JSON file as strict JSON (Spec 003 FR-3.3/FR-5.5):
+    bare ``NaN``/``Infinity`` tokens are refused at parse time with a
+    named error — Python's json accepts them by default, and a gate
+    or review that quietly parsed them would be reasoning over
+    values its own outputs may never contain."""
+
+    def _reject_constant(name: str) -> None:
+        raise ValueError(
+            f"{what} file {path.as_posix()}: non-finite number {name!r} "
+            "is not allowed in strict JSON"
+        )
+
+    try:
+        return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+    except RecursionError:
+        raise ValueError(
+            f"{what} file {path.as_posix()}: JSON nesting too deep to process"
+        ) from None
+
+
+def _warn_if_outside_root(path: Path, root: Path, *, flag: str) -> None:
+    """Spec 003 FR-5.1 (RT2-L3): a write target resolving outside the
+    project root is permitted but never silent — scripted runs (the
+    extension runner, CI) must be able to see the escape in the log."""
+    resolved = path.resolve()
+    if not resolved.is_relative_to(root.resolve()):
+        print(
+            f"warning: {flag} {path.as_posix()} resolves outside the project "
+            f"root ({resolved.as_posix()} is not under {root.resolve().as_posix()})",
+            file=sys.stderr,
+        )
+
+
+def _guard_output_path(
+    output: Path,
+    protected: Iterable[tuple[Path, str]],
+    *,
+    flag: str = "--output",
+) -> None:
+    """Spec 003 FR-5.1 (RT2-H4): refuse, before anything is written,
+    when an output path resolves onto a path the run reads.
+
+    Resolution is symlink-aware (``Path.resolve``), so an output aimed
+    through a symlink at the input bundle, the ledger, or its anchor
+    sidecar is refused under its real target's name. When the output
+    path itself passes through a symlink to somewhere unprotected, the
+    resolved target is reported on stderr before writing — a scripted
+    run never silently writes somewhere other than the path it named.
+    Raises ValueError (main reports it as a clean exit-2 error).
+    """
+    resolved_output = output.resolve()
+    for path, description in protected:
+        if resolved_output == path.resolve():
+            raise ValueError(
+                f"{flag} {output.as_posix()} resolves to {resolved_output.as_posix()}, "
+                f"which is {description}; refusing to overwrite it (Spec 003 FR-5.1)"
+            )
+    if Path(os.path.abspath(output)) != resolved_output:
+        print(
+            f"note: {flag} {output.as_posix()} resolves through a symlink "
+            f"to {resolved_output.as_posix()}",
+            file=sys.stderr,
+        )
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    """Spec 003 FR-5.2 (RT2-M3): write via a temp file in the same
+    directory + rename, so a failed or interrupted write never leaves
+    a truncated artifact behind. The rename does not follow a symlink
+    at the final path component: it replaces the link itself, so a
+    symlinked output can never truncate its target (RT2-H4)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent, prefix=path.name + ".", suffix=".tmp"
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+        os.replace(temporary, path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
 def _write_or_print(value: dict[str, object], output: Path | None) -> None:
     if output:
         _write_json(value, output)
     else:
-        print(json.dumps(value, indent=2))
+        print(_dumps(value, indent=2))
 
 
 def _write_json(value: dict[str, object], output: Path) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+    _atomic_write_text(output, _dumps(value, indent=2) + "\n")
 
 
 def _exit_code(outcome: str) -> int:

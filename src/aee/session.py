@@ -72,7 +72,9 @@ class AEESession:
             "phase": self.phase,
             "claims": [claim.to_dict() for claim in self.claims.values()],
         }
-        self.state_file.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+        self.state_file.write_text(
+            json.dumps(value, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        )
 
     def load(self) -> int:
         if self.state_file is None or not self.state_file.exists():
