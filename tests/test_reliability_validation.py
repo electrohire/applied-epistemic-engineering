@@ -13,11 +13,24 @@ Held behaviour is pinned too: an honest table's reliability and
 blended weights are asserted at the exact values captured from
 main @ 574531e before this phase (lab 0.79 -> blended TEST 0.895;
 M 1.0 -> blended MODEL 0.60).
+
+FR-3.6 addendum note (2026-10-12): canonisation now requires
+verified anchored provenance, and the pre-addendum honest table
+was built from the self-asserted string PROV — such records earn
+provisional credit only under the addendum. The honest table
+below is therefore built from anchored resolution records
+(``record_resolution`` against a hash-chained ledger) with
+identical observations; the pinned values are unchanged because
+the observations are. Tests that pinned canonisation from bare
+loaded or legacy records were re-pinned to the addendum's
+semantics where they appear below.
 """
 
 from __future__ import annotations
 
 import json
+import tempfile
+from pathlib import Path
 
 import pytest
 from test_scoring import strong_evidence
@@ -26,6 +39,7 @@ from aee import (
     Claim,
     Evidence,
     EvidenceKind,
+    HashChainLedger,
     ReliabilityTable,
     ScoringEngine,
     SourceQuality,
@@ -45,12 +59,20 @@ PROV = "unit-test-resolver"
 
 
 def honest_table() -> ReliabilityTable:
-    table = ReliabilityTable()
+    # Anchored since the FR-3.6 addendum: each resolution is
+    # appended to a hash-chained ledger and recorded against its
+    # entry. Observations identical to the pre-addendum table.
+    ledger_dir = tempfile.mkdtemp(prefix="aee-honest-table-")
+    table = ReliabilityTable(ledger=HashChainLedger(Path(ledger_dir) / "ledger.jsonl"))
     for outcome in [True, True, False, True]:
-        table.record("lab", 0.9, outcome, provenance=PROV)
+        table.record_resolution("lab", 0.9, outcome, provenance=PROV)
     for _ in range(5):
-        table.record("M", 1.0, True, provenance=PROV)
+        table.record_resolution("M", 1.0, True, provenance=PROV)
     return table
+
+
+def ledger_table(tmp_path) -> ReliabilityTable:
+    return ReliabilityTable(ledger=HashChainLedger(tmp_path / "resolutions.jsonl"))
 
 
 # ------------------------------------------------------------------
@@ -95,13 +117,19 @@ def test_from_dict_rejects_bad_table_shape() -> None:
 
 def test_from_dict_accepts_boundary_values() -> None:
     # brier_sum == observations is the worst legitimate record
-    # (every prediction maximally wrong), not poison.
+    # (every prediction maximally wrong), not poison — the file
+    # loads. Since the FR-3.6 addendum, though, a bare file record
+    # carries no anchors: it canonises nothing, and its
+    # measurement is reported on the provisional track only.
     table = ReliabilityTable.from_dict({"records": {"lab": {"observations": 3, "brier_sum": 3.0}}})
-    assert table.reliability("lab") == 0.0
+    assert table.reliability("lab") is None
+    assert table.provisional_reliability("lab") == 0.0
     perfect = ReliabilityTable.from_dict(
         {"records": {"lab": {"observations": 3, "brier_sum": 0.0}}}
     )
-    assert perfect.reliability("lab") == 1.0
+    assert perfect.reliability("lab") is None
+    # The raw measurement is 1.0; the provisional cap binds it.
+    assert perfect.provisional_reliability("lab") == 0.5
 
 
 # ------------------------------------------------------------------
@@ -277,10 +305,10 @@ def _fake_score(claim_id: str, propagated: float) -> ClaimScore:
     )
 
 
-def test_coattail_zero_weight_junk_earns_no_record() -> None:
+def test_coattail_zero_weight_junk_earns_no_record(tmp_path) -> None:
     """RT1 p4 §F: junk UNSUPPORTED item rode three claims carried
     by a real test source and reached reliability 1.0."""
-    table = ReliabilityTable()
+    table = ledger_table(tmp_path)
     for i in range(3):
         claim = _claim(
             f"F{i}",
@@ -295,7 +323,7 @@ def test_coattail_zero_weight_junk_earns_no_record() -> None:
             ],
         )
         score = ScoringEngine().score([claim])["F" + str(i)]
-        credited = table.observe_claim(claim, score, True)
+        credited = table.observe_claim_resolution(claim, score, True)
         assert credited == ["real-test"]
     assert "evil" not in table.records
     assert table.reliability("evil") is None
@@ -321,14 +349,14 @@ def test_coattail_tiny_share_never_reaches_cold_start() -> None:
     assert table.reliability("junk") is None
 
 
-def test_honest_co_sources_still_learn() -> None:
-    table = ReliabilityTable()
+def test_honest_co_sources_still_learn(tmp_path) -> None:
+    table = ledger_table(tmp_path)
     for i in range(6):
         claim = _claim(
             f"H{i}",
             [strong_evidence("one", "S1"), strong_evidence("two", "S2")],
         )
-        credited = table.observe_claim(claim, _fake_score(f"H{i}", 1.0), True)
+        credited = table.observe_claim_resolution(claim, _fake_score(f"H{i}", 1.0), True)
         assert credited == ["S1", "S2"]
     # Each claim is half an observation about each source; six
     # claims reach the cold-start guard and the record is perfect.
@@ -357,18 +385,18 @@ def test_framing_minor_contributor_not_destroyed() -> None:
     assert table.reliability("victim") is None
 
 
-def test_framing_equal_contributor_takes_proportional_blame() -> None:
+def test_framing_equal_contributor_takes_proportional_blame(tmp_path) -> None:
     """RT1 p4 §G as written: victim contributes half of each
     doomed claim. Three claims are 1.5 effective observations
     (still cold-start; the old code measured 0.0975 here); six
     claims reach measurement and the full proportional loss lands."""
-    table = ReliabilityTable()
+    table = ledger_table(tmp_path)
     for i in range(3):
         claim = _claim(
             f"G{i}",
             [strong_evidence("victim-ref", "victim"), strong_evidence("other-ref", "other")],
         )
-        table.observe_claim(claim, _fake_score(f"G{i}", 0.95), False)
+        table.observe_claim_resolution(claim, _fake_score(f"G{i}", 0.95), False)
     assert table.records["victim"].effective_credit == pytest.approx(1.5)
     assert table.reliability("victim") is None
     for i in range(3, 6):
@@ -376,7 +404,7 @@ def test_framing_equal_contributor_takes_proportional_blame() -> None:
             f"G{i}",
             [strong_evidence("victim-ref", "victim"), strong_evidence("other-ref", "other")],
         )
-        table.observe_claim(claim, _fake_score(f"G{i}", 0.95), False)
+        table.observe_claim_resolution(claim, _fake_score(f"G{i}", 0.95), False)
     assert table.reliability("victim") == pytest.approx(1 - 0.95**2)
 
 
@@ -439,4 +467,12 @@ def test_legacy_table_loads_with_defaulted_provenance_and_credit() -> None:
     rec = table.records["old"]
     assert rec.provenance == LEGACY_PROVENANCE
     assert rec.effective_credit == 4.0
-    assert table.reliability("old") == pytest.approx(0.79)
+    # FR-3.7: legacy history loads with its honest marker but
+    # canonises nothing on its own — the 0.79 measurement survives
+    # only as a capped provisional value until anchored records
+    # exist.
+    assert rec.anchored_credit == 0.0
+    assert rec.anchors == ()
+    assert table.reliability("old") is None
+    assert table.provisional_reliability("old") == pytest.approx(0.5)
+    assert table.credit_status("old") == "provisional"

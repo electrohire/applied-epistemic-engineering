@@ -9,6 +9,7 @@ real features once they are reachable here.
 import json
 
 from aee.cli import main
+from aee.ledger import HashChainLedger
 from aee.reliability import ReliabilityTable
 
 
@@ -93,9 +94,15 @@ def test_assess_policy_threshold_overrides(tmp_path) -> None:
 
 
 def test_assess_reliability_blends_scores(tmp_path) -> None:
-    table = ReliabilityTable()
+    # FR-3.6/FR-3.7: the resolver's records are anchored in a
+    # hash-chained ledger, and the CLI canonises the file's
+    # history only when the run's ledger is the one the anchors
+    # resolve against. The same file under --no-ledger stays
+    # provisional and blends nothing.
+    ledger_path = tmp_path / "resolutions.jsonl"
+    table = ReliabilityTable(ledger=HashChainLedger(ledger_path))
     for _ in range(5):
-        table.record("M", 1.0, True, provenance="test-resolver")
+        table.record_resolution("M", 1.0, True, provenance="test-resolver")
     table_path = tmp_path / "reliability.json"
     table_path.write_text(json.dumps(table.to_dict()), encoding="utf-8")
     model_claim = {
@@ -115,7 +122,27 @@ def test_assess_reliability_blends_scores(tmp_path) -> None:
         ],
     }
     _, plain = run_assess(tmp_path, [model_claim])
-    _, blended = run_assess(tmp_path, [model_claim], "--reliability", str(table_path))
+    _, unbound = run_assess(tmp_path, [model_claim], "--reliability", str(table_path))
+    assert unbound["scores"]["A"]["direct_score"] == plain["scores"]["A"]["direct_score"]
+    assert not any("measured reliability" in note for note in unbound["scores"]["A"]["notes"])
+    bound_output = tmp_path / "assessment-bound.json"
+    code = main(
+        [
+            "assess",
+            "--input",
+            write_claims(tmp_path, [model_claim]),
+            "--output",
+            str(bound_output),
+            "--ledger",
+            str(ledger_path),
+            "--reliability",
+            str(table_path),
+        ]
+    )
+    # Soft exit 1: the blend lifts the claim but it still does not
+    # pass — a successful assess run, not an input error (2).
+    assert code == 1
+    blended = json.loads(bound_output.read_text(encoding="utf-8"))
     assert blended["scores"]["A"]["direct_score"] > plain["scores"]["A"]["direct_score"]
     notes = blended["scores"]["A"]["notes"]
     assert any("measured reliability" in note for note in notes)

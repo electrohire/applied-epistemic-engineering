@@ -451,7 +451,15 @@ def _assess(args: argparse.Namespace) -> int:
                 object_pairs_hook=duplicate_key_hook(
                     f"reliability file {args.reliability.as_posix()}"
                 ),
-            )
+            ),
+            # Spec 003 FR-3.7: a reliability file's claimed anchors
+            # are verified against this run's ledger before they can
+            # canonise anything; with --no-ledger there is nothing
+            # to resolve against and the file's history stays
+            # provisional. An unresolvable digest fails the load
+            # loudly (BundleValidationError -> exit 2), like any
+            # other poisoned reliability input.
+            ledger=HashChainLedger(ledger_path) if ledger_path is not None else None,
         )
     engine = AEEEngine(
         args.threshold,
