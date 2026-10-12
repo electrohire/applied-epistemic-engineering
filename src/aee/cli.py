@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
+import re
 import sys
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -299,6 +301,19 @@ def _assess(args: argparse.Namespace) -> int:
         ledger_path = root / DEFAULT_LEDGER_PATH
         ledger_meta = {"mode": "default", "path": ledger_path.as_posix()}
     claims = load_claims(args.input, strict=not args.lenient)
+    if not claims:
+        # Spec 003 FR-1.1 (OD-2, CLI half): an explicitly empty bundle
+        # is an input error (exit 2), never a pass — this is the
+        # "bundle silently emptied" incident class one level up. The
+        # engine independently returns a non-pass outcome for zero
+        # claims, so API consumers are protected too (belt-and-braces;
+        # the owner may reverse this CLI half of OD-2).
+        print(
+            "Error: input bundle contains zero claims: an empty bundle "
+            "is an input error, never a pass (Spec 003 FR-1.1)",
+            file=sys.stderr,
+        )
+        return 2
     policy = None
     if args.policy:
         policy = AssessmentPolicy(
@@ -356,6 +371,13 @@ def _assess(args: argparse.Namespace) -> int:
 
 def _challenge(args: argparse.Namespace) -> int:
     claims = load_claims(args.input)
+    if not claims:
+        print(
+            "Error: input bundle contains zero claims: an empty bundle "
+            "is an input error, never a pass (Spec 003 FR-1.1)",
+            file=sys.stderr,
+        )
+        return 2
     assessment = AEEEngine(args.threshold).assess(
         claims,
         project=args.project,
@@ -394,11 +416,211 @@ def _verify_ledger(args: argparse.Namespace) -> int:
     return 0 if result.valid else 2
 
 
+_GATE_OUTCOMES = {
+    "pass",
+    "warn",
+    "iterate",
+    "clarify",
+    "gather_evidence",
+    "abstain",
+    "block",
+}
+_SUMMARY_COUNTS = re.compile(
+    r"Assessed (\d+) claim\(s\); found (\d+) failure mode\(s\); "
+    r"(\d+) claim\(s\) below the (\d+(?:\.\d+)?) confidence threshold\."
+)
+
+
 def _gate(args: argparse.Namespace) -> int:
     value = json.loads(args.input.read_text(encoding="utf-8"))
-    outcome = str(value.get("outcome", "block"))
+    outcome = _gate_cross_check(value, source=args.input.as_posix())
     print(f"AEE gate: {outcome}")
     return _exit_code(outcome)
+
+
+def _gate_cross_check(value: Any, *, source: str) -> str:
+    """Spec 003 FR-1.2 (RT2-H1): the gate must not trust the outcome
+    string. A gateable file is a structurally complete assessment —
+    claims, per-claim scores, a summary carrying the engine's counts,
+    and threshold metadata — whose stated outcome equals the outcome
+    recomputed from its own contents under the engine's rules
+    (including policy-verdict demotion). Where the assessment records
+    a ledger, the assessment's SHA-256 must be present in that ledger
+    and the chain must verify. Any failure raises ValueError, which
+    main() reports as a clean input error (exit 2) — a fabricated or
+    inconsistent file never gates as pass. Returns the stated outcome.
+    """
+    if not isinstance(value, dict):
+        raise ValueError(f"gate: {source} is not an assessment (expected a JSON object)")
+    outcome = value.get("outcome")
+    if outcome not in _GATE_OUTCOMES:
+        raise ValueError(f"gate: {source} has no valid assessment outcome: {outcome!r}")
+    summary = value.get("summary")
+    if not isinstance(summary, str) or not summary.strip():
+        raise ValueError(f"gate: {source} is not a complete assessment (missing summary)")
+    claims = value.get("claims")
+    scores = value.get("scores")
+    metadata = value.get("metadata")
+    if (
+        not isinstance(claims, list)
+        or not isinstance(scores, dict)
+        or not isinstance(metadata, dict)
+    ):
+        raise ValueError(
+            f"gate: {source} is not a complete assessment (requires claims, scores, and metadata)"
+        )
+    threshold = metadata.get("threshold")
+    if (
+        not isinstance(threshold, (int, float))
+        or isinstance(threshold, bool)
+        or not 0.0 <= float(threshold) <= 1.0
+    ):
+        raise ValueError(f"gate: {source} carries no valid threshold metadata")
+    claim_ids: list[str] = []
+    failures: list[dict[str, Any]] = []
+    for claim in claims:
+        if not isinstance(claim, dict) or not isinstance(claim.get("id"), str):
+            raise ValueError(f"gate: {source} has a claim without an id")
+        if claim["id"] in claim_ids:
+            raise ValueError(f"gate: {source} contains duplicate claim id {claim['id']!r}")
+        claim_ids.append(claim["id"])
+        claim_failures = claim.get("failures")
+        if not isinstance(claim_failures, list) or not all(
+            isinstance(failure, dict) for failure in claim_failures
+        ):
+            raise ValueError(f"gate: {source} claim {claim['id']!r} has no failure-mode record")
+        failures.extend(claim_failures)
+    if not claim_ids:
+        raise ValueError(
+            f"gate: {source} contains zero claims: an empty assessment "
+            "never passes (Spec 003 FR-1.1)"
+        )
+    if set(scores) != set(claim_ids):
+        raise ValueError(
+            f"gate: {source} scores do not cover exactly its claims "
+            f"(missing: {sorted(set(claim_ids) - set(scores))}, "
+            f"extra: {sorted(set(scores) - set(claim_ids))})"
+        )
+    propagated: dict[str, float] = {}
+    for claim_id, score in scores.items():
+        if not isinstance(score, dict) or not isinstance(
+            score.get("propagated_score"), (int, float)
+        ):
+            raise ValueError(f"gate: {source} score for {claim_id!r} has no propagated_score")
+        propagated[claim_id] = float(score["propagated_score"])
+    match = _SUMMARY_COUNTS.search(summary)
+    if match is None:
+        raise ValueError(f"gate: {source} summary does not carry the engine's assessment counts")
+    n_claims, n_failures, n_below, summary_threshold = match.groups()
+    # The summary counts failure INSTANCES (the stress run's list),
+    # while serialization repeats a shared-id claim's failures on each
+    # duplicate claim object (Spec 003 FR-1.3 makes such assessments
+    # real). Count distinct failure ids when every failure carries
+    # one, so a duplicate-id block assessment cross-checks cleanly.
+    if failures and all(isinstance(failure.get("id"), str) for failure in failures):
+        failure_count = len({failure["id"] for failure in failures})
+    else:
+        failure_count = len(failures)
+    below = sum(1 for score in propagated.values() if score < float(threshold))
+    if (
+        int(n_claims) != len(claim_ids)
+        or int(n_failures) != failure_count
+        or int(n_below) != below
+        or abs(float(summary_threshold) - float(threshold)) > 0.005
+    ):
+        raise ValueError(
+            f"gate: {source} summary counts disagree with its contents "
+            f"(summary: {n_claims} claim(s), {n_failures} failure mode(s), "
+            f"{n_below} below {summary_threshold}; contents: {len(claim_ids)} "
+            f"claim(s), {failure_count} failure mode(s), {below} below "
+            f"the {float(threshold):.2f} threshold)"
+        )
+    unresolved = [failure for failure in failures if not failure.get("resolved", False)]
+
+    def _severity(failure: dict[str, Any]) -> str:
+        return str(failure.get("severity", "")).lower()
+
+    def _category(failure: dict[str, Any]) -> str:
+        return str(failure.get("category", ""))
+
+    if any(_severity(failure) == "critical" for failure in unresolved):
+        recomputed = "block"
+    elif any(
+        _severity(failure) == "high" and _category(failure) == "contradiction"
+        for failure in unresolved
+    ):
+        recomputed = "clarify"
+    elif any(
+        _severity(failure) == "high"
+        and _category(failure) in {"missing_evidence", "unsupported_claim", "unverified_assertion"}
+        for failure in unresolved
+    ):
+        recomputed = "gather_evidence"
+    elif unresolved or below:
+        recomputed = "iterate"
+    else:
+        recomputed = "pass"
+    verdicts = value.get("verdicts")
+    if recomputed == "pass" and isinstance(verdicts, dict) and verdicts:
+        verdict_values = {
+            str(verdict.get("verdict", "")).lower()
+            for verdict in verdicts.values()
+            if isinstance(verdict, dict)
+        }
+        if "abstain" in verdict_values:
+            recomputed = "abstain"
+        elif "challenge" in verdict_values:
+            recomputed = "iterate"
+    if outcome != recomputed and not (outcome == "warn" and recomputed == "pass" and failures):
+        raise ValueError(
+            f"gate: cross-check failed for {source}: stated outcome "
+            f"{outcome!r} does not match the outcome {recomputed!r} "
+            "recomputed from its scores, failures, and threshold"
+        )
+    _gate_ledger_check(value, metadata, source=source)
+    return str(outcome)
+
+
+def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, source: str) -> None:
+    """FR-1.2 ledger leg: where the assessment records a ledger
+    (metadata.ledger from a CLI assess run), the chain must verify
+    and must contain this assessment's SHA-256 (the digest
+    HashChainLedger.append_assessment records). Assessments with no
+    ledger record (API-produced, or an explicit --no-ledger run whose
+    metadata says mode "disabled") carry nothing to check against."""
+    ledger_meta = metadata.get("ledger")
+    if not isinstance(ledger_meta, dict) or ledger_meta.get("mode") in {None, "disabled"}:
+        return
+    ledger_path_value = ledger_meta.get("path")
+    if not isinstance(ledger_path_value, str) or not ledger_path_value:
+        raise ValueError(f"gate: {source} records a ledger without a path")
+    ledger_path = Path(ledger_path_value)
+    if not ledger_path.exists():
+        raise ValueError(
+            f"gate: cross-check failed for {source}: recorded ledger "
+            f"{ledger_path_value} does not exist"
+        )
+    ledger = HashChainLedger(ledger_path)
+    verification = ledger.verify()
+    if not verification.valid:
+        raise ValueError(
+            f"gate: cross-check failed for {source}: ledger "
+            f"{ledger_path_value} does not verify ({'; '.join(verification.errors)})"
+        )
+    # The canonical form is aee.ledger._canonical; duplicated here to
+    # keep the gate's digest definition visible at the check site.
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    recorded = {
+        entry.get("payload", {}).get("assessment_sha256")
+        for entry in ledger.entries()
+        if isinstance(entry, dict) and isinstance(entry.get("payload"), dict)
+    }
+    if digest not in recorded:
+        raise ValueError(
+            f"gate: cross-check failed for {source}: assessment hash "
+            f"is not recorded in its ledger {ledger_path_value}"
+        )
 
 
 def _graph(args: argparse.Namespace) -> int:

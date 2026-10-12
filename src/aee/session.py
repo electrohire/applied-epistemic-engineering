@@ -80,5 +80,15 @@ class AEESession:
         value = json.loads(self.state_file.read_text(encoding="utf-8"))
         self.project = str(value.get("project", self.project))
         self.phase = str(value.get("phase", self.phase))
-        self.claims = {claim.id: claim for claim in map(Claim.from_dict, value.get("claims", []))}
+        loaded = list(map(Claim.from_dict, value.get("claims", [])))
+        # Spec 003 FR-1.3 (RT2-M4): duplicate ids in a state file are
+        # refused with the same rule add_claim/assess apply — the old
+        # dict comprehension silently merged them last-wins, dropping
+        # claims without a trace.
+        claims: dict[str, Claim] = {}
+        for claim in loaded:
+            if claim.id in claims:
+                raise ValueError(f"duplicate claim id: {claim.id}")
+            claims[claim.id] = claim
+        self.claims = claims
         return len(self.claims)
