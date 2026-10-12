@@ -2,7 +2,7 @@
 
 **Input**: `specs/004-tao-realignment/spec.md` + `claims.json` (21 claims, assessed after_specify, ITERATE) + `audit-2026-10-12.md` (retroactive audit) + `stage-reclassifications-2026-10-12.json`
 
-**Prerequisites**: claims.json (required, assessed), spec.md (required), OD-T1 decided (2026-10-12, interleave — see spec §9). OD-T2/T3/T4 are **not** decided; this plan proceeds on the proposed defaults in §0 below, each marked **PROPOSED — PENDING OWNER RATIFICATION**. Ratifying or replacing a default is a one-line owner decision; no phase below silently treats a default as decided.
+**Prerequisites**: claims.json (required, assessed), spec.md (required), OD-T1 decided (2026-10-12, interleave — see spec §9). OD-T2/T3/T4 were proposed defaults in §0 below and are now **RATIFIED**. Ratified by owner directive 'Do all that remains' 2026-10-12, applied to the enumerated remaining items including this gate; defaults adopted as proposed.
 
 **Organization**: Model before meaning, meaning before surfaces. The stage model (P0) is the vocabulary every later phase speaks; attribution and decomposition (P1) give claims their structure; the policy gates (P2) enforce the anti-gradability rules on that structure; lane-separated reporting (P3) makes the two lanes visible everywhere a verdict is shown. The joint phase with Spec 003 FR-8 (P4) is where scoring *semantics* change — once, under a single methodology bump. Cross-repo vocabulary alignment (P5) follows the engine, per the repo's standing engine-first precedent, and close-out (P6) re-runs the discipline on the realigned framework itself, including a fresh retro-audit sample.
 
@@ -10,7 +10,9 @@
 
 ## 0. Proposed defaults for the open owner decisions
 
-Each default below is **PROPOSED — PENDING OWNER RATIFICATION**.
+Each default below was **PROPOSED — PENDING OWNER RATIFICATION** and is now **RATIFIED**. Ratified by owner directive 'Do all that remains' 2026-10-12, applied to the enumerated remaining items including this gate; defaults adopted as proposed.
+
+The interlocked audit decisions are also adopted: OD-A1 stage rules as audited, OD-A3 Spec 001 standing reading = checked-not-complete, and OD-A4 digestion-record practice adopted for framework specs going forward. OD-A2 was already satisfied by the merged close-out re-assessments.
 
 - **OD-T2 — Stage vocabulary: Tao's five terms verbatim** (`created`, `checked`, `explained`, `accepted`, `digested`). Rationale: all four realigned projects (AEE, the Research Engine, Glossa-Lab, the projected-constraints program) already use these terms; framework-native synonyms would create cross-project translation drift at exactly the boundary the realignment exists to unify.
 - **OD-T3 — `supported` is capped by stage** (spec R1.3's proposal). Rationale: the status vocabulary stays unchanged — no bundle migration, no renamed enum — but the *reported* status and policy verdict ceiling are bounded by the claim's stage, so `supported` can never again be read as settled beyond what the stage allows.
@@ -75,4 +77,4 @@ Each default below is **PROPOSED — PENDING OWNER RATIFICATION**.
 - P4 depends on P0–P3 and on the Spec 003 FR-7 re-pin or a recorded baseline capture; it is the single point where scoring semantics change.
 - P5 depends on P3/P4 (it presents their vocabulary) and runs per-repo under those repos' own flows.
 - P6 depends on everything and produces the program's first post-realignment audit evidence.
-- OD-T2/T3/T4 ratification (or replacement of a §0 default) is required before P0 merges; the defaults exist so that a single owner decision unblocks the phase, not so the phase can proceed undecided.
+- OD-T2/T3/T4 ratification was required before P0 merges and has now been given (see §0); the defaults existed so that a single owner decision unblocked the phase, not so the phase could proceed undecided.
