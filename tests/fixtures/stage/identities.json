@@ -1,0 +1,29 @@
+{
+  "identities": [
+    {
+      "id": "ada-lovelace",
+      "name": "Ada Lovelace",
+      "kind": "person"
+    },
+    {
+      "id": "grace-hopper",
+      "name": "Grace Hopper",
+      "kind": "person"
+    },
+    {
+      "id": "load-runner",
+      "name": "Load Runner harness",
+      "kind": "tool"
+    },
+    {
+      "id": "qwen3-8b",
+      "name": "Qwen3 8B (local model)",
+      "kind": "model"
+    },
+    {
+      "id": "widget-team",
+      "name": "Widget team alias",
+      "kind": "team"
+    }
+  ]
+}

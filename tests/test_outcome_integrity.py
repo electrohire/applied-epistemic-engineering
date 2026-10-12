@@ -30,6 +30,7 @@ GOOD_CLAIM = {
     "id": "C1",
     "text": "The widget holds for 10 s under load profile L",
     "status": "supported",
+    "stage": "accepted",
     "kind": "requirement",
     "boundary": ["load profile L"],
     "falsification_tests": ["drop the widget and observe failure"],
@@ -182,6 +183,7 @@ def test_gate_real_non_pass_assessment_keeps_its_exit_code(tmp_path: Path) -> No
         "id": "W1",
         "text": "The widget is fast",
         "status": "supported",
+        "stage": "accepted",
         "kind": "requirement",
     }
     output = _assess_via_cli(tmp_path, [weak])
@@ -191,7 +193,7 @@ def test_gate_real_non_pass_assessment_keeps_its_exit_code(tmp_path: Path) -> No
 
 
 def test_gate_refuses_outcome_edited_to_pass(tmp_path: Path) -> None:
-    weak = {"id": "W1", "text": "The widget is fast", "status": "supported"}
+    weak = {"id": "W1", "text": "The widget is fast", "status": "supported", "stage": "accepted"}
     output = _assess_via_cli(tmp_path, [weak])
     value = json.loads(output.read_text(encoding="utf-8"))
     assert value["outcome"] != "pass"

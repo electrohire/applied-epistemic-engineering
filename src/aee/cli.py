@@ -12,6 +12,7 @@ import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from pathlib import Path
 from typing import Any, cast
 
@@ -29,20 +30,27 @@ from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger, assessment_content_digest
 from aee.model import (
+    STAGE_ORDER,
     Claim,
     ClaimKind,
+    ClaimStage,
     ClaimStatus,
     Evidence,
     EvidenceDirection,
     EvidenceKind,
     FailureMode,
+    IdentityRegistry,
+    Severity,
     SourceQuality,
+    StageEvent,
+    StageEventKind,
     Uncertainty,
 )
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.reliability import ReliabilityTable
 from aee.review import build_review_queue
 from aee.scoring import ClaimScore
+from aee.stage import reported_status_for
 
 
 def _parse_as_of(raw: str) -> datetime:
@@ -131,6 +139,13 @@ def build_parser() -> argparse.ArgumentParser:
         "Its use is echoed into the assessment metadata.",
     )
     assess.add_argument(
+        "--identity-registry",
+        type=Path,
+        help="Project-local identity registry JSON (Spec 004 R3.2/OD-T4): "
+        "exposition evidence source_ids resolve against it. Without this, "
+        "a bundle-adjacent identities.json beside the input is used if present.",
+    )
+    assess.add_argument(
         "--verify-evidence",
         action="store_true",
         help="Verify evidence refs inline (Spec 002 FR-3.5): refs are "
@@ -165,6 +180,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Strict-load a claims bundle and run structural checks, without assessing",
     )
     validate.add_argument("bundle", type=Path)
+    validate.add_argument(
+        "--identity-registry",
+        type=Path,
+        help="Project-local identity registry JSON (Spec 004 R3.2/OD-T4).",
+    )
 
     migrate = sub.add_parser(
         "migrate",
@@ -183,11 +203,29 @@ def build_parser() -> argparse.ArgumentParser:
     challenge.add_argument("--output", type=Path)
     challenge.add_argument("--actor", default="aee")
     challenge.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Compatibility mode (Spec 002 FR-1.3), as for assess: load "
+        "claims with the historical silent-default loader instead of "
+        "strict validation. Its use is echoed into the output metadata.",
+    )
+    challenge.add_argument(
         "--as-of",
         type=_parse_as_of,
         default=None,
         metavar="ISO8601",
         help="Pin the scoring clock (Spec 003 FR-5.8), as for assess.",
+    )
+
+    priority = sub.add_parser(
+        "priority",
+        help="Report claim priority records from a ledger (Spec 004 R7.1)",
+    )
+    priority.add_argument("--ledger", type=Path, required=True)
+    priority.add_argument(
+        "--claim",
+        default=None,
+        help="Only this claim id (exit 2 when it was never registered)",
     )
 
     verify = sub.add_parser("verify-ledger", help="Verify every hash-chain link")
@@ -223,9 +261,31 @@ def build_parser() -> argparse.ArgumentParser:
     gate = sub.add_parser("gate", help="Return a CI-friendly decision from an assessment")
     gate.add_argument("--input", type=Path, required=True)
 
+    anchor = sub.add_parser(
+        "anchor",
+        help="Deposit an assessment's SHA-256 in an Axiomere .axmr ledger (optional, Spec 002 FR-8b)",
+    )
+    anchor.add_argument("--input", type=Path, required=True)
+    anchor.add_argument("--ledger", type=Path, required=True, help="Path to the .axmr ledger (created if absent)")
+    anchor.add_argument("--actor", default="aee-anchor")
+    anchor.add_argument("--project")
+    anchor.add_argument("--phase")
+    anchor.add_argument(
+        "--output",
+        type=Path,
+        help="Write the receipt-bearing assessment here instead of updating --input in place",
+    )
+
     graph = sub.add_parser("graph", help="Render claim dependencies as Mermaid")
     graph.add_argument("--input", type=Path, required=True)
     graph.add_argument("--output", type=Path)
+    graph.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Compatibility mode (Spec 002 FR-1.3), as for assess: load "
+        "claims with the historical silent-default loader instead of "
+        "strict validation.",
+    )
 
     gaps = sub.add_parser(
         "gaps", help="Generate or update a gap register from a verification matrix"
@@ -249,6 +309,11 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--current", type=Path, required=True)
     review.add_argument("--materiality", type=float, default=0.05)
     review.add_argument("--limit", type=int)
+    review.add_argument(
+        "--baseline",
+        type=Path,
+        help="Last reviewed assessment: cumulative drift is measured from it (FR-8.11)",
+    )
     review.add_argument("--output", type=Path)
 
     sub.add_parser("demo", help="Run a self-contained AEE demonstration")
@@ -275,8 +340,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _challenge(args)
         if args.command == "verify-ledger":
             return _verify_ledger(args)
+        if args.command == "priority":
+            return _priority(args)
         if args.command == "gate":
             return _gate(args)
+        if args.command == "anchor":
+            return _anchor(args)
         if args.command == "graph":
             return _graph(args)
         if args.command == "gaps":
@@ -300,7 +369,12 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def _validate(args: argparse.Namespace) -> int:
-    claims = load_claims(args.bundle)
+    registry = (
+        IdentityRegistry.from_path(str(args.identity_registry))
+        if getattr(args, "identity_registry", None) is not None
+        else None
+    )
+    claims = load_claims(args.bundle, identity_registry=registry)
     errors, warnings = validate_bundle_structure(claims)
     for warning in warnings:
         print(f"warning: {warning}")
@@ -411,7 +485,12 @@ def _assess(args: argparse.Namespace) -> int:
         _warn_if_outside_root(args.output, warn_root, flag="--output")
     if args.evaluator_output is not None:
         _warn_if_outside_root(args.evaluator_output, warn_root, flag="--evaluator-output")
-    claims = load_claims(args.input, strict=not args.lenient)
+    registry = (
+        IdentityRegistry.from_path(str(args.identity_registry))
+        if getattr(args, "identity_registry", None) is not None
+        else None
+    )
+    claims = load_claims(args.input, strict=not args.lenient, identity_registry=registry)
     if not claims:
         # Spec 003 FR-1.1 (OD-2, CLI half): an explicitly empty bundle
         # is an input error (exit 2), never a pass — this is the
@@ -517,7 +596,7 @@ def _assess(args: argparse.Namespace) -> int:
 def _challenge(args: argparse.Namespace) -> int:
     if args.output is not None:
         _guard_output_path(args.output, [(args.input, "the --input bundle")])
-    claims = load_claims(args.input)
+    claims = load_claims(args.input, strict=not args.lenient)
     if not claims:
         print(
             "Error: input bundle contains zero claims: an empty bundle "
@@ -525,11 +604,18 @@ def _challenge(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
+    challenge_metadata: dict[str, Any] = {
+        "input": args.input.as_posix(),
+        "mode": "challenge",
+    }
+    if args.lenient:
+        # FR-1.3: lenient mode is never silent — its use is on the record.
+        challenge_metadata["loading_mode"] = "lenient"
     assessment = AEEEngine(args.threshold).assess(
         claims,
         project=args.project,
         phase=args.phase,
-        metadata={"input": args.input.as_posix(), "mode": "challenge"},
+        metadata=challenge_metadata,
         as_of=args.as_of,
     )
     failures = [cast(FailureMode, failure).to_dict() for failure in assessment.failures]
@@ -546,6 +632,28 @@ def _challenge(args: argparse.Namespace) -> int:
     }
     _write_or_print(value, args.output)
     return _exit_code(assessment.outcome)
+
+
+def _priority(args: argparse.Namespace) -> int:
+    """Spec 004 R7.1: a claim's registration (priority) record is a
+    read over the ledger - earliest entry whose assessment contains
+    the claim id, with its timestamp and entry hash."""
+    from aee.priority import claim_priority, priority_index
+
+    ledger = HashChainLedger(args.ledger)
+    if args.claim is not None:
+        record = claim_priority(ledger, args.claim)
+        if record is None:
+            print(
+                f"Error: claim {args.claim!r} was never registered in "
+                f"{args.ledger.as_posix()}",
+                file=sys.stderr,
+            )
+            return 2
+        print(_dumps(record, indent=2))
+        return 0
+    print(_dumps(priority_index(ledger), indent=2))
+    return 0
 
 
 def _verify_ledger(args: argparse.Namespace) -> int:
@@ -593,6 +701,42 @@ _SUMMARY_COUNTS = re.compile(
 )
 
 
+def _anchor(args: argparse.Namespace) -> int:
+    """Spec 002 FR-8b (T804/T805): deposit the assessment's SHA-256
+    in an Axiomere ledger and write the receipt back as
+    `metadata.anchor`. When the optional axiomere package is absent
+    this degrades to a clear "anchor unavailable" message (FR-8.6)
+    and a non-zero exit - the assessment file is left untouched."""
+    from aee.anchor import AnchorUnavailable, anchor_assessment
+
+    value = _load_json_strict(args.input, what="assessment")
+    if not isinstance(value, dict) or not isinstance(value.get("metadata"), dict):
+        raise ValueError(
+            f"anchor: {args.input.as_posix()} is not a complete assessment (missing metadata)"
+        )
+    try:
+        receipt = anchor_assessment(
+            value,
+            ledger_path=args.ledger,
+            actor=args.actor,
+            project=args.project,
+            phase=args.phase,
+        )
+    except AnchorUnavailable as exc:
+        print(f"AEE anchor: {exc}", file=sys.stderr)
+        return 2
+    value["metadata"]["anchor"] = receipt
+    target = args.output if args.output is not None else args.input
+    target.write_text(_dumps(value, indent=2) + "\n", encoding="utf-8")
+    print(
+        "AEE anchor: deposited assessment SHA-256 "
+        f"{receipt['assessment_sha256'][:16]}... in {receipt['ledger']} "
+        f"(event #{receipt['event_seq']}, checkpoint root "
+        f"{str(receipt['checkpoint_root'])[:16]}...)"
+    )
+    return 0
+
+
 def _gate(args: argparse.Namespace) -> int:
     # Spec 003 FR-5.5 (RT2-L3/L4 seams): the gate parses strictly —
     # bare NaN/Infinity tokens are refused at load (parse_constant),
@@ -602,6 +746,48 @@ def _gate(args: argparse.Namespace) -> int:
     outcome = _gate_cross_check(value, source=args.input.as_posix())
     print(f"AEE gate: {outcome}")
     return _exit_code(outcome)
+
+
+def _gate_not_understood_check(value: dict[str, Any], *, source: str) -> None:
+    """Spec 004 R5.2/R5.3: an assessment serialised without a
+    `not_understood` statement - or with an empty one while the
+    record carries open items (unresolved challenges, stage caps) -
+    is itself a finding, and a finding does not gate. Pre-realignment
+    assessments, which predate the field, fail here by design: the
+    gate is where silence stops being a compatibility strategy."""
+    if "not_understood" not in value:
+        raise ValueError(
+            f"gate: {source} carries no 'not_understood' statement "
+            "(Spec 004 R5.2/R5.3); an assessment that does not state "
+            "what it does not establish is incomplete"
+        )
+    entries = value["not_understood"]
+    if not isinstance(entries, list) or not all(
+        isinstance(entry, str) for entry in entries
+    ):
+        raise ValueError(
+            f"gate: {source} has a malformed 'not_understood' statement "
+            "(expected a list of strings, Spec 004 R5.2)"
+        )
+    if entries:
+        return
+    open_items = bool(value.get("stage_caps")) or any(
+        isinstance(claim, dict)
+        and any(
+            isinstance(failure, dict)
+            and not failure.get("resolved", False)
+            and failure.get("category") not in {"stage_cap", "verified_unexplained"}
+            for failure in claim.get("failures", [])
+            if isinstance(failure, dict)
+        )
+        for claim in value.get("claims", [])
+        if isinstance(claim, dict)
+    )
+    if open_items:
+        raise ValueError(
+            f"gate: {source} states an empty 'not_understood' while its "
+            "record carries open items (Spec 004 R5.3)"
+        )
 
 
 def _gate_cross_check(value: Any, *, source: str) -> str:
@@ -624,6 +810,7 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
     summary = value.get("summary")
     if not isinstance(summary, str) or not summary.strip():
         raise ValueError(f"gate: {source} is not a complete assessment (missing summary)")
+    _gate_not_understood_check(value, source=source)
     claims = value.get("claims")
     scores = value.get("scores")
     metadata = value.get("metadata")
@@ -701,7 +888,16 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
             f"claim(s), {failure_count} failure mode(s), {below} below "
             f"the {float(threshold):.2f} threshold)"
         )
-    unresolved = [failure for failure in failures if not failure.get("resolved", False)]
+    # Spec 004 R1.3/R3.3: stage_cap and verified_unexplained records
+    # are explanatory and never route the outcome (the R1.4 stage rule
+    # below does that work), so the recompute excludes them, mirroring
+    # AEEEngine._outcome's _NON_OUTCOME_CATEGORIES.
+    unresolved = [
+        failure
+        for failure in failures
+        if not failure.get("resolved", False)
+        and failure.get("category") not in {"stage_cap", "verified_unexplained"}
+    ]
 
     def _severity(failure: dict[str, Any]) -> str:
         return str(failure.get("severity", "")).lower()
@@ -735,8 +931,87 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
         }
         if "abstain" in verdict_values:
             recomputed = "abstain"
-        elif "challenge" in verdict_values:
+        elif "challenge" in verdict_values or "unjudged" in verdict_values:
             recomputed = "iterate"
+    if recomputed == "pass":
+        # Spec 004 R1.4: `pass` requires every covered claim at
+        # EFFECTIVE stage explained+ (the engine judges caps on the
+        # effective stage; the gate mirrors it via the recorded
+        # stage_caps). Claims in a pre-realignment record carry no
+        # stage; the cap applies only where a stage is recorded (the
+        # current engine always records one).
+        effective_caps = {
+            cap["claim_id"]: cap.get("stage")
+            for cap in value.get("stage_caps", [])
+            if isinstance(cap, dict) and isinstance(cap.get("claim_id"), str)
+        }
+        stages = [
+            effective_caps.get(claim["id"], claim.get("stage"))
+            for claim in claims
+            if isinstance(claim, dict)
+        ]
+        if any(stage in {"created", "checked"} for stage in stages):
+            recomputed = "iterate"
+    reported = value.get("reported_statuses")
+    if isinstance(reported, dict):
+        # R1.3 cross-check: the reported (capped) status of every
+        # claim must equal the cap of its recorded status and its
+        # EFFECTIVE stage. The engine records effective-stage caps in
+        # `stage_caps` (P1 decomposition/attribution overrides and the
+        # P2 machine-only gate can lower the effective stage below
+        # the stored one); where a record exists it governs, and the
+        # record itself is validated against its own stage so a
+        # fabricated record cannot launder a status. Without a
+        # record, the stored stage governs (the P0 rule).
+        recorded_caps = {
+            cap["claim_id"]: cap
+            for cap in value.get("stage_caps", [])
+            if isinstance(cap, dict) and isinstance(cap.get("claim_id"), str)
+        }
+        for claim in claims:
+            if not isinstance(claim, dict):
+                continue
+            status_raw, stage_raw = claim.get("status"), claim.get("stage")
+            if not isinstance(status_raw, str) or not isinstance(stage_raw, str):
+                continue
+            record = recorded_caps.get(claim["id"])
+            effective_raw = record.get("stage") if record else stage_raw
+            if not isinstance(effective_raw, str):
+                raise ValueError(
+                    f"gate: {source} claim {claim['id']!r} carries a malformed "
+                    "stage_caps record"
+                )
+            try:
+                expected = reported_status_for(
+                    ClaimStatus(status_raw), ClaimStage(effective_raw)
+                ).value
+            except ValueError:
+                raise ValueError(
+                    f"gate: {source} claim {claim.get('id')!r} carries an "
+                    "unknown status or stage value"
+                ) from None
+            if record is not None:
+                if STAGE_ORDER[ClaimStage(effective_raw)] > STAGE_ORDER[ClaimStage(stage_raw)]:
+                    raise ValueError(
+                        f"gate: cross-check failed for {source}: stage_caps "
+                        f"record for claim {claim['id']!r} raises its stage "
+                        f"from {stage_raw!r} to {effective_raw!r}; caps only lower"
+                    )
+                if record.get("reported_status") != expected:
+                    raise ValueError(
+                        f"gate: cross-check failed for {source}: stage_caps "
+                        f"record for claim {claim['id']!r} states cap "
+                        f"{record.get('reported_status')!r} but status {status_raw!r} "
+                        f"at effective stage {effective_raw!r} requires "
+                        f"{expected!r} (Spec 004 R1.3)"
+                    )
+            if reported.get(claim["id"]) != expected:
+                raise ValueError(
+                    f"gate: cross-check failed for {source}: reported status "
+                    f"for claim {claim['id']!r} is {reported.get(claim['id'])!r}, "
+                    f"but the stage cap (status {status_raw!r} at effective "
+                    f"stage {effective_raw!r}) requires {expected!r} (Spec 004 R1.3)"
+                )
     if outcome != recomputed and not (outcome == "warn" and recomputed == "pass" and failures):
         raise ValueError(
             f"gate: cross-check failed for {source}: stated outcome "
@@ -810,7 +1085,7 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
 def _graph(args: argparse.Namespace) -> int:
     if args.output is not None:
         _guard_output_path(args.output, [(args.input, "the --input bundle")])
-    rendered = ClaimGraph(load_claims(args.input)).to_mermaid()
+    rendered = ClaimGraph(load_claims(args.input, strict=not args.lenient)).to_mermaid()
     if args.output:
         _atomic_write_text(args.output, rendered)
     else:
@@ -882,6 +1157,15 @@ def _demo() -> int:
         text="The API always returns within 100 ms",
         kind=ClaimKind.REQUIREMENT,
         status=ClaimStatus.SUPPORTED,
+        stage=ClaimStage.ACCEPTED,
+        stage_events=[
+            StageEvent(
+                kind=StageEventKind.ACCEPTED,
+                author="demo",
+                date="2026-09-04",
+                basis="Demo claim: recorded human acceptance of the load-test evidence",
+            )
+        ],
         boundary=["Production region us-east-1", "p95 under nominal load"],
         falsification_tests=["Run a 30-minute load test and observe p95 latency above 100 ms"],
         uncertainty=Uncertainty.LOW,
@@ -950,6 +1234,20 @@ def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimS
         boundary_score=_number(components, "boundary"),
         contradiction_penalty=_number(components, "contradiction_penalty"),
         notes=[str(note) for note in notes],
+        declared_state=(
+            dict(value["declared_state"])
+            if isinstance(value.get("declared_state"), dict)
+            else {}
+        ),
+        propagation_status=str(value.get("propagation", {}).get("status", "propagated"))
+        if isinstance(value.get("propagation"), dict)
+        else "propagated",
+        cycle_component=[
+            str(member)
+            for member in value.get("propagation", {}).get("cycle_component", [])
+        ]
+        if isinstance(value.get("propagation"), dict)
+        else [],
     )
 
 
@@ -957,6 +1255,10 @@ def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimS
 class _AssessmentView:
     scores: dict[str, ClaimScore]
     verdicts: dict[str, ClaimVerdict]
+    # FR-8.11(a): the failure channel - rebuilt from the serialised
+    # claims' failure records so `aee review` sees failure movement,
+    # not only score movement.
+    failures: tuple[Any, ...] = ()
 
 
 def _assessment_view(path: Path) -> _AssessmentView:
@@ -1011,7 +1313,29 @@ def _assessment_view(path: Path) -> _AssessmentView:
         verdicts[claim_id] = ClaimVerdict(
             claim_id, parsed_verdict, [str(reason) for reason in reasons]
         )
-    return _AssessmentView(scores=scores, verdicts=verdicts)
+    failures: list[Any] = []
+    raw_claims = data.get("claims", [])
+    if isinstance(raw_claims, list):
+        for raw_claim in raw_claims:
+            if not isinstance(raw_claim, dict):
+                continue
+            for raw_failure in raw_claim.get("failures", []):
+                if not isinstance(raw_failure, dict):
+                    continue
+                try:
+                    severity = Severity(str(raw_failure.get("severity", "low")))
+                except ValueError:
+                    continue
+                failures.append(
+                    SimpleNamespace(
+                        claim_id=str(raw_failure.get("claim_id", raw_claim.get("id", ""))),
+                        id=str(raw_failure.get("id", "")),
+                        severity=severity,
+                        category=str(raw_failure.get("category", "")),
+                        resolved=bool(raw_failure.get("resolved", False)),
+                    )
+                )
+    return _AssessmentView(scores=scores, verdicts=verdicts, failures=tuple(failures))
 
 
 def _review(args: argparse.Namespace) -> int:
@@ -1023,11 +1347,16 @@ def _review(args: argparse.Namespace) -> int:
                 (args.current, "the --current assessment"),
             ],
         )
+    current_data = _load_json_strict(args.current, what="assessment")
+    current_metadata = current_data.get("metadata", {}) if isinstance(current_data, dict) else {}
+    threshold = current_metadata.get("threshold")
     queue = build_review_queue(
         _assessment_view(args.previous),
         _assessment_view(args.current),
         materiality=args.materiality,
         limit=args.limit,
+        baseline=_assessment_view(args.baseline) if args.baseline else None,
+        threshold=float(threshold) if isinstance(threshold, (int, float)) else None,
     )
     _write_or_print(queue.to_dict(), args.output)
     return 0

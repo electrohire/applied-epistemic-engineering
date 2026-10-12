@@ -39,7 +39,8 @@
           "source_quality": "secondary",
           "description": "URL ref: reported unresolvable-offline, never fetched"
         }
-      ]
+      ],
+      "stage": "accepted"
     }
   ]
 }

@@ -13,12 +13,14 @@ from aee.model import (
     BundleValidationError,
     Claim,
     ClaimKind,
+    ClaimStage,
     ClaimStatus,
     DispositionKind,
     Evidence,
     EvidenceDirection,
     EvidenceKind,
     FailureMode,
+    IdentityRegistry,
     SourceQuality,
     Uncertainty,
     normalize_claim_id,
@@ -85,11 +87,27 @@ _INLINE_ID = re.compile(rf"^\s*[-*]\s+\*\*ID:?\*\*:?\s*({_ID})\s*$", re.IGNORECA
 _FIELD = re.compile(r"^\s*[-*]\s+\*\*(.+?):?\*\*:?\s*(.+)$")
 
 
-def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
+def load_claims(
+    path: str | Path,
+    *,
+    strict: bool = True,
+    identity_registry: IdentityRegistry | None = None,
+) -> list[Claim]:
     """Load a claims bundle. Strict by default (Spec 002 FR-1.1);
     ``strict=False`` is the explicitly-named lenient compatibility mode
-    (FR-1.3) and exists for internal extraction use."""
+    (FR-1.3) and exists for internal extraction use.
+
+    ``identity_registry`` (Spec 004 R3.2/OD-T4) supplies the
+    project-local identity registry exposition evidence resolves
+    against. When none is passed and the bundle is a JSON file, a
+    bundle-adjacent ``identities.json`` beside the bundle is loaded
+    if present - the registry is project-local by design, so it
+    lives with the project, next to its bundles."""
     source = Path(path)
+    if identity_registry is None and source.suffix.lower() == ".json":
+        adjacent = source.parent / "identities.json"
+        if adjacent.is_file():
+            identity_registry = IdentityRegistry.from_path(str(adjacent))
     if source.suffix.lower() == ".json":
 
         def _reject_constant(name: str) -> None:
@@ -144,7 +162,11 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
                 if isinstance(row_id, str) and row_id
                 else f"claims[{index}]"
             )
-            claims.append(Claim.from_dict(row, strict=strict, context=context))
+            claims.append(
+                Claim.from_dict(
+                    row, strict=strict, context=context, identity_registry=identity_registry
+                )
+            )
         return claims
     return extract_markdown_claims(source)
 
@@ -371,6 +393,16 @@ def migrate_bundle(value: Any) -> tuple[dict[str, Any], list[str]]:
                             )
         _migrate_enum(out, "kind", valid_kinds, LEGACY_KIND_MAP, ctx, report)
         _migrate_enum(out, "status", valid_statuses, LEGACY_STATUS_MAP, ctx, report)
+        # Spec 004 R1.1: stage backfill. A pre-realignment bundle
+        # carries no stage; migration writes `created` and reports
+        # EVERY claim it touched (silence is never the compatibility
+        # strategy). A present-but-invalid stage is a loud error via
+        # _migrate_enum with no legacy mapping.
+        if "stage" not in out:
+            out["stage"] = ClaimStage.CREATED.value
+            report.append(f"{ctx}: stage missing -> backfilled 'created' (Spec 004 R1.1)")
+        else:
+            _migrate_enum(out, "stage", {m.value for m in ClaimStage}, {}, ctx, report)
         migrated_rows.append(out)
     bundle["claims"] = migrated_rows
     # Guarantee: a migrated bundle strict-loads (migrate -> assess round-trip).

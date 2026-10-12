@@ -89,6 +89,19 @@ class EvaluatorAdapter:
                 # produced it (RT4-M6 found no such trace).
                 "engine_version": __version__,
                 "aee_methodology_version": assessment.methodology_version,
+                # Spec 004 P5 (R6/R8): the lane pair and the
+                # residual-unknowns statement ride the contract, so
+                # a composed result can present lane 1 and lane 2
+                # side by side - and can never honestly present the
+                # lane-1 outcome as the whole story. Lane 2 is state
+                # (counts and stages), never a score, here as
+                # everywhere.
+                "lanes": {
+                    "lane_1": assessment.lanes.get("lane_1", {}),
+                    "lane_2": assessment.lanes.get("lane_2", {}),
+                },
+                "not_understood": list(assessment.not_understood),
+                "reported_statuses": dict(assessment.reported_statuses),
             },
             "state": {
                 "aee": {

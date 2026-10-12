@@ -1,0 +1,62 @@
+{
+  "claims": [
+    {
+      "id": "STG-1",
+      "text": "The widget holds for 10 s under load profile L",
+      "kind": "requirement",
+      "status": "supported",
+      "stage": "digested",
+      "stage_events": [
+        {
+          "kind": "checked",
+          "author": "aee",
+          "date": "2026-10-12",
+          "basis": "assessment run recorded"
+        },
+        {
+          "kind": "explained",
+          "author": "ada-lovelace",
+          "date": "2026-10-12",
+          "basis": "exposition evidence"
+        },
+        {
+          "kind": "accepted",
+          "author": "grace-hopper",
+          "date": "2026-10-12",
+          "basis": "recorded human acceptance"
+        },
+        {
+          "kind": "digested",
+          "author": "grace-hopper",
+          "date": "2026-10-12",
+          "basis": "digestion record: explanation incorporated into the shared design note by a human other than the author"
+        }
+      ],
+      "boundary": [
+        "load profile L"
+      ],
+      "falsification_tests": [
+        "drop the widget and observe failure"
+      ],
+      "evidence": [
+        {
+          "ref": "reports/t.json",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "lab-1",
+          "independent_of": [
+            "lab-2"
+          ]
+        },
+        {
+          "ref": "reports/u.json",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "source_id": "lab-2"
+        }
+      ]
+    }
+  ]
+}
