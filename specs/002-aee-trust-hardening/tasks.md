@@ -25,11 +25,11 @@
 
 ## FR-2 — Claims drafting [extension + engine]
 
-- [ ] T201 [engine] Drafting helper in `src/aee/extract.py` (requirement → draft claim proposal, reusing `derived_claim_id`); drafts hard-coded to `status: draft`.
+- [x] T201 [engine] Drafting helper in `src/aee/extract.py` (requirement → draft claim proposal, reusing `derived_claim_id`); drafts hard-coded to `status: draft`.
 - [ ] T202 [extension] New command `commands/speckit.aee.draft-claims.md` + registration in `extension.yml` provides list.
 - [ ] T203 [extension] Runner support in `scripts/python/run_aee.py` for draft generation from a spec directory.
 - [ ] T204 [extension] Ratification guard: no tool path sets a drafted claim above draft; TODO falsifiers emitted explicitly so FR-1 strict loading rejects unfinished drafts.
-- [ ] T205 [engine] Tests: fixture spec → drafts are per-requirement, all draft, source_ref set; unedited drafts assess no higher than their evidence warrants.
+- [x] T205 [engine] Tests: fixture spec → drafts are per-requirement, all draft, source_ref set; unedited drafts assess no higher than their evidence warrants.
 
 ## FR-3 — Verifiable evidence [engine]
 
@@ -72,9 +72,9 @@
 
 ## FR-8a — Ledger parity [engine + extension]
 
-- [ ] T801 [engine] `assess` ledgers by default (documented default path) with `--no-ledger` opt-out; `--ledger <path>` retained.
+- [x] T801 [engine] `assess` ledgers by default (documented default path) with `--no-ledger` opt-out; `--ledger <path>` retained.
 - [ ] T802 [extension] Runner reports the verify-ledger verdict alongside assessment/evaluator/ledger paths after append.
-- [ ] T803 [engine] Docs: ledger entry is the record (it already stores the assessment SHA-256); the JSON file is a working copy. CLI help updated.
+- [x] T803 [engine] Docs: ledger entry is the record (it already stores the assessment SHA-256); the JSON file is a working copy. CLI help updated.
 
 ## FR-8b — Axiomere anchoring (separate, later, non-blocking) [engine or extension]
 
