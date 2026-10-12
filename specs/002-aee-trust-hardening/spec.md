@@ -129,6 +129,16 @@ Assessment (AEE engine 1.0.4, `aee assess --phase after_specify --threshold 0.70
 
 No statuses were inflated to chase a PASS. This spec is ready for planning (see `plan.md`); implementation is future, separately-approved work.
 
+**Addendum — after_implement re-assessment, 2026-10-12 (close-out, T811).** The frozen record above stands: `assessment.json` remains the after_specify record and is not rewritten. The re-assessment lives in `claims-after-implement.json` (bundle v0.2.0 — implementation evidence appended, statuses changed only where shipped work earns it) and `assessment-after-implement.json` (engine 1.4.0, `aee assess --phase after_implement --threshold 0.70 --no-ledger`).
+
+- **Outcome: ITERATE** — held there by the engine's own draft cap (FR-2.3) over the three claims that remain draft. That is the correct, honest state, not a shortfall.
+- Problem claims TH-002-01…TH-002-11 scored 0.845–0.999 (evidence unchanged; scores recomputed by the current assessor).
+- Outcome claims TH-002-12, TH-002-14…TH-002-19 (FR-1, FR-3, FR-4, FR-5, FR-6, FR-7, FR-8a) are now **supported** at 1.0000, on shipped-test evidence (close-out suite runs: engine 494 passed; extension 92 passed + 3 skipped; evaluator 32 ran, 31 passed, 1 skipped) and merge records (engine PRs #23–#26, evaluator PR #1, extension PR #18).
+- TH-002-13 (FR-2 drafting) scores 1.0000 on mechanism evidence but **stays draft**: its effort-reduction predicate has never been measured — no timed authoring trial exists, and its falsifier names exactly that trial. A high evidence score is not a settled claim.
+- TH-002-20 (FR-8b Axiomere anchoring) **stays draft at 0.481**: T804–T806 are not built; the work package is optional and separately gated.
+- TH-002-21 (benchmark diagnostic rate) **stays draft at 0.481**: the T001 baseline was never captured (the harness has no bundle-diagnostic entry point), so its falsifier cannot fire. T810 was executed in its achievable form — benchmark offline suite 321 passed on current main vs the FR-7-captured baseline of 320, no regression — which is adjacent evidence, not this claim's instrument.
+- 90 failure modes were raised by the current assessor's standing heuristic challenges (48 at after_specify); the increase is challenge surface over the added evidence prose. Recorded as-is: no statuses were inflated to chase a PASS.
+
 ## 10. Out of scope
 
 - Any change to the scoring weights or outcome thresholds themselves.
