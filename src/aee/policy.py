@@ -41,7 +41,15 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from aee.model import Claim, EvidenceDirection
+from aee.model import Claim, ClaimStatus, EvidenceDirection, EvidenceKind
+from aee.sources import source_identity
+
+# Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
+# corroboration_sources (positive contribution vs zero/negative). The
+# scoring module owns the magnitudes; only the sign matters here, and
+# importing scoring from policy would be circular (engine imports both,
+# scoring imports neither).
+_POSITIVE_KINDS = frozenset({EvidenceKind.OBSERVED, EvidenceKind.INFERRED, EvidenceKind.ASSERTED})
 
 if TYPE_CHECKING:
     from aee.scoring import ClaimScore
@@ -94,6 +102,25 @@ class ClaimVerdict:
         }
 
 
+def corroboration_sources(claim: Claim) -> set[str]:
+    """The normalised sources that count toward corroboration (FR-2.4/2.5).
+
+    Only direction-``supports`` items with POSITIVE evidence weight
+    count: zero-weight kinds (``unsupported``, ``contradicted``)
+    minted corroboration for free at red-team time (RT1-06), and
+    ``context`` items are excluded by the direction filter by
+    construction (FR-2.2). Identities are normalised through
+    ``aee.sources`` — the same helper scoring's independence uses —
+    so string variants of one origin count once in both gates
+    (RT1-14). Empty identities (no ref, no source_id) never count.
+    """
+    return {
+        source_identity(item)
+        for item in claim.evidence
+        if item.direction == EvidenceDirection.SUPPORTS and item.kind in _POSITIVE_KINDS
+    } - {""}
+
+
 def evaluate_policy(
     claim: Claim,
     score: ClaimScore,
@@ -120,10 +147,10 @@ def evaluate_policy(
             f"{score.contradiction_penalty:.3f} >= "
             f"{policy.contested_penalty_threshold:.3f}"
         )
-    source_ids = {item.source_id or item.ref for item in supporting if item.ref}
-    if len(source_ids) < policy.min_independent_sources:
+    sources = corroboration_sources(claim)
+    if len(sources) < policy.min_independent_sources:
         reasons.append(
-            f"corroboration: {len(source_ids)} independent supporting "
+            f"corroboration: {len(sources)} independent supporting "
             f"source(s) < {policy.min_independent_sources} required"
         )
     if score.propagated_score < threshold:
@@ -131,6 +158,12 @@ def evaluate_policy(
             f"propagated score {score.propagated_score:.3f} below "
             f"the {threshold:.2f} confidence threshold"
         )
+    if claim.status == ClaimStatus.DRAFT:
+        # FR-2.3 (policy half): verdicts are capped with outcomes — a
+        # draft is not ACCEPT whatever its score says. The abstain
+        # rules above still take precedence: no usable support is a
+        # stronger statement than "not yet ratified".
+        reasons.append("draft claim: policy verdict capped below accept (FR-2.3 draft cap)")
     if reasons:
         return ClaimVerdict(claim.id, Verdict.CHALLENGE, reasons)
     return ClaimVerdict(claim.id, Verdict.ACCEPT, [])

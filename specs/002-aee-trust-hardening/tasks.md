@@ -26,9 +26,9 @@
 ## FR-2 — Claims drafting [extension + engine]
 
 - [x] T201 [engine] Drafting helper in `src/aee/extract.py` (requirement → draft claim proposal, reusing `derived_claim_id`); drafts hard-coded to `status: draft`.
-- [ ] T202 [extension] New command `commands/speckit.aee.draft-claims.md` + registration in `extension.yml` provides list.
-- [ ] T203 [extension] Runner support in `scripts/python/run_aee.py` for draft generation from a spec directory.
-- [ ] T204 [extension] Ratification guard: no tool path sets a drafted claim above draft; TODO falsifiers emitted explicitly so FR-1 strict loading rejects unfinished drafts.
+- [x] T202 [extension] New command `commands/speckit.aee.draft-claims.md` + registration in `extension.yml` provides list. — Done: spec-kit-aee PR #18 (merge 527feae); extension 9 → 10 commands, coordinator-verified.
+- [x] T203 [extension] Runner support in `scripts/python/run_aee.py` for draft generation from a spec directory. — Done: spec-kit-aee PR #18 (merge 527feae); clean exit-2 refusals verified (missing spec, root escape, helper-less engine).
+- [x] T204 [extension] Ratification guard: no tool path sets a drafted claim above draft; TODO falsifiers emitted explicitly so FR-1 strict loading rejects unfinished drafts. — Done: spec-kit-aee PR #18 (merge 527feae); drafts born draft with asserted/model evidence, no promotion path exists, verified live.
 - [x] T205 [engine] Tests: fixture spec → drafts are per-requirement, all draft, source_ref set; unedited drafts assess no higher than their evidence warrants.
 
 ## FR-3 — Verifiable evidence [engine]
@@ -43,7 +43,7 @@
 
 - [x] T401 [engine] Stamp `metadata.engine_version` from `aee.__version__` in engine/cli metadata assembly.
 - [x] T402 [engine] Drift test: `aee --version` string equals the stamped version source.
-- [ ] T403 [extension] Runner passes extension version; recorded as `metadata.extension_version`; absent (not fabricated) on the bare-CLI path.
+- [x] T403 [extension] Runner passes extension version; recorded as `metadata.extension_version`; absent (not fabricated) on the bare-CLI path. — Done: spec-kit-aee PR #18 (merge 527feae); runner stamps BEFORE its own ledger append — engine gate on the produced assessment passes (exit 0) against engine main, tamper refused.
 - [x] T404 [engine] Version policy doc (README/docs): engine version = source of truth, extension floor = compatibility contract, catalog update in the same release PR as an extension bump.
 
 ## FR-5 — Challenge dispositions [engine]
@@ -60,20 +60,20 @@
 - [x] T601 [engine] Scoring consumes `Evidence.independent_of` (`src/aee/scoring.py`).
 - [x] T602 [engine] Independence basis in score notes (`declared` / `inferred-from-references` / `none`); inferred basis carries the shared-origin caveat.
 - [x] T603 [engine] Shared-evidence warning class (`independence_unmodeled`) when claims share supporting refs/source_ids without declarations.
-- [ ] T604 [extension] Draft-claims scaffolds `depends_on` proposals from explicit spec cross-references (rides on T202/T203).
+- [x] T604 [extension] Draft-claims scaffolds `depends_on` proposals from explicit spec cross-references (rides on T202/T203). — Done: spec-kit-aee PR #18 (merge 527feae); proposals surfaced in the runner JSON summary with proposed_from refs, verified live.
 - [x] T605 [engine] Tests: same-origin-different-ref fixture no longer reports unqualified 1.0; declarations change the computation; disjoint fixture stays silent.
 
 ## FR-7 — Reference evaluator [evaluator]
 
-- [ ] T701 [evaluator] Deterministic spec-structure evaluator script (spec/plan/tasks presence, claims bundle presence + strict-load validity, assessment presence) emitting schema-valid evaluator results.
-- [ ] T702 [evaluator] `evaluators.yml` registration for the reference evaluator.
-- [ ] T703 [evaluator] Fixture specs (passing + failing) and a README walkthrough: discovery → `speckit.evaluator.run` → compose, with schema validation of the emitted result.
-- [ ] T704 [evaluator] Tests for the walkthrough in a clean checkout (no hand registration).
+- [x] T701 [evaluator] Deterministic spec-structure evaluator script (spec/plan/tasks presence, claims bundle presence + strict-load validity, assessment presence) emitting schema-valid evaluator results. — Done: spec-kit-evaluator PR #1 (squash 9a27431); `scripts/python/spec_structure_evaluator.py` shipped.
+- [x] T702 [evaluator] `evaluators.yml` registration for the reference evaluator. — Done: spec-kit-evaluator PR #1 (squash 9a27431); `evaluators.yml` registers the spec-structure reference evaluator.
+- [x] T703 [evaluator] Fixture specs (passing + failing) and a README walkthrough: discovery → `speckit.evaluator.run` → compose, with schema validation of the emitted result. — Done: spec-kit-evaluator PR #1 (squash 9a27431); passing/failing fixtures + README walkthrough shipped.
+- [x] T704 [evaluator] Tests for the walkthrough in a clean checkout (no hand registration). — Done: spec-kit-evaluator PR #1 (squash 9a27431); evaluator main eee9fef carries 32 combined tests (31 passed, 1 skipped, +33 subtests) across the FR-7 and Spec 003 FR-6 suites, coordinator-verified 2026-10-12.
 
 ## FR-8a — Ledger parity [engine + extension]
 
 - [x] T801 [engine] `assess` ledgers by default (documented default path) with `--no-ledger` opt-out; `--ledger <path>` retained.
-- [ ] T802 [extension] Runner reports the verify-ledger verdict alongside assessment/evaluator/ledger paths after append.
+- [x] T802 [extension] Runner reports the verify-ledger verdict alongside assessment/evaluator/ledger paths after append. — Done: spec-kit-aee PR #18 (merge 527feae); `ledger_verification` reported from the runner's own chain verify, `null` (not invented) under `--no-ledger`.
 - [x] T803 [engine] Docs: ledger entry is the record (it already stores the assessment SHA-256); the JSON file is a working copy. CLI help updated.
 
 ## FR-8b — Axiomere anchoring (separate, later, non-blocking) [engine or extension]
@@ -84,6 +84,9 @@
 
 ## Close-out
 
-- [ ] T810 [benchmark] Re-run spec-kit-aee-benchmark against the T001 baseline; confirm no diagnostic-rate regression (claim TH-002-21) and record results in the benchmark repo.
-- [ ] T811 [engine] Re-assess Spec 002 claims (after_implement) on implementation evidence; update `assessment.json` and spec §9 honestly.
-- [ ] T812 [engine] Full test suites green in engine, extension, and evaluator repos before any release step is proposed (releases remain owner-gated).
+- [x] T810 [benchmark] Re-run spec-kit-aee-benchmark against the T001 baseline; confirm no diagnostic-rate regression (claim TH-002-21) and record results in the benchmark repo.
+  - **Done in its achievable form, 2026-10-12 (close-out)**: the T001 diagnostic-rate baseline was never captured (the harness has no bundle-diagnostic entry point — see the T001 deferral note), so no diagnostic-rate comparison exists to run. What was run: the benchmark offline suite on current main (`e248d49`) = **321 passed, 0 failed** against the FR-7-captured baseline of **320 passed** on the re-pinned tree — no regression, +1 test, no failures. Recorded in `specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md` (process record) and spec §9 addendum. Claim TH-002-21 stays **draft** for exactly this reason: adjacent evidence does not discharge a claim whose own instrument was never built.
+- [x] T811 [engine] Re-assess Spec 002 claims (after_implement) on implementation evidence; update `assessment.json` and spec §9 honestly.
+  - **Done 2026-10-12 (close-out)**: re-assessment recorded as `claims-after-implement.json` (v0.2.0) + `assessment-after-implement.json` in this directory, with the §9 addendum in spec.md. Per the records convention the frozen after_specify `assessment.json` is NOT rewritten — the task text's "update assessment.json" is satisfied by the new after_implement record plus the §9 addendum, which is the honest reading (an overwritten frozen record would destroy the specify-time evidence). Outcome ITERATE (draft cap over TH-002-13/20/21, which stay draft for recorded reasons); TH-002-12/14/15/16/17/18/19 supported at 1.0000 on shipped-test evidence.
+- [x] T812 [engine] Full test suites green in engine, extension, and evaluator repos before any release step is proposed (releases remain owner-gated).
+  - **Done 2026-10-12 (close-out)**, full runs on current mains: engine @ `6449975` — **494 passed, 0 failed** (with `jsonschema` installed; caveat: the literal CI dependency set never declares jsonschema, so a CI-exact run reports 446 passed + 3 skipped, one skip being the whole `test_schema_parity` module — recorded in the Spec 003 probe re-run report as a process finding); extension @ `527feae` — **92 passed, 3 skipped, 0 failed** (2 skips are worktree-layout artifacts of the live-engine sibling tests, 1 by design against pinned aee 1.4.0; CI skips it too); evaluator @ `eee9fef` — **32 ran, 31 passed, 1 skipped** (PowerShell parity leg, exercised in CI). No release step is proposed by this check-off; releases remain owner-gated.

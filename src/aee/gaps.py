@@ -15,6 +15,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from aee.extract import duplicate_key_hook
+
 
 @dataclass(slots=True)
 class GapEntry:
@@ -126,8 +128,12 @@ class GapEngine:
         Returns:
             A populated GapRegister.
         """
+        if matrix_path.is_dir():
+            raise ValueError(f"Verification matrix is a directory, not a file: {matrix_path}")
         if not matrix_path.is_file():
             raise FileNotFoundError(f"Verification matrix not found: {matrix_path}")
+        if evidence_dir.exists() and not evidence_dir.is_dir():
+            raise ValueError(f"Evidence path is not a directory: {evidence_dir}")
 
         matrix_content = matrix_path.read_text(encoding="utf-8")
         test_rows = self._MATRIX_ROW_RE.findall(matrix_content)
@@ -255,19 +261,22 @@ class GapEngine:
         content = gaps_path.read_text(encoding="utf-8")
         lines = content.splitlines()
 
-        # Extract timestamp
+        # Extract timestamp and source. Parse by the full label
+        # prefix, never split(":", 1): the label itself contains a
+        # colon ("**Updated:**") and the timestamp contains more, so
+        # a first-colon split corrupts both fields on every
+        # load/rewrite cycle (Spec 003 FR-5 round-trip fidelity).
         generated_at = ""
         for line in lines:
             if line.startswith("**Updated:**"):
-                generated_at = line.split(":", 1)[1].strip()
+                generated_at = line.removeprefix("**Updated:**").strip()
                 break
 
-        # Extract source
         source_matrix = ""
         source_evidence = ""
         for line in lines:
             if line.startswith("**Source:**"):
-                parts = line.split(":", 1)[1].strip()
+                parts = line.removeprefix("**Source:**").strip()
                 # Format: "matrix.md + evidence"
                 if " + " in parts:
                     source_matrix, source_evidence = parts.split(" + ", 1)
@@ -354,8 +363,15 @@ class GapEngine:
             if not fpath.is_file():
                 continue
             try:
-                data = json.loads(fpath.read_text(encoding="utf-8"))
-            except (json.JSONDecodeError, OSError) as exc:
+                # FR-5.4: duplicate JSON keys are refused here too —
+                # a doubled "results" key must not silently mean the
+                # last list wins. The refusal lands in the same loud
+                # warning path as other unreadable evidence.
+                data = json.loads(
+                    fpath.read_text(encoding="utf-8"),
+                    object_pairs_hook=duplicate_key_hook(fpath.as_posix()),
+                )
+            except (ValueError, OSError) as exc:
                 # Loud, not silent: corrupt evidence must never be
                 # indistinguishable from "no evidence".
                 print(

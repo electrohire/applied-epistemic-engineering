@@ -1,0 +1,775 @@
+{
+  "claims": [
+    {
+      "boundary": [
+        "applied-epistemic-engineering engine at 1.4.0 (src/aee/model.py, src/aee/extract.py)",
+        "JSON bundle loading path (load_claims -> Claim.from_dict)"
+      ],
+      "evidence": [
+        {
+          "description": "Every field is read with value.get(field, default); unknown keys are never inspected; only an empty claim id raises (Claim.__post_init__).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/model.py Claim.from_dict (lines 243-266)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "The first Spec 002 claims bundle used `statement`; the assessor ran and reported 'Claim has no inspectable proposition' from the silently emptied text instead of failing at load.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "Tekmerion catch-up session, 2026-10-11/12",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "source_quality": "human"
+        }
+      ],
+      "falsification_tests": [
+        "Load a bundle whose claims use `statement` in place of `text` and show a load error naming the problem (current behavior: loads with text == '')."
+      ],
+      "id": "TH-002-01",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "status": "supported",
+      "text": "Claim, Evidence, and FailureMode loading silently defaults missing or renamed fields and ignores unknown fields entirely, so a claims bundle that writes `statement` instead of `text` loads successfully with empty claim text.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "Enum-typed fields on Claim, Evidence, and FailureMode (kind, status, uncertainty, severity, direction, source_quality)"
+      ],
+      "evidence": [
+        {
+          "description": "Enums are constructed directly from raw values; Python's enum ValueError carries no valid-values list, and cli.py prints it verbatim (exit 2).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "A real legacy bundle that fails to load with exactly this unhelpful error.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design)",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "source_quality": "human"
+        }
+      ],
+      "falsification_tests": [
+        "Load a bundle with kind='design' and show an error message containing the full valid ClaimKind value list (current message: \"'design' is not a valid ClaimKind\")."
+      ],
+      "id": "TH-002-02",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "status": "supported",
+      "text": "Enum load failures name only the offending value; the error does not list the valid values, forcing the author to find the vocabulary elsewhere.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py subcommand set: assess, challenge, verify-ledger, gate, graph, gaps, review, demo",
+        "src/aee/extract.py load_claims"
+      ],
+      "evidence": [
+        {
+          "description": "No validate or migrate subparser exists.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py build_parser (lines 50-132)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "The one existing loud failure: a JSON object without a 'claims' list raises; per-claim field problems do not.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/extract.py load_claims (lines 22-29)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Run `aee validate` or `aee migrate` on the current CLI and show it exists (current: argparse rejects the subcommand)."
+      ],
+      "id": "TH-002-03",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "status": "supported",
+      "text": "The CLI offers no validate-only command and no migration path for pre-engine legacy bundles; the only loud load failure today is a missing top-level 'claims' key.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee extension 1.2.0 command set and templates",
+        "engine markdown extraction (src/aee/extract.py extract_markdown_claims)"
+      ],
+      "evidence": [
+        {
+          "description": "Commands are assess/challenge/gaps/gate/report-savings/review/route-evidence/trace/verify; the claims template is a static file, not a generator.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Extraction only surfaces claims a Markdown author explicitly identified with REQ/CLM/HYP/DEC/ASM/COMP ids; it does not draft claims from requirements prose.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/extract.py extract_markdown_claims",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "28 claims hand-written in one evening across three repositories; identified by the operator as the adoption tax.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "source_quality": "human"
+        }
+      ],
+      "falsification_tests": [
+        "Invoke any shipped engine or extension command that proposes draft claims from an unmarked spec's requirements (current: none exists)."
+      ],
+      "id": "TH-002-04",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+      "status": "supported",
+      "text": "Neither the engine nor the spec-kit-aee extension provides a claims-drafting capability; claims are hand-authored, copied from a static template, or extracted only where a Markdown author already marked them as claims.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py (_SOURCE_WEIGHTS consumption)",
+        "src/aee/model.py Evidence fields (content_hash, observed_at, source_quality)"
+      ],
+      "evidence": [
+        {
+          "description": "Scoring reads _SOURCE_WEIGHTS[item.source_quality] \u2014 the declared value is the weight, with no corroboration step.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/scoring.py lines 148 and 174",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "content_hash appears only in model.py (declaration/serialization) and schemas/aee-assessment.schema.json; no code validates it.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "grep of src/aee for content_hash (2026-10-12)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Point an evidence ref at a nonexistent file, or corrupt a content_hash, and show any engine command reporting it (current: none does)."
+      ],
+      "id": "TH-002-05",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+      "status": "supported",
+      "text": "Evidence is never verified: refs are free text that nothing resolves, the content_hash field is never consumed outside the model and its JSON schema, and scoring weights evidence by exactly the source_quality the author declared.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/engine.py Assessment assembly and src/aee/cli.py _assess metadata",
+        "Installed base observed 2026-10-12 (spec-kit venv engine 1.0.2, glossa venv engine 1.0.4, extension 1.2.0, upstream catalog entry 1.0.1)"
+      ],
+      "evidence": [
+        {
+          "description": "Assessment.methodology_version defaults to the literal '1.0'; assess metadata is {'threshold': ..., 'input': ...}. The package __version__ (1.4.0) is never stamped.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "The extension pins the engine floor (>=1.4.0,<2) but passes no extension version to the engine, so an assessment cannot record which extension produced it.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "spec-kit-aee extension.yml requires.tools",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Produce an assessment with the current CLI and show an engine-version field in its metadata (current metadata keys: threshold, input)."
+      ],
+      "id": "TH-002-06",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+      "status": "supported",
+      "text": "Assessment records do not identify the producing engine: assessment metadata carries only the threshold and the input path, and methodology_version is a constant '1.0' unrelated to the package version, while installed engine versions already diverge across environments.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/challenge.py (_COMPOUND pattern, Irreducibility challenge)",
+        "src/aee/engine.py assess (stress_tester.run per run); bundle format (no disposition type)"
+      ],
+      "evidence": [
+        {
+          "description": "_COMPOUND = [,;]|\\b(and|or|while|unless|except)\\b \u2014 any comma or 'and' in claim text triggers the MEDIUM coverage_gap challenge.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/challenge.py line 26 and lines 157-166",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "The irreducibility challenge fired on all 28 claims assessed across the three repositories that evening.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "Tekmerion + Axiomere assessments, 2026-10-12",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "source_quality": "human"
+        }
+      ],
+      "falsification_tests": [
+        "Show a disposition (kind, author, date, reason) recorded in a claims bundle being honored by a subsequent assessment (current: no such field or code path exists; FailureMode.resolved is regenerated output state, not a stored disposition)."
+      ],
+      "id": "TH-002-07",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+      "status": "supported",
+      "text": "The irreducibility challenge is a regular expression over commas and common conjunctions, so it fires on ordinary prose claims; and no disposition record exists \u2014 failures are regenerated deterministically on every assessment run, so a human judgment about a challenge cannot persist.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py independence computation (line 167-168)",
+        "src/aee/model.py Evidence.independent_of (declared, unconsumed)"
+      ],
+      "evidence": [
+        {
+          "description": "source_ids = {item.source_id or item.ref}; independence_score = min(1.0, len(source_ids)/2.0). Distinct strings, not distinct origins.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/scoring.py lines 167-168",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "independent_of appears only in model.py and the assessment JSON schema \u2014 write-only in practice. CORRECTION to the original finding as briefed: independence is not a flat silent 1.0 default; it is a string-count heuristic, and a 'Fewer than two independent supporting sources' note exists when the count is under two. The gap is that the heuristic cannot see shared origin and ignores the declared field.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "grep of src/aee for independent_of (2026-10-12)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Show scoring code reading independent_of, or a bundle where two same-origin items under different refs score independence below 1.0 by default (current: independence = min(1.0, distinct source strings / 2))."
+      ],
+      "id": "TH-002-08",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+      "status": "supported",
+      "text": "Scoring derives evidence independence from distinct source_id/ref strings and never reads Evidence.independent_of, so two items tracing to one origin under different references score as fully independent sources.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "electrohire/spec-kit-evaluator repository at bc2601e (commands/, schemas/, scripts/python/compose_results.py, examples/demo.py)"
+      ],
+      "evidence": [
+        {
+          "description": "The run command discovers evaluators from .specify/extensions/evaluator/evaluators.yml; the repo ships none, and its only executable Python composes results produced by others.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Show a shipped evaluators.yml or an executable evaluator implementation in spec-kit-evaluator that speckit.evaluator.run can dispatch to (current: discovery documented in the run command finds only what a user adds)."
+      ],
+      "id": "TH-002-09",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+      "status": "supported",
+      "text": "spec-kit-evaluator ships a result contract, a composition script, and prompt commands, but no registered evaluator and no evaluators.yml, so a stock install's evaluator discovery finds nothing executable to run.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py _assess (--ledger opt-in)",
+        "spec-kit-aee scripts/python/run_aee.py (--no-ledger opt-out, default path .specify/extensions/aee/ledger/epistemic-ledger.jsonl)"
+      ],
+      "evidence": [
+        {
+          "description": "The engine has a working append-only SHA-256 JSONL ledger; the CLI only uses it on explicit request.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "CORRECTION to the finding as first framed: through the extension, ledgering is already the default \u2014 finding 8(a) is a consistency and documentation gap in the CLI, not a missing feature.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "spec-kit-aee scripts/python/run_aee.py lines 192-199",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Run the bare engine CLI assess with no --ledger flag and show a ledger entry created (current: none is)."
+      ],
+      "id": "TH-002-10",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "status": "supported",
+      "text": "Ledgering behavior is asymmetric: the spec-kit-aee runner ledgers every assessment by default (with an opt-out flag), while the engine CLI ledgers only when --ledger is explicitly passed, and neither documents the difference.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "electrohire/applied-epistemic-engineering and electrohire/spec-kit-aee at 2026-10-12"
+      ],
+      "evidence": [
+        {
+          "description": "Zero hits; no export or anchor path exists.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12)",
+          "source_id": "code-read-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Show any shipped command producing an Axiomere anchor receipt for an assessment (current: grep for axiomere/axmr across both repos returns no hits)."
+      ],
+      "id": "TH-002-11",
+      "kind": "observation",
+      "severity": "low",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "status": "supported",
+      "text": "No code path in the engine or the extension can deposit an assessment hash into an Axiomere (.axmr) ledger; assessments circulate as mutable JSON files whose only chained record is the engine's own JSONL ledger entry.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "Strict mode as default for assess/validate; an explicit non-strict escape hatch may exist but must be named and logged"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Shipped regression suite: the renamed-field fixture, the bad-enum fixture, and the legacy Tekmerion Spec 001 bundle each fail or convert with an actionable message naming the field and (for enums) the valid values. Engine suite green at close-out: 494 passed (with jsonschema installed); the same module is one of three that skip under the literal CI dependency set, which never declares jsonschema.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: strict loading as the assess default, aee validate, aee migrate, and an explicit --lenient escape hatch whose use is echoed in assessment metadata.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #23, electrohire/applied-epistemic-engineering (squash ec7a022)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Any of the three regression fixtures loading silently, assessing empty claims, or erroring without naming the field and (for enums) the valid values."
+      ],
+      "id": "TH-002-12",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "status": "supported",
+      "text": "With strict loading as the assess default, the renamed-field fixture, the bad-enum fixture, and the legacy Tekmerion Spec 001 bundle each fail or convert with an actionable message instead of silently assessing.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee command speckit.aee.draft-claims plus minimal engine support",
+        "Ratification is a human edit to the bundle; the tool cannot set it"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "The drafting helper and the speckit.aee.draft-claims command emit status=draft proposals only; the ratification guard is test-covered and was verified live in extension PR #18: no code path promotes a draft, ratification is a human edit to the bundle.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Mechanism shipped: engine drafting helper (FR-2) and the extension draft-claims command (T202), with runner support.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Held at draft honestly: the claim's effort-reduction predicate has never been measured - no timed authoring trial exists, and the falsifier names exactly that trial. The mechanism half is shipped and test-covered; the prediction half is undischarged.",
+          "direction": "context",
+          "kind": "observed",
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T811 close-out note, 2026-10-12)",
+          "source_id": "closeout-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A drafted claim reaching status supported (or being assessed as anything but an unratified draft) without a recorded human ratification edit; or a timed authoring trial showing no effort reduction."
+      ],
+      "id": "TH-002-13",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+      "status": "draft",
+      "text": "A draft-claims command that emits status=draft proposals from a spec's requirements reduces hand-authoring effort for a typical spec, with no tool-generated claim ever entering an assessment as ratified or supported by the tool's own action.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "Engine command aee verify-evidence; derivation rules are deterministic from ref type and recorded in the report"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "verify-evidence test suite: dangling evidence refs, content_hash mismatches, and declared-versus-derived source_quality disagreements are each reported by name.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_evidence_check.py (engine @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: aee verify-evidence (FR-3) with hash recomputation; probe re-run RT2-L6 confirms assessments now emit content_hash_status and verify-evidence recomputes - mismatch/missing fail, correct hash verifies.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #24, electrohire/applied-epistemic-engineering (squash a617815)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A bundle with a dangling ref or corrupted content_hash passing verify-evidence clean; or any code path raising an undeclared quality above unknown without a recorded derivation."
+      ],
+      "id": "TH-002-14",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+      "status": "supported",
+      "text": "verify-evidence reports dangling evidence refs, content_hash mismatches, and declared-versus-derived source_quality mismatches as challenges, and never upgrades an undeclared source_quality from unknown on its own.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py, src/aee/engine.py metadata assembly; spec-kit-aee runner pass-through"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Version-stamp suite: every assessment carries metadata.engine_version (and extension_version when invoked through the runner), and the version policy refuses incoherent engine/extension pairings.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_version_coherence.py (engine @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: engine version stamps (FR-4) and the runner provenance stamp, the latter verified end-to-end - a stamped pass assessment gates 0 and a tampered copy gates 2.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "An assessment produced by the new CLI or runner whose metadata lacks engine_version (or extension_version on the extension path)."
+      ],
+      "id": "TH-002-15",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+      "status": "supported",
+      "text": "Every assessment produced after this work stamps the producing engine version in its metadata, and, when invoked through the extension, the extension version as well.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "Bundle format extension (dispositions) in the engine model; challenge regeneration honors stored dispositions"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Disposition suite: a challenge disposition recorded in the bundle (kind, author, date, reason) persists across assessment runs and binds the named challenge.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_dispositions_independence.py (engine @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: FR-5 challenge dispositions.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #25, electrohire/applied-epistemic-engineering (squash 011340f)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Re-running assess and finding a reasoned disposition lost, or a reasonless waiver reported as resolved."
+      ],
+      "id": "TH-002-16",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+      "status": "supported",
+      "text": "A challenge disposition recorded in the bundle (kind, author, date, reason) persists across assessment runs and is reported as resolved with its reason inspectable; a waiver without a reason resolves nothing.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py independence computation and notes; assess-time shared-evidence warning class"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Independence suite: scoring consumes declared independent_of data and flags claims whose supporting items share an origin; probe re-run confirms same-origin ref variants (./, case, trailing slash/space) now count as one source in both scoring and policy (RT1-14 inverted).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_dispositions_independence.py (engine @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: FR-6 independence on-ramps, including extension-side depends_on proposal surfacing (T604).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A bundle with shared-origin supporting evidence and no independent_of declarations scoring independence 1.0 with no assumption note."
+      ],
+      "id": "TH-002-17",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+      "status": "supported",
+      "text": "Independence scoring consumes declared independent_of data and flags claims whose supporting items share an origin, and score notes state the basis on which independence was computed.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "electrohire/spec-kit-evaluator: one deterministic reference evaluator, its evaluators.yml registration, and a fixture spec"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "The shipped spec-structure reference evaluator runs end-to-end through the evaluator layer on passing and failing fixtures; evaluator suite at close-out: 32 tests ran, 31 passed, 1 skipped (PowerShell parity leg, exercised in CI).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: deterministic spec-structure reference evaluator registered in evaluators.yml, with fixtures and a README walkthrough; the repo previously had no test suite and its demo crashed.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #1, electrohire/spec-kit-evaluator (squash 9a27431)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "The fixture walkthrough failing at discovery, execution, schema validation, or composition in a clean install."
+      ],
+      "id": "TH-002-18",
+      "kind": "prediction",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+      "status": "supported",
+      "text": "A stock install of spec-kit-evaluator can run the shipped reference evaluator end-to-end through speckit.evaluator.run on the fixture spec and produce a schema-valid result that compose accepts.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py assess defaults; spec-kit-aee runner (already default-on) and command docs"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Ledger parity suite: the engine CLI ledgers assessments by default with an explicit --no-ledger opt-out echoed into metadata, matching the extension runner's default-with-opt-out behavior.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_ledger.py (engine @ 6449975)",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Implemented and merged: FR-8a CLI ledger-by-default parity (T801/T803) and runner ledger_verification in the assessment summary (T802).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "source_id": "github-merge-record-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A default CLI assess run that leaves no ledger entry, or an extension run whose ledger fails verify-ledger."
+      ],
+      "id": "TH-002-19",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "status": "supported",
+      "text": "Engine CLI and extension runner ledgering behavior agree \u2014 ledger by default with an explicit opt-out in both \u2014 and verify-ledger validates the chain immediately after an assess run in the documented loop.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "Separate later work package (WP-8b); depends on AXIOVEX/axiomere + axiomere-python as external packages",
+        "Does not block TH-002-19 or any other finding"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Not built as of 2026-10-12: FR-8b Axiomere anchoring (T804-T806) is an optional, separately-gated work package and remains unimplemented; no code path in the engine or extension deposits an assessment hash into an .axmr ledger. Claim stays draft.",
+          "direction": "context",
+          "kind": "observed",
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T804-T806, still open)",
+          "source_id": "closeout-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "An anchor attempt that requires changing the v1 .axmr format, or a receipt that cannot be matched to the assessment hash in the ledger."
+      ],
+      "id": "TH-002-20",
+      "kind": "prediction",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "status": "draft",
+      "text": "An assessment's SHA-256 can be anchored as an event in an Axiomere (.axmr) ledger through the axiomere Python package, with the anchor receipt recorded back into the assessment metadata.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "electrohire/spec-kit-aee-benchmark harness, run before and after the Finding 1 changes"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+          "source_id": "spec-002-aee-trust-hardening",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Stays draft: the claim's own instrument - a before/after benchmark diagnostic-rate run on malformed and legacy-shaped bundles (T001) - was never captured, because the benchmark harness has no bundle-diagnostic entry point, so the falsifier cannot fire. Adjacent evidence only: the benchmark offline suite is green on current main (321 passed) against the FR-7-captured baseline (320 passed), i.e. no regression in the suite that exists; that does not measure bundle diagnostic rates.",
+          "direction": "context",
+          "kind": "observed",
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T001 deferred; T810 close-out note, 2026-10-12)",
+          "source_id": "closeout-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A benchmark run showing valid or migratable bundles newly failing, or malformed bundles newly passing silently, relative to the pre-change baseline."
+      ],
+      "id": "TH-002-21",
+      "kind": "prediction",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "status": "draft",
+      "text": "After strict loading lands, the spec-kit-aee-benchmark diagnostic rate on malformed and legacy-shaped bundles does not regress: bundles that should fail do, bundles that should migrate do, and valid bundles assess as before.",
+      "uncertainty": "high"
+    }
+  ],
+  "date": "2026-10-12",
+  "schema_version": "1.0",
+  "spec": "002-aee-trust-hardening",
+  "version": "0.2.0"
+}
