@@ -22,6 +22,45 @@ history. It does **not** independently prove:
 For stronger guarantees, anchor head hashes externally and add actor signatures, trusted
 timestamps, protected storage, and independent evidence retention.
 
+## Head anchors (Spec 003 FR-4)
+
+Every append also updates a sidecar anchor at `<ledger>.anchor.json`. The anchor is a small
+JSON record committing exactly the head state:
+
+```json
+{"anchor_version": "1.0", "entry_count": 3, "tip_hash": "<sha256>", "ledger_name": "epistemic-ledger.jsonl"}
+```
+
+Deleting the newest ledger entries now leaves the remaining chain self-consistent but
+**mismatched against the anchor**, so `verify()` reports `anchor_status: "mismatch"` and
+`valid: false`. Verification states its semantics in every result: `valid` means the chain
+is internally self-consistent, and completeness is established only when the anchor is
+`verified` (or explicit expected tip/count assertions pass). A ledger written before
+anchors existed has no sidecar: it still verifies as a chain, with
+`anchor_status: "unverifiable-anchor"` — neither silently anchored nor hard-failed.
+`aee verify-ledger --ledger <path> --write-anchor` mints an anchor for such a ledger after
+verifying its chain, and `--expected-tip` / `--expected-count` check a ledger against
+anchor values a consumer retained elsewhere:
+
+```bash
+aee verify-ledger --ledger .aee/epistemic-ledger.jsonl \
+  --expected-count 3 --expected-tip <sha256>
+```
+
+OD-3 (the FR-4.1 anchor-design decision) is still formally open: this sidecar is the
+local anchor the FR text requires. Pulling Spec 002 FR-8b's Axiomere anchoring forward
+remains the stronger option, and a consumer who must detect truncation by someone able
+to rewrite both local files should retain the anchor values outside the ledger's
+directory — the sidecar's co-located copy is the current-state record, not the
+independent evidence.
+
+Verification is strict about shape as well as hashes: every physical line must be one
+complete entry with the current `ledger_version`, a parseable timestamp, and correctly
+typed fields; one malformed line invalidates the ledger with its line number, and
+`entries()` applies the same rules. Re-appending an assessment whose hash the same
+actor already recorded is refused as a duplicate unless explicitly allowed
+(`allow_duplicate=True`), in which case the new entry names the original sequence.
+
 ## Assessment records (Spec 002 FR-8a)
 
 `aee assess` appends every assessment to a ledger **by default** (FR-8.1) — the bare CLI
