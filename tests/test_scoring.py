@@ -11,21 +11,39 @@ def strong_evidence(ref: str, source_id: str) -> Evidence:
 
 
 def test_no_evidence_scores_low() -> None:
-    claim = Claim(id="A", text="A", boundary=["x"], falsification_tests=["not A"])
+    # Substantive falsification/boundary entries (FR-8.7 full
+    # credit), so the 0.25 is exactly the two non-evidence
+    # components: no evidence contributes nothing.
+    claim = Claim(
+        id="A",
+        text="A",
+        boundary=["only within profile L"],
+        falsification_tests=["Measure A and observe the reading differ"],
+    )
     score = ScoringEngine().score([claim])["A"]
     assert score.direct_score == 0.25
     assert "No supporting evidence" in score.notes
 
 
 def test_two_independent_observed_sources_score_high() -> None:
+    # Full credit under methodology 2.0 requires substantive
+    # falsification/boundary entries (FR-8.7) and known-fresh
+    # evidence (FR-8.6): dated items, judged as of a pinned date.
+    from datetime import UTC, datetime
+
+    def dated(ref: str, source_id: str) -> Evidence:
+        item = strong_evidence(ref, source_id)
+        item.observed_at = "2026-10-01"
+        return item
+
     claim = Claim(
         id="A",
         text="A",
-        boundary=["x"],
-        falsification_tests=["not A"],
-        evidence=[strong_evidence("one", "S1"), strong_evidence("two", "S2")],
+        boundary=["only within profile L"],
+        falsification_tests=["Measure A and observe the reading differ"],
+        evidence=[dated("one", "S1"), dated("two", "S2")],
     )
-    score = ScoringEngine().score([claim])["A"]
+    score = ScoringEngine().score([claim], as_of=datetime(2026, 10, 12, tzinfo=UTC))["A"]
     assert score.propagated_score == 1.0
 
 
@@ -103,13 +121,48 @@ def test_freshness_pinned_by_as_of() -> None:
     assert again.direct_score == far.direct_score
 
 
-def test_cycle_skips_propagation_with_note() -> None:
+def test_cycle_suppression_is_local_with_note() -> None:
+    # FR-8.3 (RT1-08): the old rule skipped propagation for the
+    # WHOLE graph when any cycle existed. Suppression is now scoped
+    # to the cyclic component; unrelated claims still propagate.
+    weak = Claim(
+        id="WEAK",
+        text="W",
+        boundary=["only within profile L"],
+        falsification_tests=["Measure W and observe the reading differ"],
+        evidence=[
+            Evidence(
+                ref="w",
+                kind=EvidenceKind.ASSERTED,
+                source_quality=SourceQuality.MODEL,
+            )
+        ],
+    )
+    strong = Claim(
+        id="STRONG",
+        text="S",
+        depends_on=["WEAK"],
+        boundary=["only within profile L"],
+        falsification_tests=["Measure S and observe the reading differ"],
+        evidence=[strong_evidence("s1", "S1"), strong_evidence("s2", "S2")],
+    )
     claims = [
         Claim(id="A", text="A", depends_on=["B"]),
         Claim(id="B", text="B", depends_on=["A"]),
+        weak,
+        strong,
     ]
     scores = ScoringEngine().score(claims)
-    assert any("propagation skipped" in n for n in scores["A"].notes)
+    for claim_id in ("A", "B"):
+        assert scores[claim_id].propagation_status == "suppressed_cycle"
+        assert scores[claim_id].cycle_component == ["A", "B"]
+        assert any("Propagation suppressed (FR-8.3)" in n for n in scores[claim_id].notes)
+        assert scores[claim_id].propagated_score == scores[claim_id].direct_score
+    # The unrelated acyclic pair propagates exactly as if the cycle
+    # were absent: STRONG is capped by WEAK.
+    assert scores["STRONG"].propagation_status == "propagated"
+    assert scores["STRONG"].propagated_score == scores["WEAK"].propagated_score
+    assert scores["STRONG"].propagated_score < scores["STRONG"].direct_score
 
 
 def test_unparseable_observed_at_is_noted() -> None:

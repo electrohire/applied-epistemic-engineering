@@ -99,6 +99,73 @@ class ClaimGraph:
                     color[node] = 2
         return [list(item) for item in sorted(found)]
 
+    def strongly_connected_components(self) -> list[list[str]]:
+        """Strongly connected components (iterative Tarjan).
+
+        Spec 003 FR-8.3: propagation failure must be scoped to the
+        cyclic component, so scoring needs the components themselves,
+        not only the cycle paths `cycles()` reports. A component is
+        cyclic when it has more than one member, or its single
+        member depends on itself. Components are returned with
+        members sorted, ordered by first member, for determinism.
+        """
+        index_counter = [0]
+        indices: dict[str, int] = {}
+        lowlink: dict[str, int] = {}
+        stack: list[str] = []
+        on_stack: set[str] = set()
+        components: list[list[str]] = []
+
+        for root in sorted(self.claims):
+            if root in indices:
+                continue
+            work: list[tuple[str, int]] = [(root, 0)]
+            while work:
+                node, child_i = work[-1]
+                if child_i == 0:
+                    indices[node] = index_counter[0]
+                    lowlink[node] = index_counter[0]
+                    index_counter[0] += 1
+                    stack.append(node)
+                    on_stack.add(node)
+                deps = [dep for dep in self.claims[node].depends_on if dep in self.claims]
+                descended = False
+                for i in range(child_i, len(deps)):
+                    dep = deps[i]
+                    if dep not in indices:
+                        work[-1] = (node, i + 1)
+                        work.append((dep, 0))
+                        descended = True
+                        break
+                    if dep in on_stack:
+                        lowlink[node] = min(lowlink[node], indices[dep])
+                if descended:
+                    continue
+                work.pop()
+                if work:
+                    parent = work[-1][0]
+                    lowlink[parent] = min(lowlink[parent], lowlink[node])
+                if lowlink[node] == indices[node]:
+                    component = []
+                    while True:
+                        member = stack.pop()
+                        on_stack.discard(member)
+                        component.append(member)
+                        if member == node:
+                            break
+                    components.append(sorted(component))
+        components.sort(key=lambda component: component[0])
+        return components
+
+    def cyclic_components(self) -> list[list[str]]:
+        """The components that contain a cycle (FR-8.3): size > 1,
+        or a single member with a self-dependency."""
+        cyclic = []
+        for component in self.strongly_connected_components():
+            if len(component) > 1 or component[0] in self.claims[component[0]].depends_on:
+                cyclic.append(component)
+        return cyclic
+
     def topological_order(self) -> list[str]:
         """Return dependency-first order; raise when the graph contains a cycle."""
         cycles = self.cycles()

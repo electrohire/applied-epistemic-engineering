@@ -7,6 +7,12 @@ from collections import Counter
 from collections.abc import Iterable
 
 from aee.graph import ClaimGraph
+from aee.lexicons import (
+    BOUNDARY_SCOPE_TERMS,
+    COMPOUND_CONNECTIVES,
+    TOKEN_SYNONYMS,
+    VAGUE_TERMS,
+)
 from aee.model import (
     Claim,
     ClaimKind,
@@ -19,24 +25,45 @@ from aee.model import (
     SourceQuality,
 )
 
-_VAGUE = re.compile(
-    r"\b(appropriate|best|easy|efficient|fast|good|high[- ]quality|normal|"
-    r"reasonable|robust|scalable|secure|significant|simple|soon|user[- ]friendly)\b",
-    re.IGNORECASE,
-)
-_COMPOUND = re.compile(r"[,;]|\b(and|or|while|unless|except)\b", re.IGNORECASE)
-# FR-5.5 recalibration: the two signal classes inside _COMPOUND are not
-# equally strong. A connective word (and/or/while/unless/except) joins
-# propositions; punctuation (, ;) merely separates phrases inside one —
-# ordinary prose claims carry commas without being compound (the
-# original heuristic fired on 28/28 prose claims). Punctuation alone
-# therefore no longer draws the challenge when the claim carries
-# exactly one falsification test, the observable signature of a single
-# proposition. The deeper lexicon work (connective recall, noun-phrase
-# disjunctions) is Spec 003 FR-8.15/FR-8.8 territory, not this phase.
-_COMPOUND_CONNECTIVE = re.compile(r"\b(and|or|while|unless|except)\b", re.IGNORECASE)
+
+def _phrase_pattern(phrases: tuple[str, ...]) -> re.Pattern[str]:
+    parts = sorted((re.escape(phrase) for phrase in phrases), key=len, reverse=True)
+    return re.compile(r"\b(" + "|".join(parts) + r")\b", re.IGNORECASE)
+
+
+# Spec 003 FR-8.8: the lexicons are versioned data (aee.lexicons),
+# not hard-coded lists - the RT1 evasion corpus ("plus", "together
+# with", "as well as"; "seamless", "intuitive", "optimal",
+# "world-class") is covered by the data, and extending recall is a
+# data edit under the lexicon version, not a regex change.
+def _vague_pattern() -> re.Pattern[str]:
+    # Hyphenated terms match with a hyphen or a space ("world-class"
+    # / "world class"); re.escape first, then widen the hyphen.
+    parts = sorted(
+        (re.escape(term).replace(r"\-", "[- ]") for term in VAGUE_TERMS),
+        key=len,
+        reverse=True,
+    )
+    return re.compile(r"\b(" + "|".join(parts) + r")\b", re.IGNORECASE)
+
+
+_VAGUE = _vague_pattern()
+_COMPOUND_CONNECTIVE = _phrase_pattern(COMPOUND_CONNECTIVES)
 _COMPOUND_PUNCTUATION = re.compile(r"[,;]")
 _ABSOLUTE = re.compile(r"\b(always|never|all|none|guarantee[sd]?|impossible)\b", re.IGNORECASE)
+# FR-8.15 atomic-precision guards: patterns inside a single
+# proposition that must not read as compound structure - version
+# lists ("version 1, 2"), unit alternatives ("degrees Celsius or
+# Fahrenheit"), and range idioms ("65 and older").
+_ATOMIC_PATTERNS = (
+    re.compile(r"\bversions?\s+[\d][\d\s.,]*(?:(?:and|or)\s+[\d.]+)?", re.IGNORECASE),
+    re.compile(r"\b\d+(?:\s*,\s*\d+)+\b"),
+    re.compile(
+        r"\b(?:degrees?\s+)?(celsius|fahrenheit|kelvin)\s+(or|and)\s+(celsius|fahrenheit|kelvin)\b",
+        re.IGNORECASE,
+    ),
+    re.compile(r"\band\s+(older|above|over|beyond|upwards)\b", re.IGNORECASE),
+)
 
 
 class StressTester:
@@ -205,7 +232,7 @@ class StressTester:
                     "Declare where, when, and under which assumptions the claim holds.",
                 )
             )
-        if _VAGUE.search(claim.text):
+        if self._vague_hit(claim.text):
             failures.append(
                 self._failure(
                     claim.id,
@@ -227,7 +254,7 @@ class StressTester:
                     "Split the claim into atomic propositions and link them explicitly.",
                 )
             )
-        if _ABSOLUTE.search(claim.text) and not claim.boundary:
+        if _ABSOLUTE.search(claim.text) and not self._has_relevant_boundary(claim):
             failures.append(
                 self._failure(
                     claim.id,
@@ -356,27 +383,109 @@ class StressTester:
         return failures
 
     @staticmethod
+    def _vague_hit(text: str) -> bool:
+        """Precision signal with the FR-8.15 proper-noun guard.
+
+        A listed vague word inside a multi-word Capitalized proper
+        noun ("Secure Boot", "World Class" as a product name) is a
+        name, not a quality claim, and does not fire: when the match
+        is capitalised mid-text and an adjacent word is also
+        capitalised, the match is treated as part of a proper noun.
+        Sentence-initial capitalisation is not a proper noun.
+        """
+        for match in _VAGUE.finditer(text):
+            start, end = match.span()
+            before = text[:start].rstrip()
+            after = text[end:].lstrip()
+            at_sentence_start = not before or before.endswith((".", "!", "?"))
+            if at_sentence_start:
+                return True  # sentence-initial capital is ordinary usage
+            prev_word = before.split()[-1] if before.split() else ""
+            next_word = after.split()[0] if after.split() else ""
+            matched = match.group(0)
+            proper_noun = matched[0].isupper() and (
+                (prev_word and prev_word[0].isupper()) or (next_word and next_word[0].isupper())
+            )
+            if not proper_noun:
+                return True
+        return False
+
+    @staticmethod
     def _compound_signal(claim: Claim) -> bool:
         """Whether the claim text signals multiple propositions (FR-5.5).
 
-        A connective word always signals compound structure.
-        Punctuation alone signals it only when the claim does not carry
-        exactly one falsification test — one test is the observable
+        A connective word signals compound structure. Punctuation
+        alone signals it only when the claim does not carry exactly
+        one falsification test — one test is the observable
         signature of a single proposition, so comma-bearing atomic
         prose ("The valve opens at 4 bar, measured at the inlet") no
         longer draws a MEDIUM irreducibility challenge.
+
+        FR-8.15: noun-phrase-internal patterns are stripped before
+        the connective test — version lists, comma-separated numeric
+        lists, unit alternatives, and range idioms live inside one
+        proposition and never made a claim compound.
         """
-        if _COMPOUND_CONNECTIVE.search(claim.text):
+        text = claim.text
+        for pattern in _ATOMIC_PATTERNS:
+            text = pattern.sub(" ", text)
+        if _COMPOUND_CONNECTIVE.search(text):
             return True
-        if _COMPOUND_PUNCTUATION.search(claim.text):
+        if _COMPOUND_PUNCTUATION.search(text):
             return len(claim.falsification_tests) != 1
         return False
 
+    @staticmethod
+    def _has_relevant_boundary(claim: Claim) -> bool:
+        """FR-8.10 (RT1-17): only a RELEVANT boundary suppresses the
+        absolute-language counterexample challenge.
+
+        The old rule let ANY boundary string suppress it — an
+        unrelated note disarmed the challenge completely. A boundary
+        is relevant when it shares content tokens with the claim
+        (it is about the claim's subject) or names a scope/limit
+        from the boundary lexicon (deployments, environments,
+        "only", "within", ...): it scopes the dimension the
+        absolute term ranges over.
+        """
+        if not claim.boundary:
+            return False
+        claim_tokens = StressTester._tokens(claim.text)
+        for entry in claim.boundary:
+            lowered = entry.lower()
+            if any(term in lowered for term in BOUNDARY_SCOPE_TERMS):
+                return True
+            if StressTester._tokens(entry) & claim_tokens:
+                return True
+        return False
+
     def _implicit_negation_conflicts(self, claims: list[Claim]) -> list[FailureMode]:
+        """Negation-conflict detection (FR-8.9, RT1-16).
+
+        Two requirements, both needed: the claims share a SUBJECT
+        (their leading content token, synonym-normalised) and at
+        least three normalised content tokens, and exactly one of
+        them is negated. The old rule needed only the token overlap,
+        so different subjects sharing vocabulary ("the audit service
+        does not log credit card numbers" / "the billing service
+        logs credit card numbers") false-fired.
+
+        Residual limit, stated plainly: this is a heuristic
+        challenge, not a semantic contradiction proof. A paraphrase
+        that changes the subject's surface form AND the vocabulary
+        ("the database stores passwords in plaintext" / "credentials
+        are never persisted unencrypted") is NOT detected — synonym
+        normalisation covers inflections and near-synonyms within a
+        shared subject, not full rewording. Such pairs remain
+        possible and are a documented limit, not a silent one.
+        """
         failures: list[FailureMode] = []
         for index, left in enumerate(claims):
             left_tokens = self._tokens(left.text)
+            left_subject = self._subject(left.text)
             for right in claims[index + 1 :]:
+                if left_subject is None or left_subject != self._subject(right.text):
+                    continue
                 right_tokens = self._tokens(right.text)
                 if len(left_tokens & right_tokens) < 3:
                     continue
@@ -399,9 +508,31 @@ class StressTester:
         return failures
 
     @staticmethod
+    def _subject(text: str) -> str | None:
+        """The claim's subject: its first content token, normalised.
+
+        Leading determiners are skipped ("The database stores..." ->
+        "database"). This is the binding FR-8.9 requires: crude, and
+        deliberately so - it errs toward silence between different
+        subjects rather than noise across them.
+        """
+        tokens: list[str] = [
+            token
+            for token in re.findall(r"[a-z0-9]+", text.lower())
+            if token not in {"the", "a", "an"}
+        ]
+        if not tokens:
+            return None
+        return TOKEN_SYNONYMS.get(tokens[0], tokens[0])
+
+    @staticmethod
     def _tokens(text: str) -> set[str]:
         stop = {"a", "an", "and", "be", "is", "must", "not", "of", "or", "the", "to"}
-        return {token for token in re.findall(r"[a-z0-9]+", text.lower()) if token not in stop}
+        return {
+            TOKEN_SYNONYMS.get(token, token)
+            for token in re.findall(r"[a-z0-9]+", text.lower())
+            if token not in stop
+        }
 
     @staticmethod
     def _failure(

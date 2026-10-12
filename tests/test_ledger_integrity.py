@@ -473,6 +473,7 @@ _GOOD_CLAIM = {
     "id": "C1",
     "text": "The widget holds for 10 s under load profile L",
     "status": "supported",
+    "stage": "accepted",
     "kind": "requirement",
     "boundary": ["load profile L"],
     "falsification_tests": ["drop the widget and observe failure"],

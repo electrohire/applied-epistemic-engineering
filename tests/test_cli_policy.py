@@ -24,6 +24,7 @@ def strong_claim(claim_id="A", sources=("S1", "S2")):
         "id": claim_id,
         "text": "Latency is below 100 ms",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [
@@ -35,6 +36,17 @@ def strong_claim(claim_id="A", sources=("S1", "S2")):
                 "direction": "supports",
             }
             for source in sources
+        ]
+        # Spec 004 R5.1 (P2): plus a human-paced item, so the
+        # machine-only gate does not cap this corroborated fixture.
+        + [
+            {
+                "ref": f"review-{claim_id}",
+                "source_id": f"{claim_id}-reviewer",
+                "kind": "observed",
+                "source_quality": "primary",
+                "direction": "supports",
+            }
         ],
     }
 
@@ -72,7 +84,11 @@ def test_assess_policy_accepts_corroborated_claim(tmp_path) -> None:
 
 
 def test_assess_policy_single_source_challenges(tmp_path) -> None:
-    code, value = run_assess(tmp_path, [strong_claim(sources=("S1",))], "--policy")
+    single = strong_claim(sources=("S1",))
+    # The shared fixture appends a human-paced item (Spec 004 R5.1);
+    # this test is about ONE source, so slice back to it.
+    single["evidence"] = single["evidence"][:1]
+    code, value = run_assess(tmp_path, [single], "--policy")
     assert value["verdicts"]["A"]["verdict"] == "challenge"
     assert code == 1  # outcome demoted to iterate: soft exit
 
@@ -109,6 +125,7 @@ def test_assess_reliability_blends_scores(tmp_path) -> None:
         "id": "A",
         "text": "The model says latency is fine",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [

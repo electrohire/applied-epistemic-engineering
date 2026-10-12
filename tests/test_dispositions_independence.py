@@ -21,6 +21,7 @@ from aee import (
     AEEEngine,
     BundleValidationError,
     Claim,
+    ClaimStage,
     ClaimStatus,
     Disposition,
     DispositionKind,
@@ -46,6 +47,9 @@ def _dispositioned_claim(**overrides: object) -> Claim:
         # dispositions, whose own outcome expectations (pass when fully
         # dispositioned) require a non-draft claim.
         "status": ClaimStatus.SUPPORTED,
+        # Spec 004 R1.4: a pass outcome additionally requires stage
+        # explained+; a dispositioned, ratified claim sits at accepted.
+        "stage": ClaimStage.ACCEPTED,
         "boundary": ["bench rig"],
         "falsification_tests": ["Observe the valve shut while pressure is applied"],
         "evidence": [
@@ -60,6 +64,18 @@ def _dispositioned_claim(**overrides: object) -> Claim:
                 source_id="rig-2",
                 kind=EvidenceKind.OBSERVED,
                 source_quality=SourceQuality.TEST,
+            ),
+            # Spec 004 R5.1 (P2): a human-paced item (primary
+            # source), so the machine-only gate does not cap this
+            # dispositioned fixture at `checked`. (The R3.3
+            # verified-unexplained flag also fires on it; that flag
+            # is excluded from the disposition counts and from
+            # outcome routing by design.)
+            Evidence(
+                ref="bench-walkthrough",
+                source_id="rig-operator",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.PRIMARY,
             ),
         ],
         "dispositions": [
