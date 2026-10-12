@@ -45,6 +45,7 @@ from aee.model import (
     StageEvent,
     StageEventKind,
     Uncertainty,
+    validate_exposition_evidence,
 )
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.reliability import ReliabilityTable
@@ -1155,6 +1156,35 @@ def _write_gaps(register: GapRegister, output: Path) -> None:
 
 
 def _demo() -> int:
+    # Spec 004: the demo walks the full realigned pipeline, not just
+    # lane 1. The load-test result is machine verification; the claim
+    # reaches stage `accepted` only through lane 2 - a named human
+    # explains the result (exposition evidence, R3) and a recorded
+    # human acceptance event advances the stage (R1.2). The explainer
+    # is a declared `person` in an identity registry, and the
+    # exposition item is resolved through the same R3.2 rule the
+    # strict loader enforces, so the lane-2 support is genuine in the
+    # model's own terms rather than a label: without it, R5.1 caps a
+    # machine-only claim at `checked`, `supported` reports as
+    # `partially_supported` (R1.3), and the demo exits 1 on
+    # `iterate` - exactly as it should.
+    explainer = "jane-doe"
+    registry = IdentityRegistry.from_dict(
+        {"identities": [{"id": explainer, "name": "Jane Doe", "kind": "person"}]}
+    )
+    exposition = Evidence(
+        ref="notes/latency-walkthrough.md",
+        kind=EvidenceKind.EXPOSITION,
+        direction=EvidenceDirection.SUPPORTS,
+        source_quality=SourceQuality.HUMAN,
+        source_id=explainer,
+        description=(
+            "Jane Doe's walkthrough of the load test: what the observed "
+            "83 ms p95 does and does not establish, and the boundary "
+            "conditions the result depends on"
+        ),
+    )
+    validate_exposition_evidence(exposition, registry, context="demo claim 'REQ-DEMO-001'")
     claim = Claim(
         id="REQ-DEMO-001",
         text="The API always returns within 100 ms",
@@ -1163,13 +1193,31 @@ def _demo() -> int:
         stage=ClaimStage.ACCEPTED,
         stage_events=[
             StageEvent(
-                kind=StageEventKind.ACCEPTED,
-                author="demo",
+                kind=StageEventKind.CHECKED,
+                author="aee demo",
                 date="2026-09-04",
-                basis="Demo claim: recorded human acceptance of the load-test evidence",
-            )
+                basis="Demo claim: load test executed and its result assessed",
+            ),
+            StageEvent(
+                kind=StageEventKind.EXPLAINED,
+                author=explainer,
+                date="2026-09-05",
+                basis=(
+                    "Demo claim: Jane Doe's exposition of the load-test "
+                    "evidence (notes/latency-walkthrough.md)"
+                ),
+            ),
+            StageEvent(
+                kind=StageEventKind.ACCEPTED,
+                author=explainer,
+                date="2026-09-05",
+                basis="Demo claim: recorded human acceptance of the explained load-test evidence",
+            ),
         ],
-        boundary=["Production region us-east-1", "p95 under nominal load"],
+        boundary=[
+            "API requests in production region us-east-1",
+            "p95 latency within the nominal load profile",
+        ],
         falsification_tests=["Run a 30-minute load test and observe p95 latency above 100 ms"],
         uncertainty=Uncertainty.LOW,
         source_ref="spec.md#REQ-DEMO-001",
@@ -1181,7 +1229,8 @@ def _demo() -> int:
                 source_quality=SourceQuality.TEST,
                 source_id="load-test-2026-09-04",
                 description="Observed p95 was 83 ms",
-            )
+            ),
+            exposition,
         ],
     )
     result = AEEEngine().assess([claim], project="demo", phase="after_specify")
