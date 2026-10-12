@@ -10,7 +10,7 @@ from aee.engine import AEEEngine, Assessment
 from aee.evidence_check import EvidenceFinding, EvidenceReport, check_evidence
 from aee.gaps import GapEngine, GapEntry, GapRegister
 from aee.graph import ClaimGraph
-from aee.ledger import HashChainLedger, LedgerVerification
+from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger, LedgerVerification
 from aee.model import (
     BundleValidationError,
     Claim,
@@ -35,6 +35,7 @@ from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
 __all__ = [
+    "DEFAULT_LEDGER_PATH",
     "AEEEngine",
     "AEESession",
     "Assessment",

@@ -46,7 +46,18 @@ def test_cli_assessment_carries_the_stamp(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     out = tmp_path / "assessment.json"
-    main(["assess", "--input", bundle.as_posix(), "--output", out.as_posix()])
+    # FR-8.1: assess ledgers by default now; opt out so this test does
+    # not write a ledger into the working tree.
+    main(
+        [
+            "assess",
+            "--input",
+            bundle.as_posix(),
+            "--output",
+            out.as_posix(),
+            "--no-ledger",
+        ]
+    )
     value = json.loads(out.read_text(encoding="utf-8"))
     assert value["metadata"]["engine_version"] == aee.__version__
 
