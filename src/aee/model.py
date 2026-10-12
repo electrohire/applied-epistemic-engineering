@@ -253,7 +253,24 @@ class Evidence:
 
     @property
     def is_model_self_attestation(self) -> bool:
-        return self.kind == EvidenceKind.ASSERTED and self.source_quality == SourceQuality.MODEL
+        """Model-quality support of an asserted-like kind (FR-2.6).
+
+        Widened beyond the original exact pair (RT1-13): the gate used
+        to require ``kind == asserted AND source_quality == model``,
+        so relabelling one item ``asserted`` -> ``inferred`` — still
+        model-produced, still unobserved — switched it off. An item
+        counts when its declared quality is ``model`` and its kind is
+        asserted-like: ``asserted`` (the model states it) or
+        ``inferred`` (the model derived it; inference by the same
+        model is still self-attestation, not independent evidence).
+        Observed model output is NOT self-attestation here: kind
+        ``observed`` claims an inspectable measurement, judged by the
+        other gates.
+        """
+        return self.source_quality == SourceQuality.MODEL and self.kind in {
+            EvidenceKind.ASSERTED,
+            EvidenceKind.INFERRED,
+        }
 
     def to_dict(self) -> dict[str, Any]:
         return {
