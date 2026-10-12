@@ -151,6 +151,33 @@ def build_parser() -> argparse.ArgumentParser:
 
     verify = sub.add_parser("verify-ledger", help="Verify every hash-chain link")
     verify.add_argument("--ledger", type=Path, required=True)
+    verify.add_argument(
+        "--anchor",
+        type=Path,
+        help="Anchor file to check (default: <ledger>.anchor.json beside the ledger)",
+    )
+    verify.add_argument(
+        "--expected-tip",
+        "--expected-head",
+        dest="expected_tip",
+        help="Fail unless the ledger tip hash equals this retained anchor value",
+    )
+    verify.add_argument(
+        "--expected-count",
+        type=int,
+        help="Fail unless the ledger entry count equals this retained anchor value",
+    )
+    verify.add_argument(
+        "--require-anchor",
+        action="store_true",
+        help="Fail when no matching sidecar anchor is present (FR-4.1)",
+    )
+    verify.add_argument(
+        "--write-anchor",
+        action="store_true",
+        help="After verifying the chain, (re)write its sidecar anchor — the "
+        "migration path for ledgers written before FR-4 anchors existed",
+    )
 
     gate = sub.add_parser("gate", help="Return a CI-friendly decision from an assessment")
     gate.add_argument("--input", type=Path, required=True)
@@ -415,18 +442,20 @@ def _challenge(args: argparse.Namespace) -> int:
 
 
 def _verify_ledger(args: argparse.Namespace) -> int:
-    result = HashChainLedger(args.ledger).verify()
-    print(
-        json.dumps(
-            {
-                "valid": result.valid,
-                "entries": result.entries,
-                "head_hash": result.head_hash,
-                "errors": list(result.errors),
-            },
-            indent=2,
-        )
+    ledger = HashChainLedger(args.ledger)
+    written_anchor = None
+    if args.write_anchor:
+        written_anchor = ledger.write_anchor(args.anchor)
+    result = ledger.verify(
+        expected_tip_hash=args.expected_tip,
+        expected_entry_count=args.expected_count,
+        require_anchor=args.require_anchor,
+        anchor_path=args.anchor,
     )
+    output = result.to_dict()
+    if written_anchor is not None:
+        output["anchor_written"] = written_anchor.to_dict()
+    print(json.dumps(output, indent=2))
     return 0 if result.valid else 2
 
 
@@ -616,6 +645,23 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
         )
     ledger = HashChainLedger(ledger_path)
     verification = ledger.verify()
+    if not verification.chain_valid:
+        raise ValueError(
+            f"gate: cross-check failed for {source}: ledger "
+            f"{ledger_path_value} does not verify ({'; '.join(verification.errors)})"
+        )
+    # Spec 003 FR-4.1: the chain alone cannot see tail truncation, so
+    # the gate additionally requires the ledger's head anchor to verify.
+    # A ledger whose anchor is missing, stale, or mismatched fails here
+    # even when its remaining chain is internally consistent.
+    anchor_verification = ledger.verify(require_anchor=True)
+    if not anchor_verification.valid:
+        raise ValueError(
+            f"gate: cross-check failed for {source}: ledger "
+            f"{ledger_path_value} anchor check failed "
+            f"(anchor_status={anchor_verification.anchor_status}): "
+            f"{'; '.join(anchor_verification.errors)}"
+        )
     if not verification.valid:
         raise ValueError(
             f"gate: cross-check failed for {source}: ledger "
