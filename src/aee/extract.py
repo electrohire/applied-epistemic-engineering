@@ -34,7 +34,14 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
     (FR-1.3) and exists for internal extraction use."""
     source = Path(path)
     if source.suffix.lower() == ".json":
-        value = json.loads(source.read_text(encoding="utf-8"))
+
+        def _reject_constant(name: str) -> None:
+            raise ValueError(
+                f"{source.as_posix()}: non-finite number {name!r} is not "
+                "allowed in a claims bundle (Spec 003 FR-3.3)"
+            )
+
+        value = json.loads(source.read_text(encoding="utf-8"), parse_constant=_reject_constant)
         if isinstance(value, dict):
             if "claims" not in value:
                 raise ValueError(
@@ -554,7 +561,11 @@ def derived_claim_id(text: str, prefix: str = "CLM") -> str:
 
 
 def dump_claims(claims: list[Claim]) -> str:
-    return json.dumps({"schema_version": "1.0", "claims": [c.to_dict() for c in claims]}, indent=2)
+    return json.dumps(
+        {"schema_version": "1.0", "claims": [c.to_dict() for c in claims]},
+        indent=2,
+        allow_nan=False,
+    )
 
 
 def _kind_from_id(claim_id: str) -> ClaimKind:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -291,7 +292,7 @@ def _verify_evidence(args: argparse.Namespace) -> int:
 def _migrate(args: argparse.Namespace) -> int:
     if args.output is not None:
         _guard_output_path(args.output, [(args.bundle, "the input bundle")])
-    value = json.loads(args.bundle.read_text(encoding="utf-8"))
+    value = _load_json_strict(args.bundle, what="bundle")
     migrated, report = migrate_bundle(value)
     for line in report:
         print(f"migrate: {line}", file=sys.stderr)
@@ -299,7 +300,7 @@ def _migrate(args: argparse.Namespace) -> int:
         _write_json(migrated, args.output)
         print(f"migrated bundle written to {args.output.as_posix()}")
     else:
-        print(json.dumps(migrated, indent=2))
+        print(_dumps(migrated, indent=2))
     return 0
 
 
@@ -499,7 +500,7 @@ def _verify_ledger(args: argparse.Namespace) -> int:
     output = result.to_dict()
     if written_anchor is not None:
         output["anchor_written"] = written_anchor.to_dict()
-    print(json.dumps(output, indent=2))
+    print(_dumps(output, indent=2))
     return 0 if result.valid else 2
 
 
@@ -519,7 +520,11 @@ _SUMMARY_COUNTS = re.compile(
 
 
 def _gate(args: argparse.Namespace) -> int:
-    value = json.loads(args.input.read_text(encoding="utf-8"))
+    # Spec 003 FR-5.5 (RT2-L3/L4 seams): the gate parses strictly —
+    # bare NaN/Infinity tokens are refused at load (parse_constant),
+    # never reaching the cross-check, whose recompute only ever sees
+    # finite numbers and whose digest serialisation refuses them.
+    value = _load_json_strict(args.input, what="assessment")
     outcome = _gate_cross_check(value, source=args.input.as_posix())
     print(f"AEE gate: {outcome}")
     return _exit_code(outcome)
@@ -713,7 +718,11 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
         )
     # The canonical form is aee.ledger._canonical; duplicated here to
     # keep the gate's digest definition visible at the check site.
-    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    # allow_nan=False (FR-5.5): a non-finite value raises ValueError
+    # here instead of digesting an invalid-JSON serialisation.
+    canonical = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+    )
     digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
     recorded = {
         entry.get("payload", {}).get("assessment_sha256")
@@ -818,22 +827,58 @@ def _demo() -> int:
         ],
     )
     result = AEEEngine().assess([claim], project="demo", phase="after_specify")
-    print(json.dumps(result.to_dict(), indent=2))
+    print(_dumps(result.to_dict(), indent=2))
     return _exit_code(result.outcome)
 
 
-def _score_view(value: dict[str, Any]) -> ClaimScore:
+def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimScore:
+    """Rebuild one ClaimScore from its serialized form, validating as
+    we go (Spec 003 FR-5.3): malformed-but-readable review inputs get
+    a named error (file, claim, field), never a bare conversion
+    traceback or an opaque AttributeError."""
+
+    def _number(container: dict[str, Any], key: str) -> float:
+        raw = container.get(key, 0.0)
+        if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} must be a number, got {type(raw).__name__}"
+            )
+        try:
+            number = float(raw)
+        except OverflowError:
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} is out of range"
+            ) from None
+        if not math.isfinite(number):
+            raise ValueError(
+                f"review: {source.as_posix()}: score field {key!r} for claim "
+                f"{claim_id!r} must be finite"
+            )
+        return number
+
     components = value.get("components", {})
+    if not isinstance(components, dict):
+        raise ValueError(
+            f"review: {source.as_posix()}: score 'components' for claim "
+            f"{claim_id!r} must be an object"
+        )
+    notes = value.get("notes", [])
+    if not isinstance(notes, list):
+        raise ValueError(
+            f"review: {source.as_posix()}: score 'notes' for claim {claim_id!r} must be a list"
+        )
     return ClaimScore(
-        claim_id=str(value.get("claim_id", "")),
-        direct_score=float(value.get("direct_score", 0.0)),
-        propagated_score=float(value.get("propagated_score", 0.0)),
-        evidence_score=float(components.get("evidence", 0.0)),
-        independence_score=float(components.get("independence", 0.0)),
-        falsifiability_score=float(components.get("falsifiability", 0.0)),
-        boundary_score=float(components.get("boundary", 0.0)),
-        contradiction_penalty=float(components.get("contradiction_penalty", 0.0)),
-        notes=[str(note) for note in value.get("notes", [])],
+        claim_id=str(value.get("claim_id", claim_id)),
+        direct_score=_number(value, "direct_score"),
+        propagated_score=_number(value, "propagated_score"),
+        evidence_score=_number(components, "evidence"),
+        independence_score=_number(components, "independence"),
+        falsifiability_score=_number(components, "falsifiability"),
+        boundary_score=_number(components, "boundary"),
+        contradiction_penalty=_number(components, "contradiction_penalty"),
+        notes=[str(note) for note in notes],
     )
 
 
@@ -845,17 +890,56 @@ class _AssessmentView:
 
 def _assessment_view(path: Path) -> _AssessmentView:
     """Rebuild the score/verdict views build_review_queue consumes
-    from a serialized assessment (Assessment.to_dict output)."""
-    data = json.loads(path.read_text(encoding="utf-8"))
-    scores = {claim_id: _score_view(score) for claim_id, score in data.get("scores", {}).items()}
-    verdicts = {
-        claim_id: ClaimVerdict(
-            claim_id,
-            Verdict(str(verdict["verdict"])),
-            [str(reason) for reason in verdict.get("reasons", [])],
+    from a serialized assessment (Assessment.to_dict output).
+
+    The file is parsed as strict JSON (bare NaN/Infinity refused,
+    FR-5.5) and structurally validated: any malformed-but-readable
+    input raises a ValueError naming the file and the offending
+    field, which main() reports as a clean exit 2 (FR-5.3)."""
+    data = _load_json_strict(path, what="assessment")
+    if not isinstance(data, dict):
+        raise ValueError(f"review: {path.as_posix()} is not an assessment (expected a JSON object)")
+    raw_scores = data.get("scores", {})
+    if not isinstance(raw_scores, dict):
+        raise ValueError(
+            f"review: {path.as_posix()}: 'scores' must be an object mapping claim ids to scores"
         )
-        for claim_id, verdict in data.get("verdicts", {}).items()
-    }
+    scores: dict[str, ClaimScore] = {}
+    for claim_id, score in raw_scores.items():
+        if not isinstance(score, dict):
+            raise ValueError(
+                f"review: {path.as_posix()}: score for claim {claim_id!r} must be an object"
+            )
+        scores[claim_id] = _score_view(score, source=path, claim_id=claim_id)
+    raw_verdicts = data.get("verdicts", {})
+    if not isinstance(raw_verdicts, dict):
+        raise ValueError(
+            f"review: {path.as_posix()}: 'verdicts' must be an object mapping claim ids to verdicts"
+        )
+    verdicts: dict[str, ClaimVerdict] = {}
+    for claim_id, verdict in raw_verdicts.items():
+        if not isinstance(verdict, dict) or "verdict" not in verdict:
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict for claim {claim_id!r} "
+                "must be an object with a 'verdict' field"
+            )
+        try:
+            parsed_verdict = Verdict(str(verdict["verdict"]))
+        except ValueError:
+            valid = ", ".join(member.value for member in Verdict)
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict for claim {claim_id!r} "
+                f"has invalid value {verdict['verdict']!r}; valid values: {valid}"
+            ) from None
+        reasons = verdict.get("reasons", [])
+        if not isinstance(reasons, list):
+            raise ValueError(
+                f"review: {path.as_posix()}: verdict 'reasons' for claim "
+                f"{claim_id!r} must be a list"
+            )
+        verdicts[claim_id] = ClaimVerdict(
+            claim_id, parsed_verdict, [str(reason) for reason in reasons]
+        )
     return _AssessmentView(scores=scores, verdicts=verdicts)
 
 
@@ -876,6 +960,31 @@ def _review(args: argparse.Namespace) -> int:
     )
     _write_or_print(queue.to_dict(), args.output)
     return 0
+
+
+def _dumps(value: Any, **kwargs: Any) -> str:
+    """Spec 003 FR-5.5 (RT2-M11): every CLI JSON emission is strict
+    JSON — ``allow_nan=False``, so a non-finite value fails loudly at
+    serialisation time (ValueError -> clean exit 2) instead of
+    landing on disk or stdout as a bare ``NaN``/``Infinity`` token
+    that strict parsers (and non-Python tooling) reject."""
+    return json.dumps(value, allow_nan=False, **kwargs)
+
+
+def _load_json_strict(path: Path, *, what: str) -> Any:
+    """Load a JSON file as strict JSON (Spec 003 FR-3.3/FR-5.5):
+    bare ``NaN``/``Infinity`` tokens are refused at parse time with a
+    named error — Python's json accepts them by default, and a gate
+    or review that quietly parsed them would be reasoning over
+    values its own outputs may never contain."""
+
+    def _reject_constant(name: str) -> None:
+        raise ValueError(
+            f"{what} file {path.as_posix()}: non-finite number {name!r} "
+            "is not allowed in strict JSON"
+        )
+
+    return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
 
 
 def _guard_output_path(
@@ -934,11 +1043,11 @@ def _write_or_print(value: dict[str, object], output: Path | None) -> None:
     if output:
         _write_json(value, output)
     else:
-        print(json.dumps(value, indent=2))
+        print(_dumps(value, indent=2))
 
 
 def _write_json(value: dict[str, object], output: Path) -> None:
-    _atomic_write_text(output, json.dumps(value, indent=2) + "\n")
+    _atomic_write_text(output, _dumps(value, indent=2) + "\n")
 
 
 def _exit_code(outcome: str) -> int:
