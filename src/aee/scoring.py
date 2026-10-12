@@ -16,6 +16,7 @@ from aee.model import (
     SourceQuality,
 )
 from aee.reliability import ReliabilityTable, blended_weight
+from aee.sources import normalize_source_identity, source_identity
 
 _SOURCE_WEIGHTS = {
     SourceQuality.TEST: 1.0,
@@ -152,10 +153,22 @@ class ScoringEngine:
         contradict = [
             item for item in claim.evidence if item.direction == EvidenceDirection.CONTRADICTS
         ]
+        # FR-2.7 (RT1-23): an item with an empty ref is not inspectable
+        # and earns no evidence weight. It is excluded here and noted
+        # below; Spec 002 FR-3's verify-evidence is the full check.
+        weighted_items = [item for item in support if item.ref.strip()]
+        empty_ref_count = len(support) - len(weighted_items)
+        # FR-2.1 (RT1-02): deduplicate by canonical identity before the
+        # noisy-OR combination — repeating the identical item used to
+        # add weight every time (20 copies of the weakest item crossed
+        # the 0.70 threshold on zero new information). Duplicates still
+        # count for freshness and the observed/support checks below:
+        # repetition is not fabrication, it just adds no new support.
+        unique_items, duplicate_count = _deduplicate(weighted_items)
         weighted = []
         reliability_notes: list[str] = []
         noted_sources: set[str] = set()
-        for item in support:
+        for item in unique_items:
             static = _SOURCE_WEIGHTS[item.source_quality]
             weight, measured = blended_weight(
                 item, static, self.reliability, self.reliability_alpha
@@ -197,6 +210,29 @@ class ScoringEngine:
         )
         direct = round(max(0.0, min(1.0, direct)), 6)
         notes: list[str] = []
+        if duplicate_count:
+            notes.append(
+                f"Duplicate evidence: {duplicate_count} item(s) collapsed by "
+                "canonical identity (FR-2.1); duplicates contribute once"
+            )
+        if empty_ref_count:
+            notes.append(
+                f"{empty_ref_count} supporting evidence item(s) had an empty "
+                "ref and earned no evidence weight (FR-2.7)"
+            )
+        # FR-2.2 (RT1-03), scoring half: a contradicted-kind item routed
+        # to context is visible here as well as in the challenge; the
+        # item is never treated as support or contradiction by scoring
+        # (its direction governs), but the mismatch is on the record.
+        if any(
+            item.kind == EvidenceKind.CONTRADICTED
+            and item.direction != EvidenceDirection.CONTRADICTS
+            for item in claim.evidence
+        ):
+            notes.append(
+                "Polarity incoherence: contradicted-kind evidence is not routed "
+                "as contradiction (FR-2.2); see the polarity challenge"
+            )
         if not support:
             notes.append("No supporting evidence")
         if support and not any(item.kind == EvidenceKind.OBSERVED for item in support):
@@ -240,43 +276,50 @@ class ScoringEngine:
 
     @staticmethod
     def _independence(support: Sequence[Evidence]) -> tuple[float, str, int]:
-        """Independence component (Spec 002 FR-6.1/6.4).
+        """Independence component (Spec 002 FR-6.1/6.4; Spec 003 FR-2.4/2.5).
 
-        Returns ``(score, basis, source_count)``. Supporting items are
-        grouped by source identity (``source_id or ref``); items in one
-        group count as ONE source. A declared ``independent_of`` entry
-        naming another item (by ref or source_id) separates the two
-        items even when they share an identity — declarations are
-        honored, not ignored as they were when the field was write-only.
+        Returns ``(score, basis, source_count)``. Only supporting items
+        with positive evidence weight count (FR-2.4, RT1-06): a
+        zero-weight item (``unsupported``/``contradicted`` kind) padded
+        the source count for free before this phase, minting full
+        independence from junk. Counted items are grouped by
+        NORMALISED source identity (``aee.sources``, FR-2.5, RT1-14);
+        items in one group count as ONE source. A declared
+        ``independent_of`` entry naming another item (by ref or
+        source_id, compared normalised) separates the two items even
+        when they share an identity — declarations are honored, not
+        ignored as they were when the field was write-only.
 
         Basis: ``declared`` when any independent_of declaration links
-        two supporting items, ``inferred-from-references`` when the
-        count rests on distinct references alone, ``none`` when no
-        supporting item carries a source identity.
+        two counted items, ``inferred-from-references`` when the count
+        rests on distinct references alone, ``none`` when no counted
+        item carries a source identity.
         """
-        if not support:
+        counted = [item for item in support if _KIND_WEIGHTS[item.kind] > 0]
+        if not counted:
             return 0.0, "none", 0
 
         def identifiers(item: Evidence) -> set[str]:
-            return {value for value in (item.source_id, item.ref) if value}
+            return {
+                normalize_source_identity(value) for value in (item.source_id, item.ref) if value
+            }
 
         def declared_pair(left: Evidence, right: Evidence) -> bool:
-            return bool(
-                set(left.independent_of) & identifiers(right)
-                or set(right.independent_of) & identifiers(left)
-            )
+            left_declared = {normalize_source_identity(v) for v in left.independent_of}
+            right_declared = {normalize_source_identity(v) for v in right.independent_of}
+            return bool(left_declared & identifiers(right) or right_declared & identifiers(left))
 
         declared_any = any(
             declared_pair(left, right)
-            for index, left in enumerate(support)
-            for right in support[index + 1 :]
+            for index, left in enumerate(counted)
+            for right in counted[index + 1 :]
         )
         # Greedy grouping in evidence order: an item joins the first
         # same-identity group it is not declared independent of a
         # member of; otherwise it starts a new group (a new source).
         groups: list[tuple[str, list[Evidence]]] = []
-        for item in support:
-            key = item.source_id or item.ref
+        for item in counted:
+            key = source_identity(item)
             if not key:
                 continue
             for group_key, members in groups:
@@ -317,3 +360,51 @@ class ScoringEngine:
         if age_days <= 365:
             return 0.05, unparseable
         return 0.10, unparseable
+
+
+def canonical_evidence_identity(item: Evidence) -> tuple[str, str, str, str, str]:
+    """Canonical identity of an evidence item for deduplication (FR-2.1).
+
+    Two items are the same evidence — repetition, not corroboration —
+    when all five components match:
+
+    - normalised ``ref`` (``aee.sources.normalize_source_identity``:
+      whitespace/case/``./``/trailing-slash variants of one reference
+      are one item);
+    - normalised source identity (``source_id or ref``, normalised) —
+      the same content arriving under a declared source identity is
+      the same item even if the raw ref strings differ cosmetically;
+    - ``kind`` — the same source asserting and observing are different
+      epistemic acts;
+    - ``source_quality`` — the same ref at a different declared
+      quality is a different claim about the evidence;
+    - ``direction`` — the same item cannot be both support and
+      contradiction; direction keeps those apart (direction also
+      partitions the scoring lists before dedup runs, so this is
+      belt-and-braces).
+
+    Deliberately NOT in the identity: ``description``, ``observed_at``,
+    and ``content_hash`` — annotating or re-dating a copy does not
+    make it new evidence. And deliberately strict: items differing in
+    kind or quality are NOT merged, so dedup can never hide a genuine
+    second measurement behind a cosmetic match.
+    """
+    return (
+        normalize_source_identity(item.ref),
+        source_identity(item),
+        item.kind.value,
+        item.source_quality.value,
+        item.direction.value,
+    )
+
+
+def _deduplicate(items: Sequence[Evidence]) -> tuple[list[Evidence], int]:
+    """First occurrence wins; returns (unique items, collapsed count)."""
+    seen: set[tuple[str, str, str, str, str]] = set()
+    unique: list[Evidence] = []
+    for item in items:
+        key = canonical_evidence_identity(item)
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique, len(items) - len(unique)
