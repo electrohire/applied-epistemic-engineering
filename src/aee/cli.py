@@ -322,8 +322,22 @@ def _assess(args: argparse.Namespace) -> int:
         )
     reliability = None
     if args.reliability:
+        # Spec 003 FR-3.3: a reliability file carrying bare NaN /
+        # Infinity tokens is refused at load — Python's json accepts
+        # them by default, so parse_constant rejects them loudly
+        # (ValueError -> clean exit 2 via main). Range/finiteness of
+        # the parsed values is validated by from_dict (FR-3.1).
+        def _reject_constant(name: str) -> None:
+            raise ValueError(
+                f"reliability file {args.reliability}: non-finite number "
+                f"{name!r} is not allowed (Spec 003 FR-3.3)"
+            )
+
         reliability = ReliabilityTable.from_dict(
-            json.loads(args.reliability.read_text(encoding="utf-8"))
+            json.loads(
+                args.reliability.read_text(encoding="utf-8"),
+                parse_constant=_reject_constant,
+            )
         )
     engine = AEEEngine(
         args.threshold,
