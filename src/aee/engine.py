@@ -251,11 +251,7 @@ class AEEEngine:
             # stage, not its stored one (R2.3/R4.3).
             verdicts = {
                 claim.id: evaluate_policy(
-                    (
-                        replace(claim, stage=overrides[claim.id])
-                        if claim.id in overrides
-                        else claim
-                    ),
+                    (replace(claim, stage=overrides[claim.id]) if claim.id in overrides else claim),
                     scores[claim.id],
                     self.policy,
                     threshold=self.threshold,
@@ -277,9 +273,7 @@ class AEEEngine:
                 for verdict in verdicts.values()
             ):
                 outcome = "iterate"
-        not_understood = _not_understood(
-            items, caps, failures, scores, self.threshold, metadata
-        )
+        not_understood = _not_understood(items, caps, failures, scores, self.threshold, metadata)
         lanes = build_lanes(
             items,
             scores=scores,
@@ -354,9 +348,7 @@ class AEEEngine:
                 "are capped at 'created'."
             )
         contested_parents = {
-            claim_id
-            for claim_id, reason in override_notes.items()
-            if "contested" in reason
+            claim_id for claim_id, reason in override_notes.items() if "contested" in reason
         }
         if contested_parents:
             summary += (
@@ -687,9 +679,7 @@ def _resolved_explainers(claim: Claim) -> list[str]:
     )
 
 
-def _digestion_tracking(
-    items: list[Claim], overrides: dict[str, ClaimStage]
-) -> dict[str, Any]:
+def _digestion_tracking(items: list[Claim], overrides: dict[str, ClaimStage]) -> dict[str, Any]:
     """Per-claim digestion tracking (Spec 004 R3.3): for every claim
     its effective stage, whether resolved exposition evidence is
     present, and who the explainers are."""

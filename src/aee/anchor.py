@@ -78,9 +78,7 @@ def anchor_assessment(
     }
     path = Path(ledger_path)
     database = (
-        axiomere.Database.open(str(path))
-        if path.exists()
-        else axiomere.Database.create(str(path))
+        axiomere.Database.open(str(path)) if path.exists() else axiomere.Database.create(str(path))
     )
     event = database.append(ANCHOR_EVENT_TYPE, payload, actor=actor)
     checkpoint = database.checkpoint(actor=actor)

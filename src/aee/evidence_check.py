@@ -325,7 +325,7 @@ def _check_ledger_ref(ref: str, evidence: Evidence, root: Path, result: Any, add
     """
     from aee.ledger import HashChainLedger
 
-    body = ref[len("ledger:"):]
+    body = ref[len("ledger:") :]
     path_part, sep, seq_part = body.partition("#")
     sequence: int | None = None
     if sep and seq_part.isdigit():

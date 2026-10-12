@@ -29,9 +29,7 @@ from aee.cli import main
 from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger
 
 BUNDLE = {
-    "claims": [
-        {"id": "CLM-1", "text": "The widget works", "status": "draft", "stage": "created"}
-    ]
+    "claims": [{"id": "CLM-1", "text": "The widget works", "status": "draft", "stage": "created"}]
 }
 
 MATRIX_TEXT = (

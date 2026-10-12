@@ -347,9 +347,7 @@ def build_review_queue(
             previous_score = prev_scores[removed_id].propagated_score
             best = min(
                 unpaired,
-                key=lambda added_id: abs(
-                    cur_scores[added_id].propagated_score - previous_score
-                ),
+                key=lambda added_id: abs(cur_scores[added_id].propagated_score - previous_score),
             )
             unpaired.remove(best)
             queue.rename_candidates.append(

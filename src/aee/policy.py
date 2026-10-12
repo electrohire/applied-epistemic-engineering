@@ -81,6 +81,7 @@ def verdict_ceiling(stage: ClaimStage) -> str:
     """
     return VERDICT_CEILING[stage]
 
+
 # Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
 # corroboration_sources (positive contribution vs zero/negative). The
 # scoring module owns the magnitudes; only the sign matters here, and
@@ -259,8 +260,7 @@ def evaluate_policy(
     demoting = [
         failure
         for failure in (failures or [])
-        if not failure.resolved
-        and failure.severity in {Severity.HIGH, Severity.CRITICAL}
+        if not failure.resolved and failure.severity in {Severity.HIGH, Severity.CRITICAL}
     ]
     for failure in demoting:
         reasons.append(
@@ -328,9 +328,7 @@ def machine_only_reason(claim: Claim) -> str | None:
     A claim with no supporting evidence is NOT machine-only: absence
     of support is the abstention rules' territory, not this gate's.
     """
-    supporting = [
-        item for item in claim.evidence if item.direction == EvidenceDirection.SUPPORTS
-    ]
+    supporting = [item for item in claim.evidence if item.direction == EvidenceDirection.SUPPORTS]
     if not supporting:
         return None
     if all(
@@ -353,8 +351,9 @@ def machine_only_overrides(claims: list[Claim]) -> dict[str, ClaimStage]:
     """Effective-stage caps imposed by the machine-only gate (R5.1)."""
     overrides: dict[str, ClaimStage] = {}
     for claim in claims:
-        if machine_only_reason(claim) is not None and STAGE_ORDER[
-            claim.stage
-        ] > STAGE_ORDER[ClaimStage.CHECKED]:
+        if (
+            machine_only_reason(claim) is not None
+            and STAGE_ORDER[claim.stage] > STAGE_ORDER[ClaimStage.CHECKED]
+        ):
             overrides[claim.id] = ClaimStage.CHECKED
     return overrides

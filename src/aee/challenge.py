@@ -404,8 +404,7 @@ class StressTester:
             next_word = after.split()[0] if after.split() else ""
             matched = match.group(0)
             proper_noun = matched[0].isupper() and (
-                (prev_word and prev_word[0].isupper())
-                or (next_word and next_word[0].isupper())
+                (prev_word and prev_word[0].isupper()) or (next_word and next_word[0].isupper())
             )
             if not proper_noun:
                 return True

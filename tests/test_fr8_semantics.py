@@ -32,10 +32,22 @@ POLICY = AssessmentPolicy()
 AS_OF = datetime(2026, 10, 12, tzinfo=UTC)
 
 
-def ev(ref, kind=EvidenceKind.OBSERVED, q=SourceQuality.TEST,
-       direction=EvidenceDirection.SUPPORTS, source_id="", observed_at=None):
-    return Evidence(ref=ref, kind=kind, direction=direction,
-                    source_quality=q, source_id=source_id, observed_at=observed_at)
+def ev(
+    ref,
+    kind=EvidenceKind.OBSERVED,
+    q=SourceQuality.TEST,
+    direction=EvidenceDirection.SUPPORTS,
+    source_id="",
+    observed_at=None,
+):
+    return Evidence(
+        ref=ref,
+        kind=kind,
+        direction=direction,
+        source_quality=q,
+        source_id=source_id,
+        observed_at=observed_at,
+    )
 
 
 def claim(cid, evidence, **kw):
@@ -60,15 +72,14 @@ def challenges(c):
 
 def test_unrelated_cycle_does_not_disable_propagation():
     weak = claim("WEAK", [ev("w", kind=EvidenceKind.ASSERTED, q=SourceQuality.MODEL)])
-    strong = claim("STRONG", [strong_evidence("s1", "S1"), strong_evidence("s2", "S2")],
-                   depends_on=["WEAK"])
+    strong = claim(
+        "STRONG", [strong_evidence("s1", "S1"), strong_evidence("s2", "S2")], depends_on=["WEAK"]
+    )
     x = claim("X", [ev("x1"), ev("x2")], depends_on=["Y"])
     y = claim("Y", [ev("y1"), ev("y2")], depends_on=["X"])
     a = AEEEngine(policy=POLICY).assess([weak, strong, x, y])
     # STRONG is capped by WEAK exactly as if the cycle were absent.
-    assert a.scores["STRONG"].propagated_score == pytest.approx(
-        a.scores["WEAK"].propagated_score
-    )
+    assert a.scores["STRONG"].propagated_score == pytest.approx(a.scores["WEAK"].propagated_score)
     assert a.scores["STRONG"].propagated_score < a.scores["STRONG"].direct_score
     assert a.scores["STRONG"].propagation_status == "propagated"
     # The cycle members are marked on their own records, and the
@@ -92,7 +103,10 @@ def test_high_failure_caps_verdict_below_accept():
     # And the standalone entry point honors the same rule when the
     # caller supplies the failures.
     standalone = evaluate_policy(
-        c, a.scores["C1"], POLICY, threshold=0.70,
+        c,
+        a.scores["C1"],
+        POLICY,
+        threshold=0.70,
         failures=c.unresolved_failures,
     )
     assert standalone.verdict.value == "challenge"
@@ -102,9 +116,19 @@ def test_high_failure_caps_verdict_below_accept():
 
 
 def test_weak_kind_contradiction_trips_contested_gate_standalone():
-    c = claim("D2", [ev("a"), ev("b"),
-                     ev("refute", kind=EvidenceKind.ASSERTED, q=SourceQuality.MODEL,
-                        direction=EvidenceDirection.CONTRADICTS)])
+    c = claim(
+        "D2",
+        [
+            ev("a"),
+            ev("b"),
+            ev(
+                "refute",
+                kind=EvidenceKind.ASSERTED,
+                q=SourceQuality.MODEL,
+                direction=EvidenceDirection.CONTRADICTS,
+            ),
+        ],
+    )
     score = ScoringEngine().score([c])["D2"]
     assert score.contradiction_penalty < POLICY.contested_penalty_threshold
     verdict = evaluate_policy(c, score, POLICY, threshold=0.70)
@@ -113,9 +137,14 @@ def test_weak_kind_contradiction_trips_contested_gate_standalone():
 
 
 def test_hidden_refutation_trips_contested_gate():
-    c = claim("D3", [ev("a"), ev("b"),
-                     ev("refute", kind=EvidenceKind.CONTRADICTED,
-                        direction=EvidenceDirection.CONTEXT)])
+    c = claim(
+        "D3",
+        [
+            ev("a"),
+            ev("b"),
+            ev("refute", kind=EvidenceKind.CONTRADICTED, direction=EvidenceDirection.CONTEXT),
+        ],
+    )
     score = ScoringEngine().score([c])["D3"]
     verdict = evaluate_policy(c, score, POLICY, threshold=0.70)
     assert verdict.verdict.value == "challenge"
@@ -126,16 +155,23 @@ def test_hidden_refutation_trips_contested_gate():
 
 def _freshness_scores():
     def score(cid, evidence):
-        return ScoringEngine().score(
-            [claim(cid, evidence)], as_of=AS_OF
-        )[cid].direct_score
+        return ScoringEngine().score([claim(cid, evidence)], as_of=AS_OF)[cid].direct_score
 
     old = score("F1", [ev("a", observed_at="2010-01-01"), ev("b", observed_at="2010-01-01")])
     nodate = score("F2", [ev("a"), ev("b")])
     future = score("F3", [ev("a", observed_at="2999-01-01"), ev("b", observed_at="2999-01-01")])
-    masked = score("F4", [ev("old", observed_at="2010-01-01"),
-                          ev("fresh-junk", kind=EvidenceKind.ASSERTED, q=SourceQuality.MODEL,
-                             observed_at="2026-10-01")])
+    masked = score(
+        "F4",
+        [
+            ev("old", observed_at="2010-01-01"),
+            ev(
+                "fresh-junk",
+                kind=EvidenceKind.ASSERTED,
+                q=SourceQuality.MODEL,
+                observed_at="2026-10-01",
+            ),
+        ],
+    )
     bad = score("F5", [ev("a", observed_at="not-a-date"), ev("b", observed_at="also-bad")])
     return old, nodate, future, masked, bad
 
@@ -149,10 +185,14 @@ def test_freshness_variants_score_no_better_than_honestly_old():
     # One fresh item does not erase the stale half of the set: the
     # masked claim sits between fully-fresh and fully-stale, and in
     # particular does not reach the no-penalty score.
-    fresh = ScoringEngine().score(
-        [claim("F0", [ev("a", observed_at="2026-10-01"), ev("b", observed_at="2026-10-01")])],
-        as_of=AS_OF,
-    )["F0"].direct_score
+    fresh = (
+        ScoringEngine()
+        .score(
+            [claim("F0", [ev("a", observed_at="2026-10-01"), ev("b", observed_at="2026-10-01")])],
+            as_of=AS_OF,
+        )["F0"]
+        .direct_score
+    )
     assert old < masked < fresh
 
 
@@ -168,9 +208,14 @@ def test_freshness_basis_is_named_in_notes():
 
 
 def test_placeholder_entries_earn_partial_credit_with_named_criteria():
-    c = Claim(id="E1", text="Widget latency is 42 ms at p95 under load profile L",
-              status=ClaimStatus.SUPPORTED, boundary=["x"], falsification_tests=["y"],
-              evidence=[ev("a"), ev("b")])
+    c = Claim(
+        id="E1",
+        text="Widget latency is 42 ms at p95 under load profile L",
+        status=ClaimStatus.SUPPORTED,
+        boundary=["x"],
+        falsification_tests=["y"],
+        evidence=[ev("a"), ev("b")],
+    )
     score = ScoringEngine().score([c])["E1"]
     assert score.falsifiability_score == 0.5
     assert score.boundary_score == 0.5
@@ -181,9 +226,12 @@ def test_placeholder_entries_earn_partial_credit_with_named_criteria():
 
 
 def test_substantive_entries_earn_full_credit():
-    c = claim("E2", [ev("a"), ev("b")],
-              boundary=["only within load profile L"],
-              falsification_tests=["measure p95 != 42 under load"])
+    c = claim(
+        "E2",
+        [ev("a"), ev("b")],
+        boundary=["only within load profile L"],
+        falsification_tests=["measure p95 != 42 under load"],
+    )
     score = ScoringEngine().score([c])["E2"]
     assert score.falsifiability_score == 1.0
     assert score.boundary_score == 1.0
@@ -192,44 +240,54 @@ def test_substantive_entries_earn_full_credit():
 # -- FR-8.8 + FR-8.15 (p3 sections A/B/C, p6 section D): lexicon corpus ---------
 
 
-@pytest.mark.parametrize("text", [
-    "The system encrypts stored passwords plus deletes backup copies nightly",
-    "The widget heats the sample while-stirring it throughout the cycle",
-    "The service stores user data in the EU region with retention "
-    "set to 30 days plus export on request",
-    "Release 2 ships the new parser together with a migration of all stored records",
-    "The gateway authenticates callers as well as authorising every request",
-])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The system encrypts stored passwords plus deletes backup copies nightly",
+        "The widget heats the sample while-stirring it throughout the cycle",
+        "The service stores user data in the EU region with retention "
+        "set to 30 days plus export on request",
+        "Release 2 ships the new parser together with a migration of all stored records",
+        "The gateway authenticates callers as well as authorising every request",
+    ],
+)
 def test_compound_evasion_corpus_fires(text):
     c = claim("A", [ev("a"), ev("b")], text=text)
     assert "Irreducibility challenge" in challenges(c)
 
 
-@pytest.mark.parametrize("text", [
-    "The parser accepts protocol version 1, 2 in compatibility mode",
-    "The sensor reports temperature in degrees Celsius or Fahrenheit as configured",
-    "The trial enrolled adults aged 65 and older living in Michigan",
-])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The parser accepts protocol version 1, 2 in compatibility mode",
+        "The sensor reports temperature in degrees Celsius or Fahrenheit as configured",
+        "The trial enrolled adults aged 65 and older living in Michigan",
+    ],
+)
 def test_atomic_corpus_does_not_fire(text):
     c = claim("B", [ev("a"), ev("b")], text=text)
     assert "Irreducibility challenge" not in challenges(c)
 
 
-@pytest.mark.parametrize("text", [
-    "The pipeline is seamless and intuitive for operators",
-    "The model delivers world-class optimal results effortlessly",
-    "The cache makes lookups blazing and magical",
-    "The pipeline is seamless for operators",
-    "The interface is intuitive for new users",
-])
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The pipeline is seamless and intuitive for operators",
+        "The model delivers world-class optimal results effortlessly",
+        "The cache makes lookups blazing and magical",
+        "The pipeline is seamless for operators",
+        "The interface is intuitive for new users",
+    ],
+)
 def test_vague_evasion_corpus_fires(text):
     c = claim("C", [ev("a"), ev("b")], text=text)
     assert "Precision challenge" in challenges(c)
 
 
 def test_vague_word_inside_proper_noun_does_not_fire():
-    c = claim("C9", [ev("a"), ev("b")],
-              text="The service enables Secure Boot on the gateway device")
+    c = claim(
+        "C9", [ev("a"), ev("b")], text="The service enables Secure Boot on the gateway device"
+    )
     assert "Precision challenge" not in challenges(c)
 
 
@@ -237,16 +295,22 @@ def test_vague_word_inside_proper_noun_does_not_fire():
 
 
 def test_unrelated_boundary_does_not_suppress_absolute_challenge():
-    c = claim("D1", [ev("a"), ev("b")],
-              text="The system always rejects every invalid token in all deployments",
-              boundary=["unrelated note"])
+    c = claim(
+        "D1",
+        [ev("a"), ev("b")],
+        text="The system always rejects every invalid token in all deployments",
+        boundary=["unrelated note"],
+    )
     assert "Counterexample challenge" in challenges(c)
 
 
 def test_relevant_boundary_suppresses_absolute_challenge():
-    c = claim("D2", [ev("a"), ev("b")],
-              text="The system always rejects every invalid token in all deployments",
-              boundary=["all deployments, without exception"])
+    c = claim(
+        "D2",
+        [ev("a"), ev("b")],
+        text="The system always rejects every invalid token in all deployments",
+        boundary=["all deployments, without exception"],
+    )
     assert "Counterexample challenge" not in challenges(c)
 
 
@@ -280,10 +344,7 @@ def test_different_subjects_sharing_vocabulary_do_not_fire():
         claim(
             "F2",
             [ev("a"), ev("b")],
-            text=(
-                "The billing service logs credit card numbers at rest "
-                "for reconciliation"
-            ),
+            text=("The billing service logs credit card numbers at rest for reconciliation"),
         ),
     ]
     failures = StressTester().run(pair)
@@ -297,10 +358,16 @@ class _View:
     def __init__(self, score_map, failures=()):
         self.verdicts = {}
         self.scores = {
-            k: ClaimScore(claim_id=k, direct_score=s, propagated_score=s,
-                          evidence_score=0, independence_score=0,
-                          falsifiability_score=0, boundary_score=0,
-                          contradiction_penalty=0)
+            k: ClaimScore(
+                claim_id=k,
+                direct_score=s,
+                propagated_score=s,
+                evidence_score=0,
+                independence_score=0,
+                falsifiability_score=0,
+                boundary_score=0,
+                contradiction_penalty=0,
+            )
             for k, s in score_map.items()
         }
         self.failures = list(failures)
@@ -308,8 +375,12 @@ class _View:
 
 def _failure(claim_id, severity, fid=None):
     return FailureMode(
-        id=fid or f"AEE-{claim_id}-X", claim_id=claim_id, challenge="X",
-        breakpoint="x", severity=severity, category="contradiction",
+        id=fid or f"AEE-{claim_id}-X",
+        claim_id=claim_id,
+        challenge="X",
+        breakpoint="x",
+        severity=severity,
+        category="contradiction",
         recovery_hint="fix",
     )
 
@@ -323,14 +394,10 @@ def test_salami_slide_caught_by_baseline_not_by_consecutive_diffs():
     for _ in range(10):
         nxt = _View({"S": round(current_score - 0.04, 6)})
         consecutive = build_review_queue(prev, nxt)
-        flagged_score_channel += sum(
-            1 for item in consecutive.items if item.kind == "score"
-        )
+        flagged_score_channel += sum(1 for item in consecutive.items if item.kind == "score")
         q = build_review_queue(prev, nxt, baseline=baseline)
         if drift_item is None:
-            drift_item = next(
-                (item for item in q.items if item.kind == "cumulative_drift"), None
-            )
+            drift_item = next((item for item in q.items if item.kind == "cumulative_drift"), None)
         prev = nxt
         current_score -= 0.04
     # Every consecutive step is below materiality, so the score
@@ -402,10 +469,16 @@ def test_threshold_is_inclusive_on_the_unrounded_score():
     engine = AEEEngine(threshold=0.70)
 
     def fake(value):
-        return ClaimScore(claim_id="X", direct_score=value, propagated_score=value,
-                          evidence_score=0, independence_score=0,
-                          falsifiability_score=0, boundary_score=0,
-                          contradiction_penalty=0)
+        return ClaimScore(
+            claim_id="X",
+            direct_score=value,
+            propagated_score=value,
+            evidence_score=0,
+            independence_score=0,
+            falsifiability_score=0,
+            boundary_score=0,
+            contradiction_penalty=0,
+        )
 
     c = claim("X", [])
     c.failures = []

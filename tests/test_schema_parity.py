@@ -69,9 +69,9 @@ def test_claim_schema_enums_are_the_model_enums() -> None:
     assert _enum_values(CLAIM_SCHEMA, *defs, "kind", "enum") == {m.value for m in ClaimKind}
     assert _enum_values(CLAIM_SCHEMA, *defs, "status", "enum") == {m.value for m in ClaimStatus}
     assert _enum_values(CLAIM_SCHEMA, *defs, "stage", "enum") == {m.value for m in ClaimStage}
-    assert _enum_values(
-        CLAIM_SCHEMA, "$defs", "stage_event", "properties", "kind", "enum"
-    ) == {m.value for m in ClaimStage}
+    assert _enum_values(CLAIM_SCHEMA, "$defs", "stage_event", "properties", "kind", "enum") == {
+        m.value for m in ClaimStage
+    }
     assert _enum_values(CLAIM_SCHEMA, *defs, "uncertainty", "enum") == {
         m.value for m in Uncertainty
     }

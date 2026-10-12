@@ -26,8 +26,12 @@ def _assessment_dict() -> dict:
         boundary=["only within profile L"],
         falsification_tests=["Measure p95 and observe it exceed 100 ms"],
         evidence=[
-            Evidence(ref="run-1", source_id="S1", kind=EvidenceKind.OBSERVED,
-                     source_quality=SourceQuality.TEST),
+            Evidence(
+                ref="run-1",
+                source_id="S1",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.TEST,
+            ),
         ],
     )
     return AEEEngine().assess([claim]).to_dict()
@@ -48,9 +52,7 @@ def test_anchor_unavailable_is_graceful(monkeypatch, tmp_path, capsys):
 
     path = tmp_path / "assessment.json"
     path.write_text(json.dumps(assessment), encoding="utf-8")
-    exit_code = cli_main(
-        ["anchor", "--input", str(path), "--ledger", str(tmp_path / "x.axmr")]
-    )
+    exit_code = cli_main(["anchor", "--input", str(path), "--ledger", str(tmp_path / "x.axmr")])
     assert exit_code == 2
     assert "anchor unavailable" in capsys.readouterr().err
     # The assessment file is untouched by the failed anchor.
@@ -66,9 +68,7 @@ def test_anchor_receipt_matches_assessment_and_verifies(tmp_path):
 
     assessment = _assessment_dict()
     ledger = tmp_path / "anchors.axmr"
-    receipt = anchor_assessment(
-        assessment, ledger_path=ledger, project="spec-002", phase="fr8b"
-    )
+    receipt = anchor_assessment(assessment, ledger_path=ledger, project="spec-002", phase="fr8b")
     assert receipt["assessment_sha256"] == assessment_content_digest(assessment)
     assert receipt["ledger"] == str(ledger)
     assert receipt["event_seq"] is not None

@@ -75,9 +75,7 @@ def build_lanes(
                 "score": score.propagated_score if score else None,
                 "direct_score": score.direct_score if score else None,
                 "author_status": claim.status.value,
-                "at_or_above_threshold": (
-                    bool(score and score.propagated_score >= threshold)
-                ),
+                "at_or_above_threshold": (bool(score and score.propagated_score >= threshold)),
             },
             "lane_2": {
                 "stage": effective.value,
@@ -91,9 +89,7 @@ def build_lanes(
             },
         }
 
-    at_or_above = sum(
-        1 for score in scores.values() if score.propagated_score >= threshold
-    )
+    at_or_above = sum(1 for score in scores.values() if score.propagated_score >= threshold)
     lagging = sum(
         count
         for stage, count in stage_counts.items()
@@ -135,26 +131,18 @@ def lane_summary_lines(lanes: dict[str, Any]) -> tuple[str, str]:
         f"{lane_1['claims_below_threshold']} below."
     )
     counts = ", ".join(
-        f"{stage} {count}"
-        for stage, count in lane_2["stage_counts"].items()
-        if count
+        f"{stage} {count}" for stage, count in lane_2["stage_counts"].items() if count
     )
     line_2 = f"Lane 2 ({LANE_2_LABEL}): stages by effective stage: {counts or 'none'}."
     lag_bits = []
     if lane_2["claims_below_explained"]:
-        lag_bits.append(
-            f"{lane_2['claims_below_explained']} claim(s) below explained"
-        )
+        lag_bits.append(f"{lane_2['claims_below_explained']} claim(s) below explained")
     if lane_2["verified_unexplained_claims"]:
-        lag_bits.append(
-            f"{lane_2['verified_unexplained_claims']} verified but unexplained"
-        )
+        lag_bits.append(f"{lane_2['verified_unexplained_claims']} verified but unexplained")
     if lane_2["stage_capped_claims"]:
         lag_bits.append(f"{lane_2['stage_capped_claims']} stage-capped")
     if lane_2["attribution_contested_claims"]:
-        lag_bits.append(
-            f"{lane_2['attribution_contested_claims']} with contested attribution"
-        )
+        lag_bits.append(f"{lane_2['attribution_contested_claims']} with contested attribution")
     if lag_bits:
         line_2 += " Lane-2 lag: " + "; ".join(lag_bits) + "."
     else:

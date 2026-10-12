@@ -184,13 +184,9 @@ class ScoringEngine:
                 deps = graph.dependencies(claim_id)
                 if deps:
                     weakest = min(scores[dep.id].propagated_score for dep in deps)
-                    claim_score.propagated_score = min(
-                        claim_score.propagated_score, weakest
-                    )
+                    claim_score.propagated_score = min(claim_score.propagated_score, weakest)
                     if weakest < claim_score.direct_score:
-                        claim_score.notes.append(
-                            f"Capped by weakest dependency at {weakest:.3f}"
-                        )
+                        claim_score.notes.append(f"Capped by weakest dependency at {weakest:.3f}")
         for claim in items:
             claim.confidence = scores[claim.id].propagated_score
         return scores
@@ -495,9 +491,7 @@ class ScoringEngine:
         return tier_sum / breakdown["total"], breakdown
 
 
-def dependency_first_components(
-    graph: ClaimGraph, components: list[list[str]]
-) -> list[list[str]]:
+def dependency_first_components(graph: ClaimGraph, components: list[list[str]]) -> list[list[str]]:
     """Order strongly connected components so every component comes
     after the components it depends on (FR-8.3 propagation order)."""
     component_of: dict[str, int] = {}
@@ -569,8 +563,7 @@ def _falsification_credit(entry: str) -> tuple[float, list[str]]:
     )
     if not checkable:
         failed.append(
-            "no checkable condition (no numeric bound, comparator, "
-            "or observation/action term)"
+            "no checkable condition (no numeric bound, comparator, or observation/action term)"
         )
     return (1.0 if not failed else _PARTIAL_CREDIT), failed
 

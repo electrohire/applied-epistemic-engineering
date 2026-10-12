@@ -128,11 +128,7 @@ class ClaimGraph:
                     index_counter[0] += 1
                     stack.append(node)
                     on_stack.add(node)
-                deps = [
-                    dep
-                    for dep in self.claims[node].depends_on
-                    if dep in self.claims
-                ]
+                deps = [dep for dep in self.claims[node].depends_on if dep in self.claims]
                 descended = False
                 for i in range(child_i, len(deps)):
                     dep = deps[i]

@@ -59,9 +59,7 @@ from aee.stage import VERDICT_CEILING
 FIXTURES = Path(__file__).parent / "fixtures" / "stage"
 
 
-def _strong_claim(
-    claim_id: str, stage: str, *, exposition_by: str | None = None
-) -> Claim:
+def _strong_claim(claim_id: str, stage: str, *, exposition_by: str | None = None) -> Claim:
     evidence = [
         Evidence(
             ref="reports/t.json",
@@ -221,10 +219,7 @@ def test_not_understood_records_stage_default_and_metadata_names_it(
     assert assessment.metadata["stage_defaulted_claims"] == ["OLD-1"]
     assert assessment.lanes["lane_2"]["stage_counts"]["created"] == 1
     assert assessment.to_dict()["digestion"]["OLD-1"]["stage"] == "created"
-    assert any(
-        "defaulted to 'created'" in e and "OLD-1" in e
-        for e in assessment.not_understood
-    )
+    assert any("defaulted to 'created'" in e and "OLD-1" in e for e in assessment.not_understood)
 
 
 def test_summary_counts_claims_by_stage() -> None:
@@ -308,9 +303,7 @@ def test_lenient_unresolved_exposition_becomes_identity_failure(tmp_path: Path) 
 
 def test_lenient_tool_entry_never_resolves_but_person_does(tmp_path: Path) -> None:
     bundle = _exposition_bundle(tmp_path, "helper")
-    tool_registry = IdentityRegistry.from_dict(
-        {"identities": [{"id": "helper", "kind": "tool"}]}
-    )
+    tool_registry = IdentityRegistry.from_dict({"identities": [{"id": "helper", "kind": "tool"}]})
     claims = load_claims(bundle, strict=False, identity_registry=tool_registry)
     assert claims[0].unresolved_exposition == ["helper"]
     person_registry = IdentityRegistry.from_dict(
@@ -349,8 +342,7 @@ def test_lenient_stage_derives_from_latest_event(tmp_path: Path) -> None:
     assert claims[0].stage_defaulted is False
     assessment = AEEEngine().assess(claims)
     assert any(
-        "derived from its latest recorded stage event" in e
-        for e in assessment.not_understood
+        "derived from its latest recorded stage event" in e for e in assessment.not_understood
     )
 
 
@@ -371,6 +363,4 @@ def test_registry_entry_must_declare_its_kind() -> None:
 def test_assessment_content_digest_is_stable_across_runs() -> None:
     first = AEEEngine().assess(load_claims(FIXTURES / "bundle-stage-accepted.json"))
     second = AEEEngine().assess(load_claims(FIXTURES / "bundle-stage-accepted.json"))
-    assert assessment_content_digest(first.to_dict()) == assessment_content_digest(
-        second.to_dict()
-    )
+    assert assessment_content_digest(first.to_dict()) == assessment_content_digest(second.to_dict())

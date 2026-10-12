@@ -56,9 +56,7 @@ def missing_roles(claim: Claim, by_id: dict[str, Claim]) -> list[str]:
     """Required roles with no linked sub-claim (empty for non-headlines)."""
     if not claim.headline:
         return []
-    present = {
-        sub.role for sub in linked_subclaims(claim, by_id) if sub.role is not None
-    }
+    present = {sub.role for sub in linked_subclaims(claim, by_id) if sub.role is not None}
     return [role for role in DECOMPOSITION_ROLES if role not in present]
 
 
@@ -151,12 +149,8 @@ def override_reasons(claims: list[Claim], overrides: dict[str, ClaimStage]) -> d
         parts: list[str] = []
         missing = missing_roles(claim, by_id)
         if missing and overrides[claim.id] == ClaimStage.CREATED:
-            parts.append(
-                f"decomposition incomplete (R2.3): missing role(s): {', '.join(missing)}"
-            )
+            parts.append(f"decomposition incomplete (R2.3): missing role(s): {', '.join(missing)}")
         if claim.id in contests:
-            parts.append(
-                f"attribution claim '{contests[claim.id]}' is contested (R4.3)"
-            )
+            parts.append(f"attribution claim '{contests[claim.id]}' is contested (R4.3)")
         reasons[claim.id] = "; ".join(parts)
     return reasons

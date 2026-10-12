@@ -98,9 +98,7 @@ def test_complete_decomposition_is_silent():
     by_id = {claim.id: claim for claim in claims}
     assert missing_roles(claims[0], by_id) == []
     assessment = AEEEngine(policy=POLICY).assess(claims)
-    assert not [
-        f for f in assessment.failures if f.category == "decomposition_incomplete"
-    ]
+    assert not [f for f in assessment.failures if f.category == "decomposition_incomplete"]
     assert assessment.reported_statuses["HEAD"] == "supported"
 
 
@@ -124,18 +122,14 @@ def test_unlinked_role_does_not_count():
         subclaim(role) for role in ROLES
     ]
     assessment = AEEEngine(policy=POLICY).assess(claims)
-    assert [
-        f for f in assessment.failures if f.category == "decomposition_incomplete"
-    ]
+    assert [f for f in assessment.failures if f.category == "decomposition_incomplete"]
     assert assessment.reported_statuses["HEAD"] == "draft"
 
 
 def test_non_headline_claims_need_no_decomposition():
     claims = [headline(headline=False, depends_on=[])]
     assessment = AEEEngine(policy=POLICY).assess(claims)
-    assert not [
-        f for f in assessment.failures if f.category == "decomposition_incomplete"
-    ]
+    assert not [f for f in assessment.failures if f.category == "decomposition_incomplete"]
 
 
 # -- R4: attribution -------------------------------------------------------
@@ -237,9 +231,7 @@ def test_priority_evidence_rejects_wrong_hash_and_missing_entry(tmp_path):
     )
     report = check_evidence([wrong_hash], tmp_path)
     assert report.items[0].status == "failed"
-    assert any(
-        f.category == "content_hash_mismatch" for f in report.items[0].findings
-    )
+    assert any(f.category == "content_hash_mismatch" for f in report.items[0].findings)
     missing = Claim(
         id="CITE2",
         text="Cites a sequence that does not exist",
@@ -247,9 +239,7 @@ def test_priority_evidence_rejects_wrong_hash_and_missing_entry(tmp_path):
     )
     report = check_evidence([missing], tmp_path)
     assert report.items[0].status == "failed"
-    assert any(
-        f.category == "ledger_entry_missing" for f in report.items[0].findings
-    )
+    assert any(f.category == "ledger_entry_missing" for f in report.items[0].findings)
 
 
 def test_r7_3_freshness_ignores_registration_and_stage():

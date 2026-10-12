@@ -654,8 +654,7 @@ class IdentityRegistry:
             for entry_id, row in value.items():
                 if not isinstance(row, dict):
                     raise BundleValidationError(
-                        f"{context}: entry '{entry_id}' must be an object, "
-                        f"got {type(row).__name__}"
+                        f"{context}: entry '{entry_id}' must be an object, got {type(row).__name__}"
                     )
                 raw_rows.append(({"id": entry_id, **row}, f"{context} entry '{entry_id}'"))
         else:
@@ -666,9 +665,7 @@ class IdentityRegistry:
         for row, _row_ctx in raw_rows:
             if isinstance(row, dict) and isinstance(row.get("id"), str):
                 if row["id"] in seen_ids:
-                    raise BundleValidationError(
-                        f"{context}: duplicate identity id '{row['id']}'"
-                    )
+                    raise BundleValidationError(f"{context}: duplicate identity id '{row['id']}'")
                 seen_ids.add(row["id"])
         parsed: list[IdentityEntry] = []
         for row, row_ctx in raw_rows:

@@ -264,8 +264,7 @@ def build_parser() -> argparse.ArgumentParser:
     anchor = sub.add_parser(
         "anchor",
         help=(
-            "Deposit an assessment's SHA-256 in an Axiomere .axmr "
-            "ledger (optional, Spec 002 FR-8b)"
+            "Deposit an assessment's SHA-256 in an Axiomere .axmr ledger (optional, Spec 002 FR-8b)"
         ),
     )
     anchor.add_argument("--input", type=Path, required=True)
@@ -653,8 +652,7 @@ def _priority(args: argparse.Namespace) -> int:
         record = claim_priority(ledger, args.claim)
         if record is None:
             print(
-                f"Error: claim {args.claim!r} was never registered in "
-                f"{args.ledger.as_posix()}",
+                f"Error: claim {args.claim!r} was never registered in {args.ledger.as_posix()}",
                 file=sys.stderr,
             )
             return 2
@@ -770,9 +768,7 @@ def _gate_not_understood_check(value: dict[str, Any], *, source: str) -> None:
             "what it does not establish is incomplete"
         )
     entries = value["not_understood"]
-    if not isinstance(entries, list) or not all(
-        isinstance(entry, str) for entry in entries
-    ):
+    if not isinstance(entries, list) or not all(isinstance(entry, str) for entry in entries):
         raise ValueError(
             f"gate: {source} has a malformed 'not_understood' statement "
             "(expected a list of strings, Spec 004 R5.2)"
@@ -986,8 +982,7 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
             effective_raw = record.get("stage") if record else stage_raw
             if not isinstance(effective_raw, str):
                 raise ValueError(
-                    f"gate: {source} claim {claim['id']!r} carries a malformed "
-                    "stage_caps record"
+                    f"gate: {source} claim {claim['id']!r} carries a malformed stage_caps record"
                 )
             try:
                 expected = reported_status_for(
@@ -1243,16 +1238,13 @@ def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimS
         contradiction_penalty=_number(components, "contradiction_penalty"),
         notes=[str(note) for note in notes],
         declared_state=(
-            dict(value["declared_state"])
-            if isinstance(value.get("declared_state"), dict)
-            else {}
+            dict(value["declared_state"]) if isinstance(value.get("declared_state"), dict) else {}
         ),
         propagation_status=str(value.get("propagation", {}).get("status", "propagated"))
         if isinstance(value.get("propagation"), dict)
         else "propagated",
         cycle_component=[
-            str(member)
-            for member in value.get("propagation", {}).get("cycle_component", [])
+            str(member) for member in value.get("propagation", {}).get("cycle_component", [])
         ]
         if isinstance(value.get("propagation"), dict)
         else [],

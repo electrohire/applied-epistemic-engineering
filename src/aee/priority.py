@@ -55,8 +55,6 @@ def priority_index(ledger: HashChainLedger | str | Path) -> dict[str, dict[str, 
     return _records(ledger)
 
 
-def claim_priority(
-    ledger: HashChainLedger | str | Path, claim_id: str
-) -> dict[str, Any] | None:
+def claim_priority(ledger: HashChainLedger | str | Path, claim_id: str) -> dict[str, Any] | None:
     """The claim's priority record, or None if never registered."""
     return priority_index(ledger).get(claim_id)
