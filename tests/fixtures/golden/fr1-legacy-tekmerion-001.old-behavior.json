@@ -1,0 +1,6 @@
+{
+  "fixture": "fr1-legacy-tekmerion-001.json",
+  "behavior": "raised",
+  "error_type": "ValueError",
+  "error": "'design' is not a valid ClaimKind"
+}

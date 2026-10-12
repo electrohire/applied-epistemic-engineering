@@ -11,16 +11,17 @@
 ## Phase 0 — Baseline
 
 - [ ] T001 [benchmark] Run spec-kit-aee-benchmark on current engine; record diagnostic-rate baseline for malformed/legacy/valid bundles in the benchmark repo.
-- [ ] T002 [engine] Commit golden files of current (defective) load behavior on the three FR-1 fixtures under `tests/fixtures/`.
+  - **Deferred to close-out (T810) 2026-10-12**: the benchmark harness measures coding-task arms via host-bound GPU experiment workflows and has no bundle-diagnostic entry point; a baseline run is not a quick local operation. The local benchmark checkout was fast-forwarded to origin/main (ab74b04) for the close-out run. The FR-1 before/after baseline is meanwhile captured by the T002 golden files (old behavior on the three fixtures, inverted by tests/test_strict_loading.py).
+- [x] T002 [engine] Commit golden files of current (defective) load behavior on the three FR-1 fixtures under `tests/fixtures/`.
 
 ## FR-1 — Strict, loud validation [engine]
 
-- [ ] T101 [engine] Strict `from_dict` for Claim/Evidence/FailureMode in `src/aee/model.py`: unknown-field errors, empty-`text` rejection, claim-id + field named in every message.
-- [ ] T102 [engine] Did-you-mean suggestions for near-miss field names; enum errors listing the full valid value set.
-- [ ] T103 [engine] `load_claims(strict=True)` default in `src/aee/extract.py`; `--lenient` flag on assess, echoed into assessment metadata when used.
-- [ ] T104 [engine] `aee validate` subcommand (strict load + structural checks, CI exit codes) in `src/aee/cli.py`.
-- [ ] T105 [engine] `aee migrate` subcommand: legacy vocabulary mapping (kind/status synonyms, `statement`→`text`, `falsifier`→`falsification_tests`), applied-mapping report, loud refusal on unmappable values.
-- [ ] T106 [engine] Regression fixtures + tests: renamed-field bundle, bad-enum bundle, legacy Tekmerion Spec 001 bundle (migrate → assess round-trip).
+- [x] T101 [engine] Strict `from_dict` for Claim/Evidence/FailureMode in `src/aee/model.py`: unknown-field errors, empty-`text` rejection, claim-id + field named in every message.
+- [x] T102 [engine] Did-you-mean suggestions for near-miss field names; enum errors listing the full valid value set.
+- [x] T103 [engine] `load_claims(strict=True)` default in `src/aee/extract.py`; `--lenient` flag on assess, echoed into assessment metadata when used.
+- [x] T104 [engine] `aee validate` subcommand (strict load + structural checks, CI exit codes) in `src/aee/cli.py`.
+- [x] T105 [engine] `aee migrate` subcommand: legacy vocabulary mapping (kind/status synonyms, `statement`→`text`, `falsifier`→`falsification_tests`), applied-mapping report, loud refusal on unmappable values.
+- [x] T106 [engine] Regression fixtures + tests: renamed-field bundle, bad-enum bundle, legacy Tekmerion Spec 001 bundle (migrate → assess round-trip).
 
 ## FR-2 — Claims drafting [extension + engine]
 

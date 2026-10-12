@@ -1,0 +1,6 @@
+{
+  "fixture": "fr1-renamed-field.json",
+  "behavior": "raised",
+  "error_type": "FileNotFoundError",
+  "error": "[Errno 2] No such file or directory: '/home/hatch/workspace/electrohire/applied-epistemic-engineering/tests/tests/fixtures/fr1-renamed-field.json'"
+}

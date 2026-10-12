@@ -1,0 +1,6 @@
+{
+  "fixture": "fr1-bad-enum.json",
+  "behavior": "raised",
+  "error_type": "ValueError",
+  "error": "'design' is not a valid ClaimKind"
+}
