@@ -36,12 +36,12 @@
 
 ## FR-3 — Reliability validation and credit assignment [engine]
 
-- [ ] T301 [engine] `ReliabilityTable.from_dict`/`SourceRecord.from_dict` validation in `src/aee/reliability.py`: finite `brier_sum` in `[0, observations]`, non-negative integer `observations`; violations are loud errors naming the source id.
-- [ ] T302 [engine] Range guarantees: `reliability()` and `blended_weight` confined to `[0, 1]` by construction; `evidence_score` invariant asserted in tests.
-- [ ] T303 [engine] Non-finite rejection at load for reliability files (with FR-5.5 strict-JSON outputs).
-- [ ] T304 [engine] `observe_claim` credit assignment: only positive-contribution sources credited, weighted by contribution; module docstring updated to the implemented rule.
-- [ ] T305 [engine] `record()` provenance: resolution source/authority field required on the direct path; loaded tables record per-entry provenance; unattributed records only via an explicitly named compatibility path.
-- [ ] T306 [engine] Tests inverting RT1 `p6` §E, `p4` §§E–G, RT2 `p07`; regression: honest Brier records stay in `[0, 1]`.
+- [x] T301 [engine] `ReliabilityTable.from_dict`/`SourceRecord.from_dict` validation in `src/aee/reliability.py`: finite `brier_sum` in `[0, observations]`, non-negative integer `observations`; violations are loud errors naming the source id.
+- [x] T302 [engine] Range guarantees: `reliability()` and `blended_weight` confined to `[0, 1]` by construction; `evidence_score` invariant asserted in tests.
+- [x] T303 [engine] Non-finite rejection at load for reliability files (with FR-5.5 strict-JSON outputs).
+- [x] T304 [engine] `observe_claim` credit assignment: only positive-contribution sources credited, weighted by contribution; module docstring updated to the implemented rule.
+- [x] T305 [engine] `record()` provenance: resolution source/authority field required on the direct path; loaded tables record per-entry provenance; unattributed records only via an explicitly named compatibility path.
+- [x] T306 [engine] Tests inverting RT1 `p6` §E, `p4` §§E–G, RT2 `p07`; regression: honest Brier records stay in `[0, 1]`.
 
 ## FR-4 — Ledger integrity and anchoring [engine]
 
