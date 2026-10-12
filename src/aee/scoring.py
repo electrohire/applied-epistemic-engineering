@@ -109,7 +109,18 @@ class ScoringEngine:
         as_of = as_of or datetime.now(UTC)
         items = list(claims)
         scores = {claim.id: self._direct(claim, as_of) for claim in items}
-        graph = ClaimGraph(items)
+        # Spec 003 FR-1.3 (RT1-12): duplicate claim ids must not crash
+        # scoring. The stress tester has already minted the CRITICAL
+        # duplicate-identity challenge that routes the assessment to
+        # block; graph construction here therefore runs over the
+        # first occurrence of each id (ClaimGraph.add refuses
+        # duplicates by design, and that refusal stays for direct
+        # graph consumers). Scores are keyed by id, so duplicates
+        # share the one score record for their id.
+        unique: dict[str, Claim] = {}
+        for claim in items:
+            unique.setdefault(claim.id, claim)
+        graph = ClaimGraph(unique.values())
         cycles = graph.cycles()
         if cycles:
             # Propagation is skipped on cyclic graphs. That must be

@@ -145,6 +145,15 @@ class AEEEngine:
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
             f"{below} claim(s) below the {self.threshold:.2f} confidence threshold."
         )
+        if not items:
+            # Spec 003 FR-1.1 (OD-2, belt-and-braces half): an empty
+            # bundle is never a pass. _outcome already returns block
+            # for zero claims; the summary says so explicitly so the
+            # record cannot be mistaken for a healthy empty result.
+            summary += (
+                " Empty bundle: zero claims were assessed; an empty "
+                "bundle never passes (Spec 003 FR-1.1)."
+            )
         # FR-5.4: disposition coverage — how many of the challenges
         # raised were answered by a stored disposition, and how many
         # remain open. Reported whenever dispositions are in play (a
@@ -195,6 +204,16 @@ class AEEEngine:
         )
 
     def _outcome(self, claims: list[Claim], scores: dict[str, ClaimScore]) -> str:
+        if not claims:
+            # Spec 003 FR-1.1 (RT1-01): vacuity is not success. Over
+            # empty collections every check below is trivially true,
+            # which used to yield "pass", healthy, exit 0 for a bundle
+            # that had lost all its claims. The engine returns block
+            # so API consumers are protected even where a caller
+            # bypasses the CLI, which additionally refuses an empty
+            # bundle as an input error (exit 2) — OD-2 implemented as
+            # belt-and-braces; the owner may reverse the CLI half.
+            return "block"
         failures = [failure for claim in claims for failure in claim.unresolved_failures]
         if any(failure.severity == Severity.CRITICAL for failure in failures):
             return "block"
