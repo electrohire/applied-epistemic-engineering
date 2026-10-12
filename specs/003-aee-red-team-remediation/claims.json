@@ -1188,6 +1188,31 @@
       "status": "supported",
       "text": "Self-asserted reliability history remains visible but provisional, capped, and labeled: serialised records expose their credit status, anchored tallies, anchor digests, and a provisional reliability capped at 0.5 that never feeds blended_weight; legacy tables load with the legacy provenance marker and zero canonisation until anchored records exist, and a loaded table's claimed anchors activate canonisation only after they resolve against a consumer-bound ledger (an unresolvable digest is a loud error naming the source).",
       "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine gaps evidence discovery in src/aee/gaps.py (follow-on to RT-003-25)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-5 addendum (FR-5.11), which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A symlinked evidence file or directory under --evidence resolving outside the evidence root whose passing results close a gap, or a gaps run that succeeds over any out-of-root symlinked evidence entry without naming it."
+      ],
+      "id": "RT-003-39",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "draft",
+      "text": "After the FR-5.11 gaps evidence-confinement follow-on lands, `aee gaps` never treats evidence outside the --evidence tree as in-tree evidence: any symlink in the evidence tree whose resolved target lies outside the resolved evidence root refuses the run with a clean input error (exit 2) naming each offending entry, no register is generated, and no gap closes on out-of-root evidence; symlinks resolving inside the evidence root and ordinary in-tree evidence close gaps exactly as before (closes the engine-side companion item to the extension's RT3 gaps pre-flight confinement).",
+      "uncertainty": "high"
     }
   ],
   "date": "2026-10-12",
