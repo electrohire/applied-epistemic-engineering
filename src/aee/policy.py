@@ -59,7 +59,27 @@ from aee.model import (
     Severity,
 )
 from aee.sources import source_identity
-from aee.stage import LIFTING_EVENT
+from aee.stage import LIFTING_EVENT, VERDICT_CEILING
+
+
+def verdict_ceiling(stage: ClaimStage) -> str:
+    """The policy verdict ceiling for a lifecycle stage (Spec 004 R1.3).
+
+    The public, programmatic form of the stage -> verdict-ceiling
+    table: ``created`` -> ``"unjudged"`` (no verdict is issued),
+    ``checked``/``explained`` -> ``"challenge"``, ``accepted``/
+    ``digested`` -> ``"accept"``. The table itself lives in
+    ``aee.stage`` (the R1.3 table as data); this function is the
+    policy layer's exposed accessor so downstream consumers read the
+    ceiling from the policy module instead of duplicating the table.
+    ``evaluate_policy`` enforces exactly what this function reports.
+
+    Ported from the orphaned P0-completion branch
+    impl/004-p0-vocabulary @ 5fa2fdf during the Spec 004 integration:
+    the stack carried the table and the enforcement, but not this
+    accessor or its ``aee`` export.
+    """
+    return VERDICT_CEILING[stage]
 
 # Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
 # corroboration_sources (positive contribution vs zero/negative). The

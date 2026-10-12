@@ -85,6 +85,32 @@
         "type": "string"
       }
     },
+    "digestion": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "stage",
+          "exposition_present",
+          "explainers"
+        ],
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "exposition_present": {
+            "type": "boolean"
+          },
+          "explainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "reported_statuses": {
       "type": "object",
       "additionalProperties": {

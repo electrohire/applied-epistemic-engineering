@@ -89,6 +89,15 @@ class Assessment:
     # is covered by the ledger's assessment hash like every other
     # realignment record.
     lanes: dict[str, Any] = field(default_factory=dict)
+    # Spec 004 R3.3: per-claim digestion tracking — for every claim
+    # its (effective) stage, whether RESOLVED exposition evidence is
+    # present, and who the explainers are. Ported from the orphaned
+    # P0-completion branch @ 5fa2fdf during the Spec 004 integration:
+    # P2/P3 carried the flag and the lane pair, but the per-claim
+    # explainer record the R3.3 text requires ("who the explainers
+    # are") existed only on the orphan. Serialised like `lanes`, so
+    # it is covered by the ledger's assessment hash (R8.1).
+    digestion: dict[str, Any] = field(default_factory=dict)
 
     @property
     def failures(self) -> list[object]:
@@ -116,6 +125,7 @@ class Assessment:
             "stage_caps": [cap.to_dict() for cap in self.stage_caps],
             "not_understood": list(self.not_understood),
             "lanes": self.lanes,
+            "digestion": dict(self.digestion),
         }
 
 
@@ -198,6 +208,13 @@ class AEEEngine:
         # evidence. A risk record, not a correctness failure: it
         # never lowers a score and never routes the outcome (see
         # _NON_OUTCOME_CATEGORIES).
+        # Spec 004 R3.2 (lenient half; ported from the orphaned
+        # P0-completion branch @ 5fa2fdf): exposition items that
+        # failed identity resolution at lenient load are re-emitted
+        # here as claim-attributed failure modes — the load-time
+        # record alone would be wiped by the stress tester's
+        # wholesale replacement of claim.failures above.
+        extra_failures.extend(_identity_resolution_failures(items))
         extra_failures.extend(_verified_unexplained_failures(items))
         if additional_failures:
             extra_failures.extend(additional_failures)
@@ -277,6 +294,7 @@ class AEEEngine:
             outcome=outcome,
             threshold=self.threshold,
         )
+        digestion = _digestion_tracking(items, overrides)
         below = sum(score.propagated_score < self.threshold for score in scores.values())
         summary = (
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
@@ -316,10 +334,14 @@ class AEEEngine:
         # outcome is — how many claims sit below `explained` (and so
         # block a settlement-worded pass), and how many reports were
         # lowered by a stage cap.
-        below = below_explained(items, overrides)
-        if below:
+        # Renamed from `below` (the orphaned P0-completion branch's
+        # mypy fix @ 3f4349b, ported in adapted form): `below` above
+        # is the sub-threshold score count (an int); this is the
+        # below-explained claim list.
+        below_stage = below_explained(items, overrides)
+        if below_stage:
             summary += (
-                f" Stage cap: {len(below)} claim(s) below stage 'explained'; "
+                f" Stage cap: {len(below_stage)} claim(s) below stage 'explained'; "
                 "the outcome cannot be 'pass' (Spec 004 R1.4)."
             )
         incomplete = [
@@ -427,6 +449,7 @@ class AEEEngine:
             stage_caps=caps,
             not_understood=not_understood,
             lanes=lanes,
+            digestion=digestion,
             metadata={
                 "threshold": self.threshold,
                 **(metadata or {}),
@@ -647,14 +670,82 @@ def _stage_cap_failures(
 _NON_OUTCOME_CATEGORIES = frozenset({"stage_cap", "verified_unexplained"})
 
 
+def _resolved_explainers(claim: Claim) -> list[str]:
+    """The claim's explainers: source_ids of exposition items that
+    resolved to a named human. An exposition item whose source_id
+    failed identity resolution on the lenient path (recorded in
+    `unresolved_exposition`) confers NO explanation credit — it is
+    not an explanation by a resolved named human (R3.2/R3.3)."""
+    return sorted(
+        {
+            item.source_id
+            for item in claim.evidence
+            if item.kind == EvidenceKind.EXPOSITION
+            and item.source_id
+            and item.source_id not in claim.unresolved_exposition
+        }
+    )
+
+
+def _digestion_tracking(
+    items: list[Claim], overrides: dict[str, ClaimStage]
+) -> dict[str, Any]:
+    """Per-claim digestion tracking (Spec 004 R3.3): for every claim
+    its effective stage, whether resolved exposition evidence is
+    present, and who the explainers are."""
+    return {
+        claim.id: {
+            "stage": overrides.get(claim.id, claim.stage).value,
+            "exposition_present": bool(_resolved_explainers(claim)),
+            "explainers": _resolved_explainers(claim),
+        }
+        for claim in items
+    }
+
+
+def _identity_resolution_failures(items: list[Claim]) -> list[FailureMode]:
+    """Spec 004 R3.2 (lenient half), re-emitted at assessment time.
+
+    One failure per (claim, unresolved exposition source_id),
+    mirroring the load-time record in `Claim.from_dict` — re-emitted
+    because the stress tester replaces claim.failures wholesale.
+    Ported from the orphaned P0-completion branch @ 5fa2fdf.
+    """
+    failures: list[FailureMode] = []
+    for claim in items:
+        for index, source_id in enumerate(dict.fromkeys(claim.unresolved_exposition)):
+            failures.append(
+                FailureMode(
+                    id=f"AEE-{claim.id}-IDENTITY-RESOLUTION-{index}",
+                    claim_id=claim.id,
+                    challenge="Exposition identity resolution (lenient load)",
+                    breakpoint=(
+                        f"Exposition evidence source_id {source_id!r} did not "
+                        "resolve to a 'person' entry in the project identity "
+                        "registry at load time (Spec 004 R3.2); the item "
+                        "confers no explanation credit"
+                    ),
+                    severity=Severity.MEDIUM,
+                    category="identity_resolution",
+                    recovery_hint=(
+                        "Name a 'person' entry of the project identity "
+                        "registry as the exposition item's source_id, or "
+                        "load strictly to see the FR-1 error shape."
+                    ),
+                )
+            )
+    return failures
+
+
 def _verified_unexplained_failures(items: list[Claim]) -> list[FailureMode]:
     """Spec 004 R3.3: one MEDIUM risk record per claim at stage
-    `checked` or beyond that carries no exposition evidence."""
+    `checked` or beyond that carries no RESOLVED exposition
+    evidence (unresolved exposition confers no credit, R3.2)."""
     failures: list[FailureMode] = []
     for claim in items:
         if STAGE_ORDER[claim.stage] < STAGE_ORDER[ClaimStage.CHECKED]:
             continue
-        if any(item.kind == EvidenceKind.EXPOSITION for item in claim.evidence):
+        if _resolved_explainers(claim):
             continue
         failures.append(
             FailureMode(
@@ -717,6 +808,12 @@ def _not_understood(
                 f"{claim.id}: its lifecycle stage was not recorded and "
                 "defaulted to 'created' on load - its position in the "
                 "lifecycle is unrecorded, not established."
+            )
+        elif claim.stage_derived:
+            entries.append(
+                f"{claim.id}: its lifecycle stage '{claim.stage.value}' was "
+                "derived from its latest recorded stage event; the bundle "
+                "recorded no stored stage (Spec 004 R1.2)."
             )
         open_categories = sorted(
             {

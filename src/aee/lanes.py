@@ -54,9 +54,20 @@ def build_lanes(
     for claim in claims:
         effective = overrides.get(claim.id, claim.stage)
         stage_counts[effective.value] += 1
-        has_exposition = any(
-            item.kind == EvidenceKind.EXPOSITION for item in claim.evidence
+        # R3.2/R3.3: only RESOLVED exposition counts — an item whose
+        # source_id failed identity resolution on the lenient path
+        # (claim.unresolved_exposition) confers no explanation
+        # credit, and its author is not named as an explainer.
+        explainers = sorted(
+            {
+                item.source_id
+                for item in claim.evidence
+                if item.kind == EvidenceKind.EXPOSITION
+                and item.source_id
+                and item.source_id not in claim.unresolved_exposition
+            }
         )
+        has_exposition = bool(explainers)
         exposition_covered += int(has_exposition)
         score = scores.get(claim.id)
         per_claim[claim.id] = {
@@ -74,6 +85,7 @@ def build_lanes(
                 "stage_capped": claim.id in caps_by_claim,
                 "cap_reasons": [cap.note for cap in caps_by_claim.get(claim.id, [])],
                 "exposition": has_exposition,
+                "explainers": explainers,
                 "verified_unexplained": claim.id in verified_unexplained_claim_ids,
                 "attribution_contested": claim.id in contested_attribution_ids,
             },
