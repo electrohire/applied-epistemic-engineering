@@ -208,10 +208,10 @@ class AEEEngine:
         # outcome is — how many claims sit below `explained` (and so
         # block a settlement-worded pass), and how many reports were
         # lowered by a stage cap.
-        below = below_explained(items)
-        if below:
+        below_stage = below_explained(items)
+        if below_stage:
             summary += (
-                f" Stage cap: {len(below)} claim(s) below stage 'explained'; "
+                f" Stage cap: {len(below_stage)} claim(s) below stage 'explained'; "
                 "the outcome cannot be 'pass' (Spec 004 R1.4)."
             )
         if caps:

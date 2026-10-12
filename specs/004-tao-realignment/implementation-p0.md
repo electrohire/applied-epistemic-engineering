@@ -93,3 +93,60 @@ discipline applying to the framework's own spec first.
   commits that never reached the remote; the work was completed and
   verified in this worktree by the coordinator, with the push
   read-back as the acceptance evidence.
+
+## Worker addendum — exact scores, deviations, and evidence details
+
+Appended by the phase worker; the record above is the coordinator's.
+Per-claim propagated scores from the actual assessor runs
+(`--phase after_specify --threshold 0.70 --no-ledger`), before
+(pre-change engine on the merged base) vs after (this branch,
+lenient load): **identical for all 21 claims** — TA-004-01 1.0,
+02 0.99725, 03 1.0, 04 1.0, 05 0.99725, 06 1.0, 07 0.99725, 08 1.0,
+09 0.99725, 10 1.0, 11 0.99725, 12–20 0.480625 each, 21 0.99725.
+Verified programmatically (empty diff). After-run failure modes:
+106 (94 before-stage-caps + 12 stage_cap records). After-run strict
+assess of the unmigrated bundle exits 2 naming the missing `stage`
+field (R1.1 as specified); `aee migrate` backfilled all 21 claims
+(21 report lines) and the migrated bundle's scores are also
+identical. Merge-of-main commit is `24f51e9` (clean merge, no
+conflicts).
+
+Deviations and judgment calls, with reasons:
+
+- **`stage_cap` failures are outcome-neutral** in `AEEEngine._outcome`
+  and in the CLI gate's recompute (excluded from the routing failure
+  set). Otherwise an `explained` claim's qualified-`supported` cap
+  record would block the very `pass` R1.4 allows at explained+. The
+  R1.4 stage rule (engine) and the gate's recorded-stage check do the
+  outcome work; gate behaviour was verified end-to-end on all five
+  stage fixtures (pass at explained/accepted/digested, iterate at
+  created/checked).
+- **Two existing tests changed contract, deliberately**: the
+  schema-parity real-bundles test and `test_validate_repo_spec_
+  bundles_pass` previously asserted the repo's historical spec
+  bundles validate/load strictly. Under R1.1 those bundles are the
+  migration population, so both tests now assert the new contract
+  (strict rejection naming `stage`, lenient default recorded,
+  migrated bundle validates/loads). All other existing-test changes
+  are fixture migrations (adding `stage` to claims that model
+  ratified/accepted claims, and to JSON bundle builders).
+- **Cap fallback for non-reportable statuses**: first reportable of
+  (`partially_supported`, `draft`) — e.g. `superseded` below
+  `digested` reports `partially_supported` (at `accepted`) or `draft`
+  (at `created`). The table does not name this case; the fallback is
+  recorded here and in `src/aee/stage.py`.
+- **Exposition scoring weight**: 0.25 (asserted-level) in
+  `_KIND_WEIGHTS`, documented at the definition; P0 takes no
+  position on lane-2 weight beyond not rewarding explanation as
+  verification. Policy's corroboration sign test counts exposition
+  as positive, mirroring the weight's sign.
+- **Gate on pre-realignment assessments**: the R1.4/reported-status
+  cross-checks apply only where a stage / `reported_statuses` are
+  recorded, so historical assessment files still gate under the rules
+  they were produced with.
+
+Lint/type evidence: `ruff check src/aee tests/` clean;
+`mypy src/aee` clean (23 files); full suite **573 passed** in this
+worktree (with a sibling spec-kit-evaluator checkout linked; without
+it, 571 passed + 2 skipped — those two tests skip on missing sibling
+in a bare clone, as on main).
