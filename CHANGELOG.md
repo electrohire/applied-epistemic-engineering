@@ -3,6 +3,34 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-10-12
+
+### Added
+
+- Lifecycle stage on the claim model (Spec 004, Tao realignment): every claim carries a stage — created, checked, explained, accepted, digested — advanced by dated stage events with named authors, and reported status is capped by stage. A claim at `checked` cannot report `supported`; support consisting entirely of machine-checkable evidence (observed/test) caps the stage at `checked` until human-paced support (an exposition item, or a human / primary / secondary source) is recorded. Exposition evidence must resolve its explainer against the project-local identity registry (declared `person` entries; tools and models cannot hold the explainer role), and bundles gain digestion tracking: verified-but-unexplained claims are flagged `verified_unexplained` rather than silently settled.
+- Attribution and decomposition (Spec 004): attribution is recorded as claims in their own right — a contested attribution caps its parent claim — and headline claims carry decomposition projections (faithful statement, verified evidence, genuinely open/novel, attribution clean, significance), each scored separately. Priority/registration records protect provenance, and assessments state what remains `not_understood` as a mandatory field, not an optional note.
+- Lane-separated reporting (Spec 004): assessments report lane 1 (machine-speed verification — scores, outcomes) and lane 2 (human-paced acceptance — the stage distribution) side by side, never blended; lane 2 is state, not a score. The engine-side evaluator contract result carries `lanes`, `not_understood`, and `reported_statuses` in its metadata.
+- Trust-hardening tooling (Spec 002): `aee validate` and `aee migrate` load claim bundles strictly and loudly (unknown keys, wrong types, and ambiguous ids are refused by name, never coerced); `verify-evidence` checks evidence references and returns receipts; a drafting helper authors claims that pass the strict loader; challenge dispositions and independence on-ramps give challenged claims a recorded resolution path. Assessments are stamped with the engine version and methodology version (FR-4), and the bare engine CLI now ledgers assessments by default like the extension runner (FR-8a), with `--no-ledger` as the explicit opt-out.
+- `aee anchor` (Spec 002 FR-8b): appends an assessment's SHA-256 to an Axiomere `.axmr` ledger via the `axiomere` package, recording the receipt as `metadata.anchor` — an external, append-only anchor for the local hash chain's head.
+
+### Changed
+
+- `methodology_version` "1.0" → "2.0" — the single bump covering both the Spec 004 stage model and the Spec 003 FR-8 scoring/challenge/review semantics, which were implemented jointly so no release ever carried one without the other. Scores are now stored and reported unrounded: a propagated score of 0.6999995 reports `iterate`; the 0.70 threshold is inclusive exactly at 0.70.
+- Reliability canonisation requires anchored provenance (Spec 003, RT1-07): an observation counts toward a source's canonised reliability only via a `ProvenanceAnchor` that resolves in the reliability table's bound hash-chained ledger (chain verifies, payload matches exactly, one anchor per observation per source). Self-asserted provenance — free-form strings, `allow_unattributed`, legacy loads — earns provisional credit only: cold-start-gated, capped at 0.5, labelled `provisional` in the output, and never blended into canonised reliability.
+
+### Fixed
+
+- Outcome integrity (Spec 003 FR-1): an empty claim bundle blocks instead of passing with exit 0; duplicate claim ids block; `aee gate` recomputes the outcome from the assessment's own contents and refuses a file whose stated outcome disagrees — a bare `{"outcome":"pass"}` object no longer gates anything. Failure paths return contract verdicts and exit codes instead of tracebacks.
+- Score inflation (Spec 003 FR-2): duplicate evidence items are deduplicated before scoring (the same item repeated 20× no longer moves a score); polarity coherence is enforced, so a contradicting item re-labelled `direction:"context"` can no longer launder a contradiction; draft-stage claims' outcomes are capped at `iterate` regardless of score.
+- Reliability inputs (Spec 003 FR-3): table loading validates strictly — NaN and out-of-range values are refused loudly instead of corrupting Brier-derived reliability (a NaN Brier previously read back as reliability 1.0) — and resolved-claim credit is contribution-weighted rather than flat per mention.
+- Ledger and CLI safety (Spec 003 FR-4/FR-5): the hash-chained ledger carries a sidecar head anchor, so tail truncation is detectable, and chain verification is strict. CLI output paths are guarded against symlink and collision attacks that could overwrite the run's own inputs; duplicate JSON keys in input files are refused; artifacts carry content digests. `aee gaps` evidence discovery is confined to the evidence root (FR-5.11): a symlink resolving outside it refuses the run, naming the offending entry and its target.
+- Evaluator composition (Spec 003 FR-6): composing zero evaluator results blocks instead of passing, composition validates every input against the result contract, and the engine validates evaluator results it consumes. CI now declares `jsonschema`, so the strict schema-parity corpus (38 cases) actually runs — it was previously skipped silently in CI while passing locally.
+
+### Known limitations
+
+- Negation detection (FR-8.9) binds contradictions by shared subject, normalised tokens, and negation asymmetry. A cross-subject full paraphrase — "stores passwords in plaintext" against "does not persist credentials unencrypted" — remains undetected; this is a declared residual in the FR-8 record, not a silent gap.
+- Lane pairing in composed evaluator results ships in the spec-kit-evaluator's own release; this release carries the engine-side contract only.
+
 ## [1.4.0] - 2026-10-06
 
 ### Added
