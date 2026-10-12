@@ -4,7 +4,7 @@
 
 **Prerequisites**: claims.json (required, assessed), spec.md (required), Spec 002 (its FR-1 strict loading, FR-3 verify-evidence, FR-4 version stamps, and FR-8a ledger parity land first where this plan builds on them)
 
-**Organization**: Engine first, because the evaluator and benchmark packages consume engine outcomes, evaluator results, and digests — hardening the consumers before the producer would freeze the defects in. Within the engine: outcome integrity (FR-1) and the score-inflation kit (FR-2) before reliability (FR-3), ledger (FR-4), and CLI/schema coherence (FR-5), since FR-3–FR-5 all touch the loading/scoring/serialisation surfaces FR-1/FR-2 stabilise. Evaluator composition (FR-6) and benchmark integrity + re-pinning (FR-7) follow. FR-8 is **not sequenced**: it enters this plan only by owner admission under OD-1, item by item, each with its own claims amendment.
+**Organization**: Engine first, because the evaluator and benchmark packages consume engine outcomes, evaluator results, and digests — hardening the consumers before the producer would freeze the defects in. Within the engine: outcome integrity (FR-1) and the score-inflation kit (FR-2) before reliability (FR-3), ledger (FR-4), and CLI/schema coherence (FR-5), since FR-3–FR-5 all touch the loading/scoring/serialisation surfaces FR-1/FR-2 stabilise. Evaluator composition (FR-6) and benchmark integrity + re-pinning (FR-7) follow. FR-8 (scoring/challenge/review semantics) was held at drafting pending OD-1; **the owner decided OD-1 in the affirmative on 2026-10-12** (Spec 003 §12), its claims amendment has landed (RT-003-30…RT-003-35), and it is now sequenced as Phase 8 below — in dependency order it executes **immediately after Phase 2** (it builds on Phase 2's scoring changes and must not be built on the pre-FR-2 scoring surfaces) and **before the Phase 9 close-out**, regardless of its phase number, which is retained so existing task/spec references (T801+, §9, Phase 7) do not break.
 
 ## Phase 0 — Baseline before changes (guard rail)
 
@@ -24,7 +24,7 @@
 - `src/aee/policy.py`: corroboration counts positive-weight, normalised sources only; widened model self-attestation (with `src/aee/model.py`).
 - `src/aee/challenge.py` + scoring: polarity-coherence challenge for kind/direction mismatch; `context` items excluded from independence/corroboration.
 - Draft outcome cap (engine outcome layer): a draft claim cannot take an outcome above `gather_evidence`/`iterate` — this is the engine guarantee Spec 002 FR-2's drafting command will rely on, so it lands before or with Spec 002 Phase 4.
-- Shared-evidence reporting across claims (summary-level; outcome effect only if the owner admits it under FR-8).
+- Shared-evidence reporting across claims (summary-level; any outcome effect is decided and implemented with the FR-8 phase, per OD-1 as decided 2026-10-12).
 - String-for-list rejection rides on Spec 002 FR-1 strict loading; its score-inflation fixture is tested here.
 - Tests invert RT1 `p1` §§B/C/D/G/J, `p6` §C, `p7` (kill chain), RT2 `p04` §1.
 
@@ -62,13 +62,22 @@
 - Re-pin and re-freeze on the current stack (engine 1.4.0 line, extension 1.2.0, current evaluator commit); vendored extensions updated; CI drift check on pins vs. vendored bytes; grounding applied to every evidence kind.
 - Tests invert RT4 `probe_bench`; benchmark unit suite green on the re-pinned stack.
 
-## Phase 8 — Owner-decision items (FR-8) — NOT SEQUENCED
+## Phase 8 — Scoring, challenge, and review semantics (FR-8) — AUTHORIZED under OD-1; execution order: after Phase 2, before Phase 9 close-out
 
-- No phase. Each RT1 item enters only by the owner's named admission (OD-1), with its own claims amendment, falsification fixture, and — where scores change — a methodology-version bump and a before/after run on the Phase 7 benchmark (FR-8.2). RT1-22 is recorded as a design limitation; no phase claims to close it.
+- **Sequencing**: this phase is numbered 8 to preserve existing references, but its dependency position is directly after Phase 2 (FR-2 scoring changes) and before the Phase 9 close-out. It may overlap Phases 3–7 only where surfaces do not collide (challenge lexicons and review queue are FR-8-only surfaces; scoring.py and policy.py changes must serialise against Phases 2, 3, and 5 work). Owner authorization: OD-1, decided 2026-10-12 (spec §12); claims: RT-003-30…RT-003-35 (this amendment); decision claim RT-003-29 updated to the decided state.
+- **Methodology implication (binding)**: several FR-8 items change what a score means (freshness basis FR-8.6, substance criteria FR-8.7, unrounded threshold comparison FR-8.13). Per FR-8.2 and Spec 002 FR-4, the implementation of the first score-altering FR-8 item **bumps the distinct `methodology_version` field** (it is not the package version and must not be conflated with it), and every score-altering item ships with a before/after comparison on the Phase 7 re-pinned benchmark — if Phase 7 has not landed yet, the comparison is run at Phase 7 completion against the Phase 8 baseline captured here, and recorded in the close-out.
+- `src/aee/scoring.py` + `src/aee/graph.py`: cycle-local propagation (FR-8.3) — propagation suppression scoped to the cyclic component; suppressed/degraded propagation marked per claim in the score record.
+- `src/aee/policy.py` (+ `engine.py` verdict plumbing): failure-aware verdicts (FR-8.4) — no ACCEPT alongside HIGH/CRITICAL failures, demotion reasons named; contested-penalty basis aligned with scoring (FR-8.5) with two-direction engine/policy agreement tests.
+- `src/aee/scoring.py`: freshness basis over the supporting set (FR-8.6) — undated/unparseable/future dates never beat honest old dates, basis documented; falsifiability/boundary substance criteria (FR-8.7) — placeholder entries earn no full credit, partial component documented, failed criterion named in score notes.
+- `src/aee/challenge.py` + lexicon data: connective/vague lexicons as versioned data with a two-direction regression corpus (FR-8.8); negation detector subject binding (FR-8.9, residual limit documented); absolute-language gate requires a relevant boundary (FR-8.10); atomic/noun-phrase and proper-noun precision recalibration (FR-8.15, owned here per the OD-1 amendment; Spec 002 FR-5.5 corpus adopted if it lands first).
+- `src/aee/review.py`: failure-mode channel in `AssessmentView`, band-crossing items, cumulative-drift (baseline) comparison, rename surfacing (FR-8.11); top-k integrity — adverse priority, reported omissions (FR-8.12).
+- Score records: declared-state block (`uncertainty`/`severity`/`status`/`conflicts_with`) surfaced verbatim (FR-8.13a); threshold comparison on the unrounded score under the documented inclusive boundary (FR-8.13b).
+- Documentation only: RT1-22 design limitation stated where propagation is documented, with Spec 002 FR-6.3 / FR-2.8 cross-references (FR-8.14). **No task in this phase claims an in-engine fix for RT1-22.**
+- Tests invert RT1 `p5` §B, `p4` §§C/D, `p1` §§E/F/I, `p3` §§A–F, `p6` §§A/D, `p4` §§H–K/J.
 
 ## Phase 9 — Verification close-out
 
-- Full red-team probe suite re-run against the hardened stack; every probe inverted or explicitly recorded as an FR-8 remainder.
+- Full red-team probe suite re-run against the hardened stack; every probe inverted or explicitly recorded as a remainder (the only expected standing remainder is RT1-22, a documented design limitation under FR-8.14, not a fix).
 - Benchmark regression check (re-pointed Spec 002 T810) on the re-pinned benchmark vs. the Phase 0 baseline (claim RT-003-28).
 - Full test suites in engine, evaluator, and benchmark repos; re-assessment of this spec's claims (after_implement) with outcome claims re-scored on implementation evidence; records updated honestly (no status changes without evidence).
 
@@ -78,3 +87,4 @@
 - Phase 6 is independent of Phases 3–5 except for the adapter version stamp (Spec 002 FR-4) and may run parallel to them.
 - Phase 7 depends on Phase 6 only for the composed-output contract it consumes; its re-pinning should land after the engine phases it will measure (1–5) are merged, or the re-pin will chase a moving engine.
 - RT3 extension work runs in parallel throughout under its own plan; the shared contracts are the exit-code contract (Phase 1/5) and the evaluator-dependency decision (Phase 6, OD-4).
+- Phase 8 (FR-8) executes after Phase 2 in dependency order (see its header): its scoring/policy work serialises against Phase 2/3/5 changes to the same files, its `methodology_version` bump (FR-8.2) is a precondition for merging any score-altering FR-8 item, and its benchmark before/after comparison consumes Phase 7's re-pinned benchmark (or is completed at Phase 7 against the Phase 8 baseline).

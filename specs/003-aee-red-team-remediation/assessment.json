@@ -4,8 +4,8 @@
   "project": "applied-epistemic-engineering",
   "phase": "after_specify",
   "outcome": "iterate",
-  "summary": "Assessed 29 claim(s); found 117 failure mode(s); 9 claim(s) below the 0.70 confidence threshold.",
-  "created_at": "2026-10-12T06:31:14.028288Z",
+  "summary": "Assessed 35 claim(s); found 178 failure mode(s); 14 claim(s) below the 0.70 confidence threshold.",
+  "created_at": "2026-10-12T06:39:34.149337Z",
   "claims": [
     {
       "id": "RT-003-01",
@@ -433,6 +433,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-03-NEGATION-CONFLICT-CHALLE-10",
+          "claim_id": "RT-003-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-03 may contradict RT-003-29",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-03-NEGATION-CONFLICT-CHALLE-11",
+          "claim_id": "RT-003-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-03 may contradict RT-003-30",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -528,6 +548,16 @@
           "claim_id": "RT-003-04",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-04 may contradict RT-003-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-04-NEGATION-CONFLICT-CHALLE-5",
+          "claim_id": "RT-003-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-04 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -782,6 +812,16 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-06-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "RT-003-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-06 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -972,6 +1012,36 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-14",
+          "claim_id": "RT-003-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-07 may contradict RT-003-30",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-15",
+          "claim_id": "RT-003-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-07 may contradict RT-003-31",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-16",
+          "claim_id": "RT-003-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-07 may contradict RT-003-35",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1112,6 +1182,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-08-NEGATION-CONFLICT-CHALLE-9",
+          "claim_id": "RT-003-08",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-08 may contradict RT-003-29",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-08-NEGATION-CONFLICT-CHALLE-10",
+          "claim_id": "RT-003-08",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-08 may contradict RT-003-31",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1182,6 +1272,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-09-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-09",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-09 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-09-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-09",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-09 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1247,6 +1357,26 @@
           "claim_id": "RT-003-10",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-10 may contradict RT-003-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-10-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-10 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-10-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-10 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -1409,6 +1539,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-12-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-12 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-12-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "RT-003-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-12 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1488,6 +1638,16 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-13-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-13 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1547,6 +1707,26 @@
           "severity": "medium",
           "category": "coverage_gap",
           "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-14-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-14",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-14 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-14-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-14",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-14 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
         }
       ],
@@ -1628,6 +1808,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-15-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-15",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-15 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-15-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "RT-003-15",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-15 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1694,6 +1894,16 @@
           "claim_id": "RT-003-16",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-16 may contradict RT-003-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-16-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-16",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-16 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -1778,6 +1988,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-17-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-17",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-17 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-17-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "RT-003-17",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-17 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -1844,6 +2074,16 @@
           "claim_id": "RT-003-18",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-18 may contradict RT-003-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-18-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-18",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-18 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -1924,6 +2164,16 @@
           "claim_id": "RT-003-19",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-19 may contradict RT-003-28",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-19-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-19",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-19 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -2018,6 +2268,46 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "RT-003-20",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-20 may contradict RT-003-29",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-5",
+          "claim_id": "RT-003-20",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-20 may contradict RT-003-30",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-6",
+          "claim_id": "RT-003-20",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-20 may contradict RT-003-31",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-7",
+          "claim_id": "RT-003-20",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-20 may contradict RT-003-35",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -2076,6 +2366,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-21-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-21",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-21 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-21-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-21",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-21 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -2124,6 +2434,26 @@
           "category": "coverage_gap",
           "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-22-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-22",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-22 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-22-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-22",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-22 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -2171,6 +2501,26 @@
           "severity": "medium",
           "category": "coverage_gap",
           "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-23-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-23",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-23 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-23-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-23",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-23 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
         }
       ],
@@ -2226,6 +2576,26 @@
           "claim_id": "RT-003-24",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-24 may contradict RT-003-28",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-24-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-24",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-24 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-24-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-24",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-24 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -2288,6 +2658,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-25-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-25",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-25 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-25-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-25",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-25 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -2346,6 +2736,26 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-26-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-26",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-26 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-26-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-26",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-26 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
@@ -2400,6 +2810,26 @@
           "claim_id": "RT-003-27",
           "challenge": "Negation conflict challenge",
           "breakpoint": "RT-003-27 may contradict RT-003-28",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-27-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-27",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-27 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-27-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-27",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-27 may contradict RT-003-34",
           "severity": "medium",
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -2463,27 +2893,58 @@
           "category": "contradiction",
           "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
           "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-28-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-28",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-28 may contradict RT-003-31",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-28-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "RT-003-28",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-28 may contradict RT-003-35",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
         }
       ],
       "metadata": {}
     },
     {
       "id": "RT-003-29",
-      "text": "No finding grouped in FR-8 is implemented under this spec without the owner named admission of that item, because Spec 002 section 10 excluded scoring-weight changes and each FR-8 fix changes what a score or challenge means.",
+      "text": "FR-8 is authorized and in scope: on 2026-10-12 the owner decided OD-1 in the affirmative with the directive Authorize FR-8 reopen scoring semantics in Spec 003, so the scoring, challenge, and review semantics items grouped in FR-8 may be implemented under this spec subject to its claims-first and methodology-version discipline, while RT1-22 remains a documented design limitation for which no in-engine fix is claimed.",
       "kind": "decision",
-      "status": "draft",
+      "status": "supported",
       "boundary": [
         "Spec 003 FR-8 items RT1-08, RT1-09, RT1-10, RT1-11, RT1-15 through RT1-20, RT1-22, RT1-24, RT1-25 and RT1-26",
-        "Owner decision record in Spec 003 section 12, OD-1"
+        "Owner decision record in Spec 003 section 12, OD-1, decided 2026-10-12"
       ],
       "depends_on": [],
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "kind": "asserted",
+          "ref": "Owner directive in the AEE improvement program chat, 2026-10-12: Authorize FR-8: reopen scoring semantics in Spec 003 (decision OD-1, Spec 003 spec.md section 12)",
+          "kind": "observed",
           "direction": "supports",
           "source_quality": "primary",
+          "description": "Owner directive in the AEE improvement program chat on 2026-10-12 authorizing FR-8 and reopening scoring semantics in Spec 003, recorded as decision OD-1 in Spec 003 section 12.",
+          "source_id": "owner-directive-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
           "description": "Requirement stated in Spec 003, which this claim commits to test.",
           "source_id": "spec-003-aee-red-team-remediation",
           "independent_of": [],
@@ -2494,7 +2955,76 @@
       "assumptions": [],
       "alternatives": [],
       "falsification_tests": [
-        "Any FR-8 item appearing in an FR-1 to FR-7 implementation task or commit without a recorded owner admission for that item."
+        "A later owner directive revoking or narrowing OD-1, or an FR-8 implementation that proceeds without the claims, fixtures, and methodology-version treatment FR-8 requires."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-RT-003-29-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-29",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-29-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-29",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-29 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-29-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-29",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-29 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-30",
+      "text": "After FR-8 lands, a dependency cycle suppresses weakest-link propagation only inside its own cyclic component while claims outside the component keep propagated scores, and no policy verdict of accept is issued for a claim carrying a high or critical failure mode.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/scoring.py propagation and src/aee/graph.py cycle handling",
+        "src/aee/policy.py verdict computation and src/aee/engine.py verdict demotion"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Re-run RT1 p5 section B and show the unrelated strong claim capped by its weak dependency while the cycle is still reported, or re-run RT1 p4 section C and show a verdict other than accept alongside a high failure."
       ],
       "uncertainty": "high",
       "severity": "high",
@@ -2504,8 +3034,333 @@
       "confidence_band": "medium",
       "failures": [
         {
-          "id": "AEE-RT-003-29-IRREDUCIBILITY-CHALLENGE",
-          "claim_id": "RT-003-29",
+          "id": "AEE-RT-003-30-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-30",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-30-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-30",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-30 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-30-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-30",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-30 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-31",
+      "text": "After FR-8 lands, undated, unparseable, or future-dated evidence never scores fresher than honestly dated old evidence of the same kind and quality, and falsifiability or boundary entries that are mere placeholders earn no full component credit under the substance criteria defined in FR-8.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/scoring.py freshness penalty basis",
+        "src/aee/scoring.py falsifiability and boundary component criteria (methodology change)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Re-run RT1 p1 sections E and F and show an undated or placeholder variant scoring at or above its honestly dated and substantive counterpart."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-RT-003-31-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-31",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-31-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-31",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-31 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-31-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-31",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-31 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-32",
+      "text": "After FR-8 lands, the challenge layer fires on the RT1 evasion corpus of compound and vague claims, binds negation conflicts to a shared subject, no longer lets an unrelated boundary string suppress the absolute-language challenge, and no longer false-fires on the atomic noun-phrase and proper-noun corpus from RT1-26.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/challenge.py connective and vague lexicons as data",
+        "src/aee/challenge.py negation-conflict detector and absolute-language gate"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show any claim from the RT1 p3 and p6 section D evasion corpus still drawing zero challenges after the fix, or any atomic corpus claim still false-firing."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-RT-003-32-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-32",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-32-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-32",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-32 may contradict RT-003-33",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-32-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "RT-003-32",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-32 may contradict RT-003-34",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-33",
+      "text": "After FR-8 lands, the review queue surfaces claims that gained or escalated failure modes at unchanged scores, claims crossing a score band or the confidence threshold, and cumulative drift across consecutive small steps, and its top-k selection always includes the largest adverse change in the compared pair.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/review.py queue construction and AssessmentView failure channel",
+        "src/aee/review.py top-k selection under limit"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Re-run RT1 p4 sections H to K and show a salami slide, a band crossing, a same-score critical failure, or the flooded top-k target still absent from the queue."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-RT-003-33-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-33",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-33-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-33",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-33 may contradict RT-003-35",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-34",
+      "text": "After FR-8 lands, every score record surfaces the claim author-declared uncertainty, severity, status, and conflicts in a declared-state block so a score-only consumer can distinguish a contradicted or insufficient-evidence claim from a settled one, and threshold comparison uses the unrounded score under the inclusive boundary documented in FR-8, with the contested penalty basis aligned between scoring and policy.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/scoring.py score record shape and threshold comparison",
+        "src/aee/scoring.py and src/aee/policy.py contested penalty basis"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show two claims differing only in declared status or uncertainty producing byte-identical score records, a tuned score of 0.6999996 passing the threshold, or a standalone policy accept for a claim the engine routes to clarify on counterevidence."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-RT-003-34-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-34",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false
+        },
+        {
+          "id": "AEE-RT-003-34-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "RT-003-34",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "RT-003-34 may contradict RT-003-35",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false
+        }
+      ],
+      "metadata": {}
+    },
+    {
+      "id": "RT-003-35",
+      "text": "After FR-8 lands, the engine documentation states plainly that the weakest-link propagation cap is conditional on author-declared dependencies, cross-references the dependency scaffolding in Spec 002 FR-6.3, and claims no in-engine detection of omitted dependencies for RT1-22.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "Engine documentation of scoring and propagation semantics",
+        "Spec 002 FR-6.3 dependency scaffolding cross-reference"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show engine documentation or output asserting that propagated scores account for undeclared dependencies, or the absence of the limitation statement after FR-8 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-RT-003-35-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "RT-003-35",
           "challenge": "Irreducibility challenge",
           "breakpoint": "Claim may contain multiple independently falsifiable propositions",
           "severity": "medium",
@@ -2936,6 +3791,105 @@
     },
     "RT-003-29": {
       "claim_id": "RT-003-29",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": []
+    },
+    "RT-003-30": {
+      "claim_id": "RT-003-30",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources"
+      ]
+    },
+    "RT-003-31": {
+      "claim_id": "RT-003-31",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources"
+      ]
+    },
+    "RT-003-32": {
+      "claim_id": "RT-003-32",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources"
+      ]
+    },
+    "RT-003-33": {
+      "claim_id": "RT-003-33",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources"
+      ]
+    },
+    "RT-003-34": {
+      "claim_id": "RT-003-34",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources"
+      ]
+    },
+    "RT-003-35": {
+      "claim_id": "RT-003-35",
       "direct_score": 0.480625,
       "propagated_score": 0.480625,
       "band": "medium",
@@ -3115,6 +4069,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-03-NEGATION-CONFLICT-CHALLE-10",
+      "claim_id": "RT-003-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-03-NEGATION-CONFLICT-CHALLE-11",
+      "claim_id": "RT-003-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-03-NEGATION-CONFLICT-CHALLE-2",
       "claim_id": "RT-003-03",
       "strategy": "resolve_contradiction",
@@ -3212,6 +4182,14 @@
     },
     {
       "failure_id": "AEE-RT-003-04-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-04-NEGATION-CONFLICT-CHALLE-5",
       "claim_id": "RT-003-04",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3339,6 +4317,14 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-06-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-07-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-07",
       "strategy": "decompose",
@@ -3380,6 +4366,30 @@
     },
     {
       "failure_id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-13",
+      "claim_id": "RT-003-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-14",
+      "claim_id": "RT-003-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-15",
+      "claim_id": "RT-003-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-07-NEGATION-CONFLICT-CHALLE-16",
       "claim_id": "RT-003-07",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3467,6 +4477,14 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-08-NEGATION-CONFLICT-CHALLE-10",
+      "claim_id": "RT-003-08",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-08-NEGATION-CONFLICT-CHALLE-2",
       "claim_id": "RT-003-08",
       "strategy": "resolve_contradiction",
@@ -3523,6 +4541,14 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-08-NEGATION-CONFLICT-CHALLE-9",
+      "claim_id": "RT-003-08",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-09-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-09",
       "strategy": "decompose",
@@ -3539,6 +4565,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-09-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-09",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-09-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-09",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-10-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-10",
       "strategy": "decompose",
@@ -3548,6 +4590,22 @@
     },
     {
       "failure_id": "AEE-RT-003-10-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-10-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-10-NEGATION-CONFLICT-CHALLE-3",
       "claim_id": "RT-003-10",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3603,6 +4661,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-12-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-12-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-13-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-13",
       "strategy": "decompose",
@@ -3627,12 +4701,36 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-13-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-14-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-14",
       "strategy": "decompose",
       "action": "Split the claim into atomic propositions and link them explicitly.",
       "priority": 3,
       "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-14-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-14",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-14-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-14",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
       "failure_id": "AEE-RT-003-15-IRREDUCIBILITY-CHALLENGE",
@@ -3659,6 +4757,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-15-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-15",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-15-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-15",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-16-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-16",
       "strategy": "decompose",
@@ -3668,6 +4782,14 @@
     },
     {
       "failure_id": "AEE-RT-003-16-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-16",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-16-NEGATION-CONFLICT-CHALLE-2",
       "claim_id": "RT-003-16",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3699,6 +4821,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-17-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-17",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-17-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-17",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-18-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-18",
       "strategy": "decompose",
@@ -3708,6 +4846,14 @@
     },
     {
       "failure_id": "AEE-RT-003-18-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-18",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-18-NEGATION-CONFLICT-CHALLE-2",
       "claim_id": "RT-003-18",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3732,6 +4878,14 @@
     },
     {
       "failure_id": "AEE-RT-003-19-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-19",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-19-NEGATION-CONFLICT-CHALLE-3",
       "claim_id": "RT-003-19",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3771,6 +4925,38 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "RT-003-20",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-5",
+      "claim_id": "RT-003-20",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-6",
+      "claim_id": "RT-003-20",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-20-NEGATION-CONFLICT-CHALLE-7",
+      "claim_id": "RT-003-20",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-21-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-21",
       "strategy": "decompose",
@@ -3787,6 +4973,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-21-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-21",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-21-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-21",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-22-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-22",
       "strategy": "decompose",
@@ -3795,12 +4997,44 @@
       "verification": "Every resulting claim contains one independently falsifiable proposition."
     },
     {
+      "failure_id": "AEE-RT-003-22-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-22",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-22-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-22",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-23-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-23",
       "strategy": "decompose",
       "action": "Split the claim into atomic propositions and link them explicitly.",
       "priority": 3,
       "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-23-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-23",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-23-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-23",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
       "failure_id": "AEE-RT-003-24-IRREDUCIBILITY-CHALLENGE",
@@ -3812,6 +5046,22 @@
     },
     {
       "failure_id": "AEE-RT-003-24-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-24",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-24-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-24",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-24-NEGATION-CONFLICT-CHALLE-3",
       "claim_id": "RT-003-24",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3835,6 +5085,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-25-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-25",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-25-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-25",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-26-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-26",
       "strategy": "decompose",
@@ -3844,6 +5110,22 @@
     },
     {
       "failure_id": "AEE-RT-003-26-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-26",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-26-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-26",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-26-NEGATION-CONFLICT-CHALLE-3",
       "claim_id": "RT-003-26",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -3867,6 +5149,22 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-27-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-27",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-27-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-27",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-28-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-28",
       "strategy": "decompose",
@@ -3883,8 +5181,152 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-RT-003-28-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-28",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-28-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "RT-003-28",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-RT-003-29-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "RT-003-29",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-29-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-29",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-29-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-29",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-30-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-30",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-30-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-30",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-30-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-30",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-31-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-31",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-31-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-31",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-31-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-31",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-32-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-32",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-32-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-32",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-32-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "RT-003-32",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-33-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-33",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-33-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-33",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-34-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-34",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-RT-003-34-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "RT-003-34",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-RT-003-35-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "RT-003-35",
       "strategy": "decompose",
       "action": "Split the claim into atomic propositions and link them explicitly.",
       "priority": 3,

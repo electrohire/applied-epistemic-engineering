@@ -879,11 +879,45 @@
     {
       "boundary": [
         "Spec 003 FR-8 items RT1-08, RT1-09, RT1-10, RT1-11, RT1-15 through RT1-20, RT1-22, RT1-24, RT1-25 and RT1-26",
-        "Owner decision record in Spec 003 section 12, OD-1"
+        "Owner decision record in Spec 003 section 12, OD-1, decided 2026-10-12"
       ],
       "evidence": [
         {
+          "description": "Owner directive in the AEE improvement program chat on 2026-10-12 authorizing FR-8 and reopening scoring semantics in Spec 003, recorded as decision OD-1 in Spec 003 section 12.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "Owner directive in the AEE improvement program chat, 2026-10-12: Authorize FR-8: reopen scoring semantics in Spec 003 (decision OD-1, Spec 003 spec.md section 12)",
+          "source_id": "owner-directive-2026-10-12",
+          "source_quality": "primary"
+        },
+        {
           "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A later owner directive revoking or narrowing OD-1, or an FR-8 implementation that proceeds without the claims, fixtures, and methodology-version treatment FR-8 requires."
+      ],
+      "id": "RT-003-29",
+      "kind": "decision",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "supported",
+      "text": "FR-8 is authorized and in scope: on 2026-10-12 the owner decided OD-1 in the affirmative with the directive Authorize FR-8 reopen scoring semantics in Spec 003, so the scoring, challenge, and review semantics items grouped in FR-8 may be implemented under this spec subject to its claims-first and methodology-version discipline, while RT1-22 remains a documented design limitation for which no in-engine fix is claimed.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py propagation and src/aee/graph.py cycle handling",
+        "src/aee/policy.py verdict computation and src/aee/engine.py verdict demotion"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
           "direction": "supports",
           "kind": "asserted",
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
@@ -892,14 +926,144 @@
         }
       ],
       "falsification_tests": [
-        "Any FR-8 item appearing in an FR-1 to FR-7 implementation task or commit without a recorded owner admission for that item."
+        "Re-run RT1 p5 section B and show the unrelated strong claim capped by its weak dependency while the cycle is still reported, or re-run RT1 p4 section C and show a verdict other than accept alongside a high failure."
       ],
-      "id": "RT-003-29",
-      "kind": "decision",
+      "id": "RT-003-30",
+      "kind": "requirement",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
       "status": "draft",
-      "text": "No finding grouped in FR-8 is implemented under this spec without the owner named admission of that item, because Spec 002 section 10 excluded scoring-weight changes and each FR-8 fix changes what a score or challenge means.",
+      "text": "After FR-8 lands, a dependency cycle suppresses weakest-link propagation only inside its own cyclic component while claims outside the component keep propagated scores, and no policy verdict of accept is issued for a claim carrying a high or critical failure mode.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py freshness penalty basis",
+        "src/aee/scoring.py falsifiability and boundary component criteria (methodology change)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Re-run RT1 p1 sections E and F and show an undated or placeholder variant scoring at or above its honestly dated and substantive counterpart."
+      ],
+      "id": "RT-003-31",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "After FR-8 lands, undated, unparseable, or future-dated evidence never scores fresher than honestly dated old evidence of the same kind and quality, and falsifiability or boundary entries that are mere placeholders earn no full component credit under the substance criteria defined in FR-8.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/challenge.py connective and vague lexicons as data",
+        "src/aee/challenge.py negation-conflict detector and absolute-language gate"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Show any claim from the RT1 p3 and p6 section D evasion corpus still drawing zero challenges after the fix, or any atomic corpus claim still false-firing."
+      ],
+      "id": "RT-003-32",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "After FR-8 lands, the challenge layer fires on the RT1 evasion corpus of compound and vague claims, binds negation conflicts to a shared subject, no longer lets an unrelated boundary string suppress the absolute-language challenge, and no longer false-fires on the atomic noun-phrase and proper-noun corpus from RT1-26.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/review.py queue construction and AssessmentView failure channel",
+        "src/aee/review.py top-k selection under limit"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Re-run RT1 p4 sections H to K and show a salami slide, a band crossing, a same-score critical failure, or the flooded top-k target still absent from the queue."
+      ],
+      "id": "RT-003-33",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "After FR-8 lands, the review queue surfaces claims that gained or escalated failure modes at unchanged scores, claims crossing a score band or the confidence threshold, and cumulative drift across consecutive small steps, and its top-k selection always includes the largest adverse change in the compared pair.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py score record shape and threshold comparison",
+        "src/aee/scoring.py and src/aee/policy.py contested penalty basis"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Show two claims differing only in declared status or uncertainty producing byte-identical score records, a tuned score of 0.6999996 passing the threshold, or a standalone policy accept for a claim the engine routes to clarify on counterevidence."
+      ],
+      "id": "RT-003-34",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "After FR-8 lands, every score record surfaces the claim author-declared uncertainty, severity, status, and conflicts in a declared-state block so a score-only consumer can distinguish a contradicted or insufficient-evidence claim from a settled one, and threshold comparison uses the unrounded score under the inclusive boundary documented in FR-8, with the contested penalty basis aligned between scoring and policy.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "Engine documentation of scoring and propagation semantics",
+        "Spec 002 FR-6.3 dependency scaffolding cross-reference"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Show engine documentation or output asserting that propagated scores account for undeclared dependencies, or the absence of the limitation statement after FR-8 lands."
+      ],
+      "id": "RT-003-35",
+      "kind": "requirement",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "After FR-8 lands, the engine documentation states plainly that the weakest-link propagation cap is conditional on author-declared dependencies, cross-references the dependency scaffolding in Spec 002 FR-6.3, and claims no in-engine detection of omitted dependencies for RT1-22.",
       "uncertainty": "high"
     }
   ],
