@@ -24,6 +24,7 @@ from aee.model import (
     normalize_claim_id,
 )
 
+
 def duplicate_key_hook(source: str) -> Callable[[list[tuple[str, Any]]], dict[str, Any]]:
     """``object_pairs_hook`` rejecting duplicate JSON keys (FR-5.4).
 
@@ -413,9 +414,7 @@ def extract_markdown_claims(path: str | Path) -> list[Claim]:
                 kind=kind,
                 status=ClaimStatus.DRAFT,
                 boundary=list(active.pop("boundary", [])),
-                depends_on=[
-                    normalize_claim_id(str(ref)) for ref in active.pop("depends_on", [])
-                ],
+                depends_on=[normalize_claim_id(str(ref)) for ref in active.pop("depends_on", [])],
                 falsification_tests=list(active.pop("falsification_tests", [])),
                 source_ref=f"{source.as_posix()}#{normalised_id}",
                 uncertainty=Uncertainty.INSUFFICIENT_EVIDENCE,

@@ -457,9 +457,7 @@ class Disposition:
                 reason=str(value.get("reason", "")),
                 author=str(value.get("author", "")),
                 date=str(value.get("date", "")),
-                successors=[
-                    normalize_claim_id(str(item)) for item in value.get("successors", [])
-                ],
+                successors=[normalize_claim_id(str(item)) for item in value.get("successors", [])],
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -727,9 +725,7 @@ class Claim:
                 kind=ClaimKind(value.get("kind", ClaimKind.ASSUMPTION.value)),
                 status=ClaimStatus(value.get("status", ClaimStatus.DRAFT.value)),
                 boundary=[str(item) for item in value.get("boundary", [])],
-                depends_on=[
-                    normalize_claim_id(str(item)) for item in value.get("depends_on", [])
-                ],
+                depends_on=[normalize_claim_id(str(item)) for item in value.get("depends_on", [])],
                 conflicts_with=[
                     normalize_claim_id(str(item)) for item in value.get("conflicts_with", [])
                 ],
