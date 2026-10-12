@@ -1,0 +1,910 @@
+{
+  "claims": [
+    {
+      "boundary": [
+        "engine outcome logic in src/aee/engine.py and Assessment.healthy",
+        "JSON bundle loading path in src/aee/extract.py"
+      ],
+      "evidence": [
+        {
+          "description": "Outcome is pass when no failures exist and no score is below threshold; both conditions hold trivially for zero claims.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/engine.py _outcome (lines 148-164); RT1 FINDINGS RT1-01",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe assessed an empty bundle and a real CLI run on an empty bundle file; both returned pass.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p2_engine.py section A and outputs/empty-assessment.json",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Assess an empty bundle and show a non-pass outcome or a loud input error (current behavior: pass, healthy, exit 0)."
+      ],
+      "id": "RT-003-01",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
+      "status": "supported",
+      "text": "An explicitly empty claim bundle assesses as pass with healthy true and CLI exit zero because the outcome logic is vacuously true over empty collections.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py gate subcommand",
+        "CI consumers of the gate exit code"
+      ],
+      "evidence": [
+        {
+          "description": "Gate reads the outcome field and returns success for pass without recomputing, cross-checking scores, or consulting the ledger.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py (lines 226-230); RT2 FINDINGS H1",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe wrote a file containing only an outcome of pass and ran the gate; exit was zero with a pass message, including alongside a zero score.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p09_cli_io.py section 6",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Run the gate on a fabricated outcome-only file and show it refused or failed (current behavior: exit 0, pass)."
+      ],
+      "id": "RT-003-02",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
+      "status": "supported",
+      "text": "The gate command trusts a hand-written outcome string, so a fabricated two-field assessment file with outcome pass and no claims, scores, hash, or ledger entry passes the gate with exit zero.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/engine.py assess ordering, src/aee/graph.py ClaimGraph, src/aee/challenge.py duplicate detection",
+        "src/aee/session.py AEESession.load"
+      ],
+      "evidence": [
+        {
+          "description": "Scoring constructs ClaimGraph after the stress test and the graph raises on duplicate ids; the session builds a dict keyed by claim id so duplicates merge last-wins.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/graph.py (lines 31-33) and src/aee/session.py (line 88); RT1 FINDINGS RT1-12 and RT2 FINDINGS M4",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes assessed a two-claim bundle sharing one id and loaded it through the session; assess raised ValueError and the session returned one surviving claim.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p2_engine.py section C and /home/hatch/workspace/aee-redteam/rt2/probes/p05_json_dupes.py sections 2-3",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Assess a duplicate-id bundle and show a completed assessment routed by the critical challenge instead of an exception, and a session load that refuses or reports the duplicate."
+      ],
+      "id": "RT-003-03",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
+      "status": "supported",
+      "text": "Duplicate claim ids crash assessment with a bare ValueError from graph construction, making the designed critical duplicate-identity challenge unreachable, while the session loader silently discards all but the last duplicate claim.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py evidence score computation"
+      ],
+      "evidence": [
+        {
+          "description": "Evidence score is one minus the product of one minus each item weight over the raw list; no deduplication by ref, source, or kind exists anywhere in scoring.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/scoring.py (lines 158-165); RT1 FINDINGS RT1-02",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe scored one model asserted item once and twenty times; direct score rose from 0.3775 to 0.702833 with independence unchanged.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p1_scoring.py section B",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Score a claim with twenty copies of one evidence item and show the score equals the single-item score (current behavior: it crosses the threshold)."
+      ],
+      "id": "RT-003-04",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "supported",
+      "text": "Repeating the same evidence item inflates the evidence score without limit because scoring multiplies over the evidence list with no deduplication, so twenty copies of the weakest model asserted item move a claim from 0.378 to above the 0.70 threshold.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py support and contradict split by direction",
+        "src/aee/challenge.py counterevidence check and src/aee/policy.py contested gate"
+      ],
+      "evidence": [
+        {
+          "description": "Scoring splits support and contradict strictly by declared direction, the counterevidence challenge fires only on direction contradicts, and policy reads the resulting penalty; a contradicted-kind item labelled supports or context is semantically ignored.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/scoring.py (lines 140-145, 171-186), src/aee/challenge.py, src/aee/policy.py (line 117); RT1 FINDINGS RT1-03",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe changed only the refutation direction; contradicts scored 0.25 with a clarify outcome and a contradiction failure, context scored 1.0 with pass and no failures, and policy accepted the context version.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p1_scoring.py section G and p4 policy section D",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Label a contradicted-kind item as context and show a polarity challenge or penalty (current behavior: score 1.0, pass, no failures)."
+      ],
+      "id": "RT-003-05",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "supported",
+      "text": "Relabelling contradicting evidence with direction context makes it vanish from scoring, challenge, and policy at once, because the author-declared direction field is the only routing signal and nothing checks polarity coherence against evidence kind.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/challenge.py falsifiability and evidence-grounding challenge status rules",
+        "src/aee/scoring.py (status never read) and src/aee/policy.py model-only gate with src/aee/model.py is_model_self_attestation"
+      ],
+      "evidence": [
+        {
+          "description": "The falsifiability challenge exempts drafts, the grounding challenge fires only for supported or partially supported claims, scoring ignores status, and the abstention gate matches exactly kind asserted with source quality model.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/challenge.py (line 178), src/aee/model.py (lines 108-109), src/aee/policy.py (line 114); RT1 FINDINGS RT1-04 and RT1-13",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Combined probe built the kill chain: twenty duplicated model items plus one human assertion scored 0.837, and the draft version returned pass, healthy, accept, with no failures where the supported version was challenged.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p7_combined.py and p2_engine.py section B and p4 section B",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Run the combined kill-chain bundle as a draft and show an outcome cap, a challenge, or an abstention (current behavior: pass, accept, no failures)."
+      ],
+      "id": "RT-003-06",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "supported",
+      "text": "Draft status is the easiest status to pass, because drafts are exempt from the falsifiability challenge and scoring never reads status, and the model-only abstention gate is defeated by relabelling one item or adding one human self-report, so a claim supported only by duplicated model self-attestation and one human assertion reaches pass with an accept verdict.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/scoring.py independence computation and weighted evidence loop",
+        "src/aee/policy.py min_independent_sources corroboration gate"
+      ],
+      "evidence": [
+        {
+          "description": "Kind weights are clamped at zero for unsupported and contradicted items but those items still enter the source set for independence and the policy source count; independence counts raw distinct strings; scoring is per claim with no shared-evidence signal; the weighted loop never checks the reference.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/scoring.py (lines 158-168) and src/aee/policy.py (lines 123-129); RT1 FINDINGS RT1-06, RT1-14, RT1-21, RT1-23",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes showed two zero-weight supports giving independence 1.0 with evidence 0.0, four same-origin string variants each giving independence 1.0 and policy accept, five split claims sharing two sources all scoring 1.0, and an empty-reference test item giving evidence 1.0.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p1_scoring.py sections C, D, J and p6_refinements.py section C",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show any of: zero-weight items excluded from independence, a same-origin variant pair scoring below 1.0 independence, a shared-evidence effect across split claims, or an empty-reference item earning no weight."
+      ],
+      "id": "RT-003-07",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "supported",
+      "text": "Zero-weight supporting items mint independence and policy corroboration for free, same-origin references differing only in punctuation or case count as fully independent in both scoring and policy, the same evidence set scores fully in every split claim that reuses it, and an evidence item with an empty reference earns full evidence weight.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/model.py Claim.from_dict list comprehensions",
+        "src/aee/scoring.py boundary and falsifiability presence components"
+      ],
+      "evidence": [
+        {
+          "description": "List fields are built by iterating the raw value, so a string iterates into characters; boundary and falsification test lists of single characters then satisfy the presence checks at full credit.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/model.py (lines 245-265); RT2 FINDINGS H5 (variant of Spec 002 FR-1)",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe loaded boundary as the string production and falsification tests as a short string; the loader produced per-character lists and scoring awarded boundary 1.0 and falsifiability 1.0.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p04_model_coercion.py section 1",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Load a bundle with a string boundary and show a strict load error naming the field (current behavior: per-character lists and full credit)."
+      ],
+      "id": "RT-003-08",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "supported",
+      "text": "A bare string in a list-typed claim field is exploded into individual characters by the model loader and then awards full boundary and falsifiability credit in scoring, so a malformed bundle loads better than the honest version.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/reliability.py SourceRecord.from_dict, ReliabilityTable.from_dict and blended_weight",
+        "src/aee/cli.py reliability loading and src/aee/scoring.py blending"
+      ],
+      "evidence": [
+        {
+          "description": "The record loader casts brier_sum and observations with no checks while record itself validates its inputs; reliability is one minus brier_sum over observations and is never clamped; NaN collapses the score clamps to 1.0.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/reliability.py (lines 53-74, 151-163) and src/aee/scoring.py (lines 187-198); RT1 FINDINGS RT1-05 and RT2 FINDINGS C1",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes produced reliability 34.0 from negative brier_sum, negative reliability from excess brier_sum, a perfect 1.0 score and pass from a NaN table with one model item, and an evidence component of negative 15.667 for an out-of-range table.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p6_refinements.py section E and /home/hatch/workspace/aee-redteam/rt2/probes/p07_reliability_poison.py",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Load the poisoned reliability fixtures and show loud load errors or reliability confined to zero to one (current behavior: perfect scores and pass)."
+      ],
+      "id": "RT-003-09",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "supported",
+      "text": "The reliability table loader performs no range or finiteness checks, so a hand-written reliability file yields reliability far outside the zero to one range, a blended weight above one, an evidence score of 8.5, and in the NaN case a perfect score with pass from a single model assertion plus non-standard JSON in the output.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/reliability.py observe_claim and record, cold start min_observations"
+      ],
+      "evidence": [
+        {
+          "description": "Observe credits each distinct supporting source with the claim propagated score and outcome regardless of that source contribution; record accepts asserted predicted and outcome pairs with no resolution authority.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/reliability.py (lines 94-122); RT1 FINDINGS RT1-07",
+          "source_id": "rt1-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe farmed a junk source to reliability 1.0 in three coattail observations and framed a victim source down to 0.0975, cutting its blended test weight from 1.00 to 0.549.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt1/probes/p4_policy_reliability_review.py sections E-G",
+          "source_id": "rt1-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Attach a zero-weight source to three resolved claims carried by real evidence and show its reliability stays at cold start (current behavior: 1.0)."
+      ],
+      "id": "RT-003-10",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "supported",
+      "text": "Reliability credit assignment credits every distinct supporting source with the full claim score, so a zero-weight junk source attached to claims carried by another source is canonised at reliability 1.0 within the three-observation cold start, a victim source can be destroyed by attachment to false claims, and the record path accepts caller-asserted outcome pairs with no provenance.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/ledger.py verify, tip cache and append lock"
+      ],
+      "evidence": [
+        {
+          "description": "Verify checks sequence and hash links only; nothing anchors the tip externally; the append path trusts a cache keyed on size and mtime nanoseconds and skips verification on a cache hit.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/ledger.py (lines 54-67, 108-112, 149-180); RT2 FINDINGS H2, H3, M1",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes deleted the newest ledger line and verify still returned valid, rewrote a same-length payload with restored mtime and the cached instance appended sequence two onto the forged head, and rehashed a forged chain including a bogus ledger version to valid.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p01_ledger_truncation.py and p03_ledger_unicode_tipcache.py section B",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Delete the newest ledger entry and show verify failing against a recorded anchor, or forge a same-size same-mtime file and show the cached appender refusing it."
+      ],
+      "id": "RT-003-11",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
+      "status": "supported",
+      "text": "Ledger tail truncation is undetectable because the chain has no external head commitment, and the verified-tip cache keyed on file size and modification time accepts a same-size same-mtime forgery that a cached instance then extends, while a fully rehashed forged chain also verifies and verify validates no version, timestamp, or payload shape.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/ledger.py canonical serialisation, line reading, verify and append"
+      ],
+      "evidence": [
+        {
+          "description": "Canonical dumps use ensure_ascii false so U+2028, U+2029 and U+0085 survive into a line that splitlines later splits; verify catches only JSON decode errors so a scalar line raises AttributeError on get; append has no duplicate check.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/ledger.py (lines 100-134, 149-200); RT2 FINDINGS M2, M5, L1",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes appended a U+2028 payload after which fresh verify failed and all later appends were refused, fed scalar and array lines that crashed verify while entries returned them, and appended one assessment twice into a valid two-entry chain.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p03_ledger_unicode_tipcache.py section A, p02_ledger_nondict_nan.py and p01_ledger_truncation.py section 5",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show a Unicode separator payload round-tripping, a scalar line reported with its line number, or a duplicate append flagged."
+      ],
+      "id": "RT-003-12",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
+      "status": "supported",
+      "text": "The ledger writer can permanently corrupt its own ledger with Unicode line separators that its serialiser leaves unescaped but its reader splits on, verify crashes without a line number on non-object JSON lines while the entries reader accepts the same lines, and duplicate appends of one assessment chain in silently with no idempotency signal.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py write path, assess ordering and output, ledger and evaluator-output flags"
+      ],
+      "evidence": [
+        {
+          "description": "The JSON writer is a plain write_text following symlinks with no identity checks, and assess appends to the ledger before writing its output, with no temp-file rename anywhere.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py (lines 166-178, 373-377); RT2 FINDINGS H4, M3, L3",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes destroyed the input bundle and the ledger via output collisions, rewrote an out-of-tree symlink victim, and produced a ledger entry for an assessment whose output write failed to a directory path.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p09_cli_io.py sections 1-5",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Run assess with colliding output paths and show refusal with the input and ledger intact, or a failed output write leaving no ledger entry."
+      ],
+      "id": "RT-003-13",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "supported",
+      "text": "CLI path collisions destroy the artifacts the trust story rests on: output equal to input replaces the claims bundle with the assessment, output equal to the ledger overwrites the whole hash chain with one assessment file, and symlink targets outside the project are truncated without any check, while the ledger is appended before the assessment is written by non-atomic writes so a failed run leaves the ledger attesting to a file that was never produced.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py error handling, src/aee/extract.py JSON and Markdown loading",
+        "src/aee/model.py coercion in Evidence and Claim from_dict, src/aee/session.py loading"
+      ],
+      "evidence": [
+        {
+          "description": "The CLI catches only five exception classes, all JSON loads use bare loads with no duplicate hook, Markdown reads utf-8 rather than utf-8-sig against an anchored heading pattern, the model stringifies nulls and numbers booleans, and the Markdown path uppercases ids the JSON path keeps verbatim.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py (lines 142-144), src/aee/extract.py (lines 13, 22, 41, 56), src/aee/model.py (lines 128-139, 245-265); RT2 FINDINGS M6, M7, M8, M10, L2, L5",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes produced tracebacks at exit 1 for deep nesting and oversized integers, last-wins substitution for duplicated claims and text keys, one lost claim under a BOM, the proposition None from null text, a scoring crash from an integer observed_at, and id mismatches across loaders.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p08_cli_exitcodes.py, p13_followups.py, p05_json_dupes.py, p06_extract.py and p04_model_coercion.py",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show any one of these inputs producing a clean exit 2 error naming its position, a duplicate-key rejection, or both claims surviving a BOM."
+      ],
+      "id": "RT-003-14",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "supported",
+      "text": "Residual input incoherence beyond Spec 002 FR-1 lets parser errors leak tracebacks at the scored-verdict exit code, duplicate JSON keys silently take the last value at every load site, a UTF-8 byte order mark silently deletes the first Markdown claim, explicit nulls and wrong types coerce into assessed values or crash scoring, malformed rows error with no position, and claim id identity differs between the JSON and Markdown loaders.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "src/aee/cli.py and src/aee/ledger.py JSON serialisation, src/aee/engine.py created_at",
+        "src/aee/schemas/aee-assessment.schema.json and the absent bundle schema, src/aee/model.py content_hash"
+      ],
+      "evidence": [
+        {
+          "description": "Dumps default to allow_nan true, the digest covers the full assessment dict including its wall-clock timestamp while the CLI exposes no as-of flag, the schema outcome enum predates the policy abstain outcome and constrains neither verdicts nor components, and content_hash occurs only in the model declaration and serialisation.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "src/aee/cli.py (line 377), src/aee/ledger.py (lines 128, 137-151), src/aee/engine.py (line 141), src/aee/schemas/; RT2 FINDINGS M9, M11, M12, L4, L6",
+          "source_id": "rt2-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes validated a policy abstain assessment against the shipped schema and got a rejection, round-tripped Infinity metadata into output, ran identical CLI inputs twice and got unequal hashes differing only in created_at, and passed a deadbeef hash on a nonexistent reference straight into assessment output.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt2/probes/p11_schema_drift.py, p13_followups.py, p05_json_dupes.py section 7, p10_determinism.py and p04_model_coercion.py section 6",
+          "source_id": "rt2-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show engine output validating against its own schema, two pinned replays producing one digest, or an unverified content_hash marked as unverified."
+      ],
+      "id": "RT-003-15",
+      "kind": "observation",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "supported",
+      "text": "The engine emits artifacts that are not portable or self-consistent: bare NaN and Infinity tokens appear in assessments and ledger lines, assessment hashes change on every replay because created_at is baked into the ledgered digest with no as-of pinning in the CLI, the shipped assessment schema rejects engine output including the abstain outcome and accepts nothing about emitted verdicts, no input bundle schema exists, and unverified content_hash values are republished as if they were verification results.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-evaluator scripts/python/compose_results.py, scripts/bash/compose-results.sh and the PowerShell composer",
+        "spec-kit-evaluator commands speckit.evaluator.compose and speckit.evaluator.run pass-on-empty rules"
+      ],
+      "evidence": [
+        {
+          "description": "The empty resolution and empty composed result return outcome pass, the main entry exits zero in all empty cases, and the compose and run command documents specify pass when none exist.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "compose_results.py (lines 86-95, 279-397) and commands/speckit.evaluator.compose.md (line 30) and speckit.evaluator.run.md (line 41); RT4 FINDINGS C1",
+          "source_id": "rt4-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe composed an empty directory, an all-invalid directory, and an unknown-outcome-only directory; every case returned exit zero with outcome pass and count zero or a warning only.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt4/probes/probe_compose.py and outputs/probe_compose.txt",
+          "source_id": "rt4-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Compose an empty or all-invalid results directory and show a non-pass outcome or a non-zero exit (current behavior: pass, exit 0)."
+      ],
+      "id": "RT-003-16",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
+      "status": "supported",
+      "text": "Absence of evidence composes to pass in all three evaluator implementations and by command design, so a missing results directory, zero files for a phase, zero valid files, or no registered evaluators each produce a composed pass with exit zero.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-evaluator scripts/python/compose_results.py load, compose and routing merge",
+        "spec-kit-evaluator schemas/evaluator-result.schema.json and scripts/bash/compose-results.sh"
+      ],
+      "evidence": [
+        {
+          "description": "The only production call site passes no schema so the validation branch is dead and would silently skip on a missing jsonschema import anyway; composition injects an undeclared property into findings and emits null for an object-typed field; the Bash script checks nothing and defaults unknown outcomes to pass.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "compose_results.py (lines 170-205, 305, 326, 380) and compose-results.sh (line 77); RT4 FINDINGS C2, C3, C4",
+          "source_id": "rt4-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes accepted the hostile fixture to pass without schema and rejected the same file with schema, then composed a schema-valid real engine result on Spec 002 claims into output the real schema rejects, with the benchmark workarounds for both defects corroborating the break.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt4/probes/probe_compose.py and probe_engine.py and outputs/probe_engine_compose.txt",
+          "source_id": "rt4-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Compose the hostile fixture and show rejection or a block finding, or compose a real engine result and show output that validates against the shipped schema unmodified."
+      ],
+      "id": "RT-003-17",
+      "kind": "observation",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
+      "status": "supported",
+      "text": "The Python composer never schema-validates its inputs in the shipped path and its composed output violates its own schema, while the Bash composer performs zero validation, so a hostile fixture with an unknown severity and kind composes to pass preserved verbatim and a real engine result becomes schema-invalid after composition through an injected evaluator id property and a null model routing.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-evaluator compose_results.py selection, dedup, outcome resolution and exit behaviour",
+        "spec-kit-evaluator examples/demo.py, the bash and PowerShell composers, and commands for compose, report and route; engine src/aee/adapters/evaluator.py validator"
+      ],
+      "evidence": [
+        {
+          "description": "Selection globs by filename phase and never compares the payload phase, dedup keys on filename prefix by mtime while counting uses payload ids, routing and contradiction helpers assume unvalidated shapes, the demo reads a composed_outcome key the composer never returns, and the engine adapter validator checks only a subset and stamps a hard-coded version.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "compose_results.py (lines 114-115, 150, 208-260, 282-340) and adapters/evaluator.py (lines 44, 92, 125-149); RT4 FINDINGS H1, H2, H3, H7, M1, M4, M5, M6, L1, L2",
+          "source_id": "rt4-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes composed a payload phase mismatch into the wrong phase as block, duplicated one evaluator id to outvote a block under majority, composed block plus pass to pass under majority and optimistic, and crashed on findings without ids and routing without a tier.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt4/probes/probe_compose.py, probe2.py and outputs/probe2.txt",
+          "source_id": "rt4-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show a phase-mismatched or duplicated evaluator fixture failing to move the composed outcome, a block surviving non-strict composition as a marked non-gating result, or a malformed finding wrapped as a block finding instead of a traceback."
+      ],
+      "id": "RT-003-18",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
+      "status": "supported",
+      "text": "Evaluator composition trusts filenames over payloads and its non-strict strategies erase blocks, because phase and evaluator identity come from filename globs and mtimes, one evaluator duplicated under two filenames outvotes a block under majority, majority and optimistic compose a block into pass with no non-gating mark, compose always exits zero, and schema-adjacent payloads crash with tracebacks instead of the specified block finding, while the demo exhibit is broken and the three composers and their command documents diverge.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee-benchmark src/benchmark_runner/store.py, reporting.py and scripts/check_evidence.py",
+        "spec-kit-aee-benchmark experiment.py verify_freeze, grading.py resolved binding and scripts/host-setup.sh archiving"
+      ],
+      "evidence": [
+        {
+          "description": "The store appends and reads plain JSONL with no chain or signature and the evidence checker verifies only content-addressed objects; freeze verification iterates only manifest-listed files and the freeze id is a hash of the manifest itself; grading takes resolved from any report found recursively regardless of exit code.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "store.py, experiment.py (lines 76-94) and grading.py (lines 30-40); RT4 FINDINGS H4, M2, M3, M7",
+          "source_id": "rt4-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probe wrote a fresh store with one attempts line and one forged grade and the aggregate reported one resolved at rate 1.0 with no grader artifact anywhere.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt4/probes/probe_bench.py and outputs/probe_bench.txt",
+          "source_id": "rt4-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Forge a grade with no grader artifact and show aggregation refusing or flagging it (current behavior: resolved rate 1.0)."
+      ],
+      "id": "RT-003-19",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+      "status": "supported",
+      "text": "Benchmark event streams are unauthenticated plaintext and determine the headline metric at face value, so one hand-written attempts line and one forged resolved grade with no grader run make the aggregate report a perfect resolved rate, while the freeze check is addition-blind and self-signed, the resolved flag is loosely bound to any report file found under a run, and stale scored runs are archived away with no disclosure in reporting.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee-benchmark pyproject.toml pins, manifests/versions.json and vendored extensions",
+        "spec-kit-aee-benchmark src/benchmark_runner/workflow.py grounded_claims"
+      ],
+      "evidence": [
+        {
+          "description": "The pin and manifest record the 1.0.x stack and a stale evaluator commit while the vendored extension requires only engine 1.0.0 upward; grounding verifies the reference and source only when the kind equals observed and passes every other kind through untouched.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "pyproject.toml, manifests/versions.json, workflow.py (lines 18-31); RT4 FINDINGS H5 and H6",
+          "source_id": "rt4-findings-2026-10-12",
+          "source_quality": "artifact"
+        },
+        {
+          "description": "Probes ran the benchmark unit tests with five failures including the real-extensions test emitting no evaluator result, and passed forged inferred and asserted evidence through grounding unchanged while the same item labelled observed was correctly downgraded.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "/home/hatch/workspace/aee-redteam/rt4/probes/probe_bench.py and outputs/bench_tests.txt and bench_one_test.txt",
+          "source_id": "rt4-probes-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Show the benchmark suite green on pins matching the current stack, or forged non-observed evidence downgraded by grounding."
+      ],
+      "id": "RT-003-20",
+      "kind": "observation",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+      "status": "supported",
+      "text": "The benchmark measures an obsolete stack and its evidence grounding exempts most evidence kinds, because it pins engine 1.0.2 with extension and evaluator 1.0.0 records against current engine 1.4.0 and extension 1.2.0, its probed unit tests fail on that stack, and its grounding verification runs only for observed evidence so forged inferred or asserted items keep their declared test or primary quality.",
+      "uncertainty": "low"
+    },
+    {
+      "boundary": [
+        "engine assess, gate and session surfaces"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "An empty bundle passing, a fabricated gate file passing, or a duplicate-id bundle raising or silently losing a claim after the fix."
+      ],
+      "id": "RT-003-21",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
+      "status": "draft",
+      "text": "After FR-1 lands, an empty bundle never passes, a fabricated assessment file never gates as pass, and duplicate claim ids produce a completed block assessment rather than an exception or a silent discard.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine scoring, challenge and policy paths"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "The RT1 combined probe, re-run, reaching pass or accept, or any single inflation probe retaining its inflated score."
+      ],
+      "id": "RT-003-22",
+      "kind": "requirement",
+      "severity": "critical",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
+      "status": "draft",
+      "text": "After FR-2 lands, the combined inflation kill chain of duplicated model self-attestation, one human assertion, draft status and polarity relabelling yields no pass and no accept verdict, and each individual inflation probe scores only distinct positive-weight polarity-coherent evidence.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine reliability loading, blending and credit assignment"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A poisoned fixture loading silently, a reliability or blended weight outside zero to one, or a coattail source reaching canonised reliability."
+      ],
+      "id": "RT-003-23",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "draft",
+      "text": "After FR-3 lands, poisoned reliability tables fail loading loudly, measured reliability and blended weights stay within zero to one, and a zero-weight source riding claims carried by other sources earns no reliability credit.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine ledger append, verify and tip cache"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A truncated ledger verifying valid against its anchor, a cached append onto a forged tip, or a writer-produced line that verify cannot parse."
+      ],
+      "id": "RT-003-24",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
+      "status": "draft",
+      "text": "After FR-4 lands, ledger tail truncation is detectable by any consumer holding the recorded head anchor, a same-size same-mtime forgery is refused by a cached appender, and the ledger writer can never produce a file its own verifier cannot read.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine CLI, loaders, serialisation and schemas"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A collision destroying an artifact, a traceback at exit one, duplicate keys loading silently, output failing its own schema, or two pinned replays digesting differently."
+      ],
+      "id": "RT-003-25",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "draft",
+      "text": "After FR-5 lands, no CLI invocation can overwrite its own input or ledger, failed writes leave no false ledger record, input failures exit cleanly at code two with named positions, engine output is strict JSON that validates against its shipped schemas, and identical pinned replays produce identical digests.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "spec-kit-evaluator composers and command documents, engine evaluator adapter"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "An empty directory composing to pass, the hostile fixture composing unvalidated, composed output failing its schema, or a duplicated or phase-mismatched file changing the outcome."
+      ],
+      "id": "RT-003-26",
+      "kind": "requirement",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
+      "status": "draft",
+      "text": "After FR-6 lands, empty or all-invalid evaluator results never compose to pass in any of the three composers, inputs are schema-validated in the shipped path, composed output validates against the shipped schema without consumer workarounds, and filename tricks cannot move a composed outcome.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee-benchmark store, reporting, workflow, freeze and grading"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A forged grade aggregating, the benchmark suite failing on the re-pinned stack, or forged non-observed evidence keeping its declared quality."
+      ],
+      "id": "RT-003-27",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+      "status": "draft",
+      "text": "After FR-7 lands, the benchmark runs on pins matching the current engine, extension and evaluator, a forged grade with no grader artifact cannot enter its headline metrics, and its grounding downgrades unverifiable evidence of every kind.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "spec-kit-aee-benchmark harness run before and after Spec 003 implementation",
+        "Spec 002 claim TH-002-21 dependency"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "A close-out benchmark run executed against the old pins, or results recorded with no baseline comparison."
+      ],
+      "id": "RT-003-28",
+      "kind": "prediction",
+      "severity": "medium",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
+      "status": "draft",
+      "text": "After the Spec 003 close-out, the benchmark regression check that Spec 002 task T810 depends on validates the hardened stack rather than the obsolete stack, and its diagnostic results are recorded against the re-pinned benchmark baseline.",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "Spec 003 FR-8 items RT1-08, RT1-09, RT1-10, RT1-11, RT1-15 through RT1-20, RT1-22, RT1-24, RT1-25 and RT1-26",
+        "Owner decision record in Spec 003 section 12, OD-1"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003, which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        }
+      ],
+      "falsification_tests": [
+        "Any FR-8 item appearing in an FR-1 to FR-7 implementation task or commit without a recorded owner admission for that item."
+      ],
+      "id": "RT-003-29",
+      "kind": "decision",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
+      "status": "draft",
+      "text": "No finding grouped in FR-8 is implemented under this spec without the owner named admission of that item, because Spec 002 section 10 excluded scoring-weight changes and each FR-8 fix changes what a score or challenge means.",
+      "uncertainty": "high"
+    }
+  ],
+  "date": "2026-10-12",
+  "schema_version": "1.0",
+  "spec": "003-aee-red-team-remediation",
+  "version": "0.1.0"
+}
