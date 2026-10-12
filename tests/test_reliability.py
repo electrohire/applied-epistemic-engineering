@@ -8,6 +8,9 @@ it, scoring blends the prior toward the measurement by alpha, and
 the substitution is noted on the score.
 """
 
+import tempfile
+from pathlib import Path
+
 import pytest
 from test_scoring import strong_evidence
 
@@ -16,6 +19,7 @@ from aee import (
     Claim,
     Evidence,
     EvidenceKind,
+    HashChainLedger,
     ReliabilityTable,
     ScoringEngine,
     SourceQuality,
@@ -23,9 +27,17 @@ from aee import (
 
 
 def table_with(source: str, outcomes: list[bool], predicted: float = 0.9):
-    table = ReliabilityTable()
+    # FR-3.6 migration (Spec 003 addendum): canonisation-grade
+    # reliability is earned on anchored records only, so the
+    # honest resolver in these tests records each resolution into
+    # a hash-chained ledger and against its entry — the same
+    # observations as before, now with verifiable provenance.
+    # (Before the addendum this helper used bare provenance
+    # strings; such records now earn provisional credit only.)
+    ledger_dir = tempfile.mkdtemp(prefix="aee-reliability-test-")
+    table = ReliabilityTable(ledger=HashChainLedger(Path(ledger_dir) / "ledger.jsonl"))
     for outcome in outcomes:
-        table.record(source, predicted, outcome, provenance="test-resolver")
+        table.record_resolution(source, predicted, outcome, provenance="test-resolver")
     return table
 
 
