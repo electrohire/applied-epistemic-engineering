@@ -1,0 +1,2765 @@
+{
+  "schema_version": "1.0",
+  "methodology_version": "1.0",
+  "project": "applied-epistemic-engineering",
+  "phase": "after_specify",
+  "outcome": "iterate",
+  "summary": "Assessed 20 claim(s); found 79 failure mode(s); 9 claim(s) below the 0.70 confidence threshold.",
+  "created_at": "2026-10-12T12:01:41.535588Z",
+  "claims": [
+    {
+      "id": "TA-004-01",
+      "text": "The claim model carries no lifecycle stage field, so a claim has no recorded position in the sequence created, checked, explained, accepted, digested.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py Claim dataclass and Claim._FIELDS strict-load field set"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py Claim dataclass and Claim._FIELDS",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Claim fields are id, text, kind, status, boundary, depends_on, conflicts_with, evidence, assumptions, alternatives, falsification_tests, uncertainty, severity, source_ref, domain, confidence, failures, metadata, dispositions; no stage field exists and strict loading rejects unknown fields.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for stage vocabulary in src/aee, 2026-10-12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Grep for lifecycle, digested, exposition, attribution and not_understood across src/aee returns zero hits.",
+          "source_id": "grep-src-aee-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a stage field on Claim, or a stage value accepted by strict loading, in the current model."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-01-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-01",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-01 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-01-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-01",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-01 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-01-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-01-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-004-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-12' (ref(s): repository grep for exposition and digested in src/aee, 2026-10-12, repository grep for not_understood in src/aee, 2026-10-12, repository grep for stage vocabulary in src/aee, 2026-10-12, src/aee/model.py Claim fields and src/aee/challenge.py StressTester) is shared with claim(s) TA-004-03, TA-004-04, TA-004-06 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-02",
+      "text": "Scoring, policy evaluation and the bundle outcome logic never read claim status, so a claim's declared posture has no effect on its score, verdict or outcome.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py, src/aee/policy.py and src/aee/engine.py outcome logic"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/scoring.py ScoringEngine",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The scoring path reads evidence, falsification_tests and boundary only; no status read appears in the file.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/policy.py evaluate_policy and src/aee/engine.py _outcome",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Policy verdicts derive from evidence composition and propagated score; the outcome derives from failure severities and scores. Neither reads claim status.",
+          "source_id": "code-read-engine-policy-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a read of Claim.status in scoring, policy evaluation or the outcome logic of the current engine."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-02-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-02",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-02",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-02 may contradict TA-004-11",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-02",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-02 may contradict TA-004-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-02",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-02 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-02-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-02",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-03",
+      "text": "Dependency propagation caps a claim by its weakest declared dependency, yet no decomposition template exists, so a headline claim without declared sub-claims is capped by nothing.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py propagation over ClaimGraph; bundle format"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/scoring.py ScoringEngine.score",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Propagated score is the minimum over declared depends_on entries processed in topological order; undeclared structure contributes nothing.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/model.py Claim fields and src/aee/challenge.py StressTester",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "No headline role, sub-claim role or decomposition check exists in the model or the challenge set.",
+          "source_id": "grep-src-aee-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a headline-claim role, a required sub-claim set, or a decomposition completeness check in the current engine."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-03 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-03 may contradict TA-004-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-03 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-03-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-03",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-03-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-004-03",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-12' (ref(s): repository grep for exposition and digested in src/aee, 2026-10-12, repository grep for not_understood in src/aee, 2026-10-12, repository grep for stage vocabulary in src/aee, 2026-10-12, src/aee/model.py Claim fields and src/aee/challenge.py StressTester) is shared with claim(s) TA-004-01, TA-004-04, TA-004-06 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-04",
+      "text": "No exposition evidence kind exists and per-claim digestion by a named human is tracked nowhere, so verified-but-unexplained claims are indistinguishable from digested ones in assessment output.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py EvidenceKind; assessment serialisation in src/aee/engine.py"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py EvidenceKind",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "EvidenceKind values are observed, inferred, asserted, contradicted and unsupported; no exposition value exists.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for exposition and digested in src/aee, 2026-10-12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Zero hits; Evidence.source_id is a free string with no person-identity semantics.",
+          "source_id": "grep-src-aee-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show an exposition evidence kind, a digestion record, or a verified-unexplained flag in the current framework."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r3",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-04-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-04",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-04 may contradict TA-004-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-04 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-04 may contradict TA-004-14",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "TA-004-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-04 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-04-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-004-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-12' (ref(s): repository grep for exposition and digested in src/aee, 2026-10-12, repository grep for not_understood in src/aee, 2026-10-12, repository grep for stage vocabulary in src/aee, 2026-10-12, src/aee/model.py Claim fields and src/aee/challenge.py StressTester) is shared with claim(s) TA-004-01, TA-004-03, TA-004-06 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-05",
+      "text": "Attribution has no representation in the framework: no prior-work record, contributor record or attribution dispute state exists, and attribution cannot affect any claim's stage, score or outcome.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee model, challenge, scoring and engine modules"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "repository grep for attribution in src/aee, 2026-10-12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Zero hits for attribution across the engine source.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/model.py Claim.conflicts_with and Disposition",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "conflicts_with expresses claim-versus-claim contradiction only; dispositions record challenge answers, not authorship or priority disputes.",
+          "source_id": "code-read-model-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show an attribution record type, a contributor field with semantics, or an attribution dispute state in the current code."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r4",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-05-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-05",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-05",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-05 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-05",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-05 may contradict TA-004-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-05",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-05 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-05-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-05",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-06",
+      "text": "No verdict, score record or assessment carries a residual-unknowns statement, so a reader cannot tell from the record what an assessment does not establish.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "Assessment.to_dict in src/aee/engine.py; ClaimScore.to_dict in src/aee/scoring.py; ClaimVerdict in src/aee/policy.py"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/engine.py Assessment.to_dict",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Serialised keys are schema_version, methodology_version, project, phase, outcome, summary, created_at, claims, scores, verdicts, recoveries and metadata; no residual-unknowns field exists.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for not_understood in src/aee, 2026-10-12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Zero hits; policy verdicts carry reasons for their own gate outcomes and nothing about residual unknowns.",
+          "source_id": "grep-src-aee-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a not_understood or residual-unknowns field in any current assessment, score or verdict serialisation."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-06-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-06",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-06 may contradict TA-004-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-06 may contradict TA-004-11",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-06 may contradict TA-004-17",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-06-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-06",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-07, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-06-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-004-06",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-12' (ref(s): repository grep for exposition and digested in src/aee, 2026-10-12, repository grep for not_understood in src/aee, 2026-10-12, repository grep for stage vocabulary in src/aee, 2026-10-12, src/aee/model.py Claim fields and src/aee/challenge.py StressTester) is shared with claim(s) TA-004-01, TA-004-03, TA-004-04 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-07",
+      "text": "Assessment output reports one blended score per claim and one outcome per bundle, with no separation between machine verification results and human-paced explanation or acceptance state.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py score composition; src/aee/engine.py Assessment"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/scoring.py ClaimScore.to_dict",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "One direct score and one propagated score per claim, composed of evidence, independence, falsifiability, boundary and contradiction components; no lane fields exist.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/engine.py Assessment outcome and summary",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "The outcome is a single string and the summary reports counts of claims, failure modes and below-threshold claims; no human-lane state is reported.",
+          "source_id": "code-read-engine-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a lane-1 or lane-2 quantity, or any human-lane state, in current assessment output."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r6",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-07-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-07",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-07 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-07 may contradict TA-004-14",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-07 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-07-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-07",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-08, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-08",
+      "text": "The ledger timestamps and hash-seals assessment records, yet no mechanism treats a claim's first registration as its priority record or lets a claim cite registration as priority evidence.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/ledger.py HashChainLedger; src/aee/evidence_check.py ref resolution"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/ledger.py append_assessment",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Entries record project, phase, outcome, claim ids and the assessment SHA-256 with a UTC timestamp; the record is per assessment, with no per-claim priority read.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/evidence_check.py check_evidence",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Evidence verification resolves local file refs and reports URL refs as unresolvable offline; no ledger-entry ref shape is recognised.",
+          "source_id": "code-read-evidence-check-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a per-claim priority lookup over the ledger, or an evidence ref shape that resolves to a ledger entry, in the current code."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-08-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-08",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-08-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-08",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-08 may contradict TA-004-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-08-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-08",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-08 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-08-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-08",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-09, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-09",
+      "text": "Openness is partially served today: ledger registration is the default for assessments since Spec 002 FR-8a, and no current mechanism was found that penalises early public registration of a claim.",
+      "kind": "observation",
+      "status": "partially_supported",
+      "boundary": [
+        "src/aee/ledger.py default path and CLI ledger defaults; src/aee/scoring.py freshness basis"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The bare CLI ledgers assessments by default with an explicit opt-out, so registration is routine rather than exceptional.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/scoring.py _freshness_penalty",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Freshness is judged from each evidence item's observed_at value; registration time plays no part in the computation.",
+          "source_id": "code-read-scoring-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a scoring, freshness or policy mechanism that treats early registration or prior public disclosure by the same source as a defect."
+      ],
+      "uncertainty": "medium",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-09-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-09",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-09-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-09",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-09 may contradict TA-004-12",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-09-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-09",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-10, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-10",
+      "text": "Verdicts already ship an inspectable evidence trail: assessments embed claims, evidence, score components, failure modes, disposition reasons and verdict reasons, and the ledger seals each assessment by hash.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/engine.py Assessment; src/aee/ledger.py HashChainLedger"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/engine.py Assessment.to_dict",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Claims are serialised with evidence, failures and dispositions; scores carry components and notes; verdicts carry reasons.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/ledger.py append_assessment and verify",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Each assessment entry stores the assessment SHA-256 in the hash chain and verify re-checks sequence and hashes.",
+          "source_id": "code-read-ledger-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show that a current assessment omits its evidence refs, score components or failure records, or that ledger entries do not record the assessment hash."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#r8",
+      "domain": "aee-framework",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-10-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-10",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-10-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-10 may contradict TA-004-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-10-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-10",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-11",
+      "text": "Stage-gating would change what scores and outcomes mean on existing bundles, so the realignment requires its own methodology version bump, distinct from the bump Spec 003 FR-8 already requires.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/engine.py Assessment.methodology_version; Spec 003 FR-8.2 rule"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/003-aee-red-team-remediation/spec.md FR-8.2",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "FR-8.2 rules that any change altering scores on existing bundles bumps methodology_version; a change to what pass means is at least as deep.",
+          "source_id": "spec-003-text-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/engine.py Assessment.methodology_version default",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "methodology_version is a distinct field defaulting to 1.0, kept separate from the engine version stamp by Spec 002 FR-4.",
+          "source_id": "code-read-main-5327915-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show that capping reported status and outcomes by lifecycle stage leaves the meaning of a pass unchanged for an existing bundle."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#8-interactions",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-11-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-11",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-11-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-11",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-5327915-2026-10-12' (ref(s): repository grep for attribution in src/aee, 2026-10-12, src/aee/engine.py Assessment.methodology_version default, src/aee/engine.py Assessment.to_dict, src/aee/ledger.py DEFAULT_LEDGER_PATH and CLI assess defaults, src/aee/ledger.py append_assessment, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py EvidenceKind, src/aee/scoring.py ClaimScore.to_dict, src/aee/scoring.py ScoringEngine, src/aee/scoring.py ScoringEngine.score) is shared with claim(s) TA-004-01, TA-004-02, TA-004-03, TA-004-04, TA-004-05, TA-004-06, TA-004-07, TA-004-08, TA-004-09, TA-004-10 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-12",
+      "text": "After R1 lands, every claim carries a lifecycle stage and the assessment reports status and verdicts capped by that stage under the mapping in Spec 004 section R1.3.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine claim model and assessment reporting"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r1",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A checked-stage claim reported as supported without qualification, or a created-stage claim issued an accept verdict, after R1 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-12-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-12",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-12 may contradict TA-004-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-12 may contradict TA-004-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-12 may contradict TA-004-19",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-12-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-12",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-13",
+      "text": "After R2 lands, a headline claim missing any of the five required sub-claim roles draws a decomposition failure mode and its propagated score is capped by its weakest required sub-claim.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine decomposition check and scoring propagation"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r2",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A headline claim with a missing role and no failure mode, or a parent score above its weakest required sub-claim, after R2 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-13-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-13",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-13 may contradict TA-004-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-13 may contradict TA-004-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-13 may contradict TA-004-19",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-13-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-13",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-14",
+      "text": "After R3 lands, exposition evidence requires a resolvable named human source and every checked claim without exposition evidence is flagged with the verified_unexplained failure mode category.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine evidence model, strict loading and assessment output"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r3",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "An exposition item with a tool, model or unresolvable source loading strictly, or a checked claim without exposition carrying no flag, after R3 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r3",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-14-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-14",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-14",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-14 may contradict TA-004-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-14",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-14 may contradict TA-004-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-14",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-14 may contradict TA-004-19",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-14-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-14",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-15",
+      "text": "After R4 lands, a claim whose attribution sub-claim is contested cannot advance beyond stage checked until the contest is resolved by evidence or by a reasoned disposition.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine stage advancement and attribution claims"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r4",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A claim at stage explained or beyond while its attribution sub-claim stands contradicted, after R4 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r4",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-15-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-15",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-15-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-15",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-15 may contradict TA-004-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-15-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-15",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-16",
+      "text": "After R5 lands, a claim supported exclusively by machine-checkable evidence is capped at stage checked regardless of score, under a policy gate that records its reason.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine policy gates and stage advancement"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r5",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A claim with only test, artifact or model machine-checkable support advancing past stage checked on score alone, after R5 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-16",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-16 may contradict TA-004-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TA-004-16",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-16 may contradict TA-004-19",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-16-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-16",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-17",
+      "text": "After R5 lands, every assessment carries a not_understood residual-unknowns statement generated from inspectable assessment state, and an assessment missing it is itself flagged.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "assessment serialisation and verification surfaces"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r5",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A serialised assessment with open failure modes and an absent or empty not_understood field passing verification unflagged, after R5 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-17-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-17",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-17-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-17",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-17 may contradict TA-004-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-17-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-17",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-18",
+      "text": "After R6 lands, assessment output reports lane-1 machine verification and lane-2 human-paced state separately, no headline number blends them, and lane-2 lag is stated in the summary.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "assessment JSON, CLI summary and extension command output"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r6",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A headline score or outcome that blends lane-2 state into lane-1, or a fully machine-passing bundle whose summary omits its lane-2 lag, after R6 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#r6",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-18-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-18",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-18-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-18",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-19",
+      "text": "After R7 lands, a claim's earliest ledger registration is reportable as its priority record, registrations are citable as priority evidence that verification can resolve, and no mechanism penalises public-first disclosure.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "engine ledger reads, evidence verification and scoring freshness"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#r7",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A priority citation that verification cannot resolve, or a disclosure-timing penalty found in scoring or policy, after R7 lands."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-19-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-19",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-19-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-19",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-20",
+      "text": "The sequencing of this realignment against Spec 003 implementation is decided by the owner and recorded as OD-T1 before any realignment implementation begins.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "program sequencing for Spec 003 and Spec 004"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 004, which this claim commits to test.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Realignment implementation work started with OD-T1 still unrecorded."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+      "domain": "aee-framework",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-004-20-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-20",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-20-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-20",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    }
+  ],
+  "scores": {
+    "TA-004-01": {
+      "claim_id": "TA-004-01",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-02": {
+      "claim_id": "TA-004-02",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-03": {
+      "claim_id": "TA-004-03",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-04": {
+      "claim_id": "TA-004-04",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-05": {
+      "claim_id": "TA-004-05",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-06": {
+      "claim_id": "TA-004-06",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-07": {
+      "claim_id": "TA-004-07",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-08": {
+      "claim_id": "TA-004-08",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-09": {
+      "claim_id": "TA-004-09",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-10": {
+      "claim_id": "TA-004-10",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-11": {
+      "claim_id": "TA-004-11",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-12": {
+      "claim_id": "TA-004-12",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-13": {
+      "claim_id": "TA-004-13",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-14": {
+      "claim_id": "TA-004-14",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-15": {
+      "claim_id": "TA-004-15",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-16": {
+      "claim_id": "TA-004-16",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-17": {
+      "claim_id": "TA-004-17",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-18": {
+      "claim_id": "TA-004-18",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-19": {
+      "claim_id": "TA-004-19",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-20": {
+      "claim_id": "TA-004-20",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    }
+  },
+  "verdicts": {},
+  "recoveries": [
+    {
+      "failure_id": "AEE-TA-004-01-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-01-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-004-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-01-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-01",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-01-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-01",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-02-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-02",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-02-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-02",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-02",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-02",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-02-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-02",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-03-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-03",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-03-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-004-03",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-03-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-004-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-04",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-04-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "TA-004-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-05-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-05",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-05-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-05",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-05",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-05",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-05-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-05",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-06",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-004-06",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-06",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-06-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-07-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-07",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-07-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-07",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-07-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-08-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-08",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-08-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-08",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-08-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-08",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-08-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-08",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-09-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-09",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-09-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-09",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-09-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-09",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-10-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-10",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-10-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-10",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-10-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-11-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-11",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-11-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-11",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-12",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-12",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-13-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-13",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-13-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-13",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-13-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-14-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-14",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-14-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-14",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-14",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-14",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-14-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-14",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-15-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-15",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-15-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-15",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-15-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-15",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-16-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-16",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-16",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TA-004-16",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-17-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-17",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-17-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-17",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-17-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-17",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-18-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-18",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-18-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-18",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-19-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-19",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-19-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-19",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-20-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-20",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-20-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-20",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    }
+  ],
+  "metadata": {
+    "threshold": 0.7,
+    "input": "specs/004-tao-realignment/claims.json",
+    "ledger": {
+      "mode": "disabled",
+      "path": null
+    },
+    "engine_version": "1.4.0"
+  }
+}
