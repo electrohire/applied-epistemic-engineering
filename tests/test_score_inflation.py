@@ -269,7 +269,14 @@ def test_draft_verdict_capped_below_accept() -> None:
 
 
 def test_ratified_claim_is_not_capped() -> None:
-    c = claim("DR3", [ev("a"), ev("b")], status=ClaimStatus.SUPPORTED)
+    # Spec 004 R5.1 (P2): the third item is human-paced (primary
+    # source), so the machine-only gate does not cap this ratified
+    # fixture at `checked`.
+    c = claim(
+        "DR3",
+        [ev("a"), ev("b"), ev("c", q=SourceQuality.PRIMARY)],
+        status=ClaimStatus.SUPPORTED,
+    )
     a = AEEEngine(policy=AssessmentPolicy()).assess([c])
     assert a.outcome == "pass"
     assert a.verdicts["DR3"].verdict.value == "accept"

@@ -22,6 +22,7 @@ from aee import (
     Evidence,
     EvidenceKind,
     IdentityRegistry,
+    SourceQuality,
     Verdict,
 )
 from aee.extract import load_claims, migrate_bundle
@@ -43,6 +44,19 @@ def strong_claim(stage: ClaimStage, **overrides) -> Claim:
         evidence=[strong_evidence("one", "S1"), strong_evidence("two", "S2")],
     )
     kwargs.update(overrides)
+    # Spec 004 R5.1 (P2): these fixtures model claims whose stage is
+    # under test, so their support must not be exclusively
+    # machine-checkable - the machine-only gate would cap every one
+    # at `checked` and mask the stage rule being exercised.
+    kwargs["evidence"] = [
+        *kwargs["evidence"],
+        Evidence(
+            ref=f"{kwargs['id']}-review",
+            source_id=f"{kwargs['id']}-reviewer",
+            kind=EvidenceKind.OBSERVED,
+            source_quality=SourceQuality.PRIMARY,
+        ),
+    ]
     return Claim(**kwargs)
 
 

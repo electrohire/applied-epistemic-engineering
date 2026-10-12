@@ -65,6 +65,18 @@ def _dispositioned_claim(**overrides: object) -> Claim:
                 kind=EvidenceKind.OBSERVED,
                 source_quality=SourceQuality.TEST,
             ),
+            # Spec 004 R5.1 (P2): a human-paced item (primary
+            # source), so the machine-only gate does not cap this
+            # dispositioned fixture at `checked`. (The R3.3
+            # verified-unexplained flag also fires on it; that flag
+            # is excluded from the disposition counts and from
+            # outcome routing by design.)
+            Evidence(
+                ref="bench-walkthrough",
+                source_id="rig-operator",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.PRIMARY,
+            ),
         ],
         "dispositions": [
             Disposition(

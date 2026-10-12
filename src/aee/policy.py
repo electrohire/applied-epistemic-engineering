@@ -41,7 +41,14 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from aee.model import Claim, ClaimStage, ClaimStatus, EvidenceDirection, EvidenceKind
+from aee.model import (
+    STAGE_ORDER,
+    Claim,
+    ClaimStage,
+    ClaimStatus,
+    EvidenceDirection,
+    EvidenceKind,
+)
 from aee.sources import source_identity
 from aee.stage import LIFTING_EVENT
 
@@ -206,3 +213,59 @@ def evaluate_policy(
             ],
         )
     return ClaimVerdict(claim.id, Verdict.ACCEPT, [])
+
+
+# -- Spec 004 R5.1: the machine-only evidence cap -------------------------
+#
+# A claim whose SUPPORTING evidence is exclusively machine-checkable
+# - every supporting item has kind `observed` or `inferred` AND
+# source quality `test`, `artifact`, or `model` - is capped at stage
+# `checked` regardless of score. The gate is a policy gate in this
+# module's sense: it produces a reasoned, inspectable cap record (via
+# the engine's stage-cap machinery), it can only demote, and its
+# reason names the evidence composition that triggered it. Human-paced
+# support lifts the cap: exposition evidence (R3), or any supporting
+# item outside the partition (an asserted item, or a human / primary
+# / secondary quality source). The partition is part of the
+# methodology: changing it is a methodology change (Spec 004 §8).
+
+_MACHINE_KINDS = frozenset({EvidenceKind.OBSERVED, EvidenceKind.INFERRED})
+_MACHINE_QUALITIES = frozenset({"test", "artifact", "model"})
+
+
+def machine_only_reason(claim: Claim) -> str | None:
+    """The R5.1 cap reason for this claim, or None when uncapped.
+
+    A claim with no supporting evidence is NOT machine-only: absence
+    of support is the abstention rules' territory, not this gate's.
+    """
+    supporting = [
+        item for item in claim.evidence if item.direction == EvidenceDirection.SUPPORTS
+    ]
+    if not supporting:
+        return None
+    if all(
+        item.kind in _MACHINE_KINDS and item.source_quality.value in _MACHINE_QUALITIES
+        for item in supporting
+    ):
+        composition = ", ".join(
+            sorted({f"{item.kind.value}/{item.source_quality.value}" for item in supporting})
+        )
+        return (
+            "machine-only evidence (Spec 004 R5.1): every supporting item is "
+            f"machine-checkable ({composition}); the stage is capped at "
+            "'checked' until human-paced support (exposition, or a human / "
+            "primary / secondary source) is recorded"
+        )
+    return None
+
+
+def machine_only_overrides(claims: list[Claim]) -> dict[str, ClaimStage]:
+    """Effective-stage caps imposed by the machine-only gate (R5.1)."""
+    overrides: dict[str, ClaimStage] = {}
+    for claim in claims:
+        if machine_only_reason(claim) is not None and STAGE_ORDER[
+            claim.stage
+        ] > STAGE_ORDER[ClaimStage.CHECKED]:
+            overrides[claim.id] = ClaimStage.CHECKED
+    return overrides

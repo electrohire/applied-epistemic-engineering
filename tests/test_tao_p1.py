@@ -69,7 +69,19 @@ def headline(roles=ROLES, **overrides) -> Claim:
         depends_on=[f"SUB-{role}" for role in roles],
         boundary=["the stated deployment"],
         falsification_tests=["Show the headline result fails in the stated deployment"],
-        evidence=[strong_evidence("h-one", "HS1"), strong_evidence("h-two", "HS2")],
+        # Spec 004 R5.1 (P2): the third item is human-paced, so the
+        # machine-only gate does not cap the headline at `checked`
+        # and mask the decomposition behavior under test.
+        evidence=[
+            strong_evidence("h-one", "HS1"),
+            strong_evidence("h-two", "HS2"),
+            Evidence(
+                ref="h-review",
+                source_id="head-reviewer",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.PRIMARY,
+            ),
+        ],
     )
     kwargs.update(overrides)
     return Claim(**kwargs)

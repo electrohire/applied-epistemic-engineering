@@ -37,7 +37,19 @@ def clean_claim(**overrides) -> Claim:
         stage=ClaimStage.ACCEPTED,
         boundary=["p95 in production"],
         falsification_tests=["Observe p95 at or above 100 ms"],
-        evidence=[strong_evidence("one", "S1"), strong_evidence("two", "S2")],
+        evidence=[
+            strong_evidence("one", "S1"),
+            strong_evidence("two", "S2"),
+            # Spec 004 R5.1 (P2): a human-paced item, so the
+            # machine-only gate does not cap this clean fixture at
+            # `checked` and mask the policy behavior under test.
+            Evidence(
+                ref="review",
+                source_id="reviewer-1",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.PRIMARY,
+            ),
+        ],
     )
     kwargs.update(overrides)
     return Claim(**kwargs)

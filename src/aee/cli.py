@@ -29,6 +29,7 @@ from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger, assessment_content_digest
 from aee.model import (
+    STAGE_ORDER,
     Claim,
     ClaimKind,
     ClaimStage,
@@ -658,6 +659,48 @@ def _gate(args: argparse.Namespace) -> int:
     return _exit_code(outcome)
 
 
+def _gate_not_understood_check(value: dict[str, Any], *, source: str) -> None:
+    """Spec 004 R5.2/R5.3: an assessment serialised without a
+    `not_understood` statement - or with an empty one while the
+    record carries open items (unresolved challenges, stage caps) -
+    is itself a finding, and a finding does not gate. Pre-realignment
+    assessments, which predate the field, fail here by design: the
+    gate is where silence stops being a compatibility strategy."""
+    if "not_understood" not in value:
+        raise ValueError(
+            f"gate: {source} carries no 'not_understood' statement "
+            "(Spec 004 R5.2/R5.3); an assessment that does not state "
+            "what it does not establish is incomplete"
+        )
+    entries = value["not_understood"]
+    if not isinstance(entries, list) or not all(
+        isinstance(entry, str) for entry in entries
+    ):
+        raise ValueError(
+            f"gate: {source} has a malformed 'not_understood' statement "
+            "(expected a list of strings, Spec 004 R5.2)"
+        )
+    if entries:
+        return
+    open_items = bool(value.get("stage_caps")) or any(
+        isinstance(claim, dict)
+        and any(
+            isinstance(failure, dict)
+            and not failure.get("resolved", False)
+            and failure.get("category") not in {"stage_cap", "verified_unexplained"}
+            for failure in claim.get("failures", [])
+            if isinstance(failure, dict)
+        )
+        for claim in value.get("claims", [])
+        if isinstance(claim, dict)
+    )
+    if open_items:
+        raise ValueError(
+            f"gate: {source} states an empty 'not_understood' while its "
+            "record carries open items (Spec 004 R5.3)"
+        )
+
+
 def _gate_cross_check(value: Any, *, source: str) -> str:
     """Spec 003 FR-1.2 (RT2-H1): the gate must not trust the outcome
     string. A gateable file is a structurally complete assessment —
@@ -678,6 +721,7 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
     summary = value.get("summary")
     if not isinstance(summary, str) or not summary.strip():
         raise ValueError(f"gate: {source} is not a complete assessment (missing summary)")
+    _gate_not_understood_check(value, source=source)
     claims = value.get("claims")
     scores = value.get("scores")
     metadata = value.get("metadata")
@@ -755,13 +799,15 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
             f"claim(s), {failure_count} failure mode(s), {below} below "
             f"the {float(threshold):.2f} threshold)"
         )
-    # Spec 004 R1.3: stage_cap records are explanatory and never route
-    # the outcome (the R1.4 stage rule below does that work), so the
-    # recompute excludes them, mirroring AEEEngine._outcome.
+    # Spec 004 R1.3/R3.3: stage_cap and verified_unexplained records
+    # are explanatory and never route the outcome (the R1.4 stage rule
+    # below does that work), so the recompute excludes them, mirroring
+    # AEEEngine._outcome's _NON_OUTCOME_CATEGORIES.
     unresolved = [
         failure
         for failure in failures
-        if not failure.get("resolved", False) and failure.get("category") != "stage_cap"
+        if not failure.get("resolved", False)
+        and failure.get("category") not in {"stage_cap", "verified_unexplained"}
     ]
 
     def _severity(failure: dict[str, Any]) -> str:
@@ -799,36 +845,83 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
         elif "challenge" in verdict_values or "unjudged" in verdict_values:
             recomputed = "iterate"
     if recomputed == "pass":
-        # Spec 004 R1.4: `pass` requires every covered claim at stage
-        # explained+. Claims in a pre-realignment record carry no
+        # Spec 004 R1.4: `pass` requires every covered claim at
+        # EFFECTIVE stage explained+ (the engine judges caps on the
+        # effective stage; the gate mirrors it via the recorded
+        # stage_caps). Claims in a pre-realignment record carry no
         # stage; the cap applies only where a stage is recorded (the
         # current engine always records one).
-        stages = [claim.get("stage") for claim in claims if isinstance(claim, dict)]
+        effective_caps = {
+            cap["claim_id"]: cap.get("stage")
+            for cap in value.get("stage_caps", [])
+            if isinstance(cap, dict) and isinstance(cap.get("claim_id"), str)
+        }
+        stages = [
+            effective_caps.get(claim["id"], claim.get("stage"))
+            for claim in claims
+            if isinstance(claim, dict)
+        ]
         if any(stage in {"created", "checked"} for stage in stages):
             recomputed = "iterate"
     reported = value.get("reported_statuses")
     if isinstance(reported, dict):
         # R1.3 cross-check: the reported (capped) status of every
-        # claim must equal the cap of its recorded status and stage.
+        # claim must equal the cap of its recorded status and its
+        # EFFECTIVE stage. The engine records effective-stage caps in
+        # `stage_caps` (P1 decomposition/attribution overrides and the
+        # P2 machine-only gate can lower the effective stage below
+        # the stored one); where a record exists it governs, and the
+        # record itself is validated against its own stage so a
+        # fabricated record cannot launder a status. Without a
+        # record, the stored stage governs (the P0 rule).
+        recorded_caps = {
+            cap["claim_id"]: cap
+            for cap in value.get("stage_caps", [])
+            if isinstance(cap, dict) and isinstance(cap.get("claim_id"), str)
+        }
         for claim in claims:
             if not isinstance(claim, dict):
                 continue
             status_raw, stage_raw = claim.get("status"), claim.get("stage")
             if not isinstance(status_raw, str) or not isinstance(stage_raw, str):
                 continue
+            record = recorded_caps.get(claim["id"])
+            effective_raw = record.get("stage") if record else stage_raw
+            if not isinstance(effective_raw, str):
+                raise ValueError(
+                    f"gate: {source} claim {claim['id']!r} carries a malformed "
+                    "stage_caps record"
+                )
             try:
-                expected = reported_status_for(ClaimStatus(status_raw), ClaimStage(stage_raw)).value
+                expected = reported_status_for(
+                    ClaimStatus(status_raw), ClaimStage(effective_raw)
+                ).value
             except ValueError:
                 raise ValueError(
                     f"gate: {source} claim {claim.get('id')!r} carries an "
                     "unknown status or stage value"
                 ) from None
+            if record is not None:
+                if STAGE_ORDER[ClaimStage(effective_raw)] > STAGE_ORDER[ClaimStage(stage_raw)]:
+                    raise ValueError(
+                        f"gate: cross-check failed for {source}: stage_caps "
+                        f"record for claim {claim['id']!r} raises its stage "
+                        f"from {stage_raw!r} to {effective_raw!r}; caps only lower"
+                    )
+                if record.get("reported_status") != expected:
+                    raise ValueError(
+                        f"gate: cross-check failed for {source}: stage_caps "
+                        f"record for claim {claim['id']!r} states cap "
+                        f"{record.get('reported_status')!r} but status {status_raw!r} "
+                        f"at effective stage {effective_raw!r} requires "
+                        f"{expected!r} (Spec 004 R1.3)"
+                    )
             if reported.get(claim["id"]) != expected:
                 raise ValueError(
                     f"gate: cross-check failed for {source}: reported status "
                     f"for claim {claim['id']!r} is {reported.get(claim['id'])!r}, "
-                    f"but the stage cap (status {status_raw!r} at stage "
-                    f"{stage_raw!r}) requires {expected!r} (Spec 004 R1.3)"
+                    f"but the stage cap (status {status_raw!r} at effective "
+                    f"stage {effective_raw!r}) requires {expected!r} (Spec 004 R1.3)"
                 )
     if outcome != recomputed and not (outcome == "warn" and recomputed == "pass" and failures):
         raise ValueError(

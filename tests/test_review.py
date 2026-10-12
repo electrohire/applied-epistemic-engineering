@@ -15,7 +15,10 @@ from aee import (
     Claim,
     ClaimStage,
     ClaimStatus,
+    Evidence,
+    EvidenceKind,
     ScoringEngine,
+    SourceQuality,
     build_review_queue,
 )
 
@@ -91,7 +94,21 @@ def test_verdict_changes_surface() -> None:
     engine = AEEEngine(policy=AssessmentPolicy())
     weak = bare_claim("A")
     first = engine.assess([weak])
-    strong = bare_claim("A", [strong_evidence("one", "S1"), strong_evidence("two", "S2")])
+    strong = bare_claim(
+        "A",
+        [
+            strong_evidence("one", "S1"),
+            strong_evidence("two", "S2"),
+            # Spec 004 R5.1 (P2): human-paced support, so the verdict
+            # can reach accept instead of the machine-only cap.
+            Evidence(
+                ref="review",
+                source_id="reviewer-1",
+                kind=EvidenceKind.OBSERVED,
+                source_quality=SourceQuality.PRIMARY,
+            ),
+        ],
+    )
     second = engine.assess([strong])
     queue = build_review_queue(first, second)
     assert len(queue.verdict_changes) == 1

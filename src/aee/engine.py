@@ -14,8 +14,24 @@ from aee.decomposition import (
     effective_stage_overrides,
     override_reasons,
 )
-from aee.model import Claim, ClaimStatus, EvidenceDirection, FailureMode, Severity
-from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
+from aee.model import (
+    STAGE_ORDER,
+    Claim,
+    ClaimStage,
+    ClaimStatus,
+    EvidenceDirection,
+    EvidenceKind,
+    FailureMode,
+    Severity,
+)
+from aee.policy import (
+    AssessmentPolicy,
+    ClaimVerdict,
+    Verdict,
+    evaluate_policy,
+    machine_only_overrides,
+    machine_only_reason,
+)
 from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.reliability import ReliabilityTable
 from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
@@ -53,6 +69,11 @@ class Assessment:
     # never a silent rewrite of the claim record.
     reported_statuses: dict[str, str] = field(default_factory=dict)
     stage_caps: list[StageCap] = field(default_factory=list)
+    # Spec 004 R5.2: what this assessment does NOT establish, stated
+    # from its own inspectable state. Always serialised (possibly
+    # empty when nothing is open); an assessment without the field
+    # is itself a finding at the gate (R5.3).
+    not_understood: list[str] = field(default_factory=list)
 
     @property
     def failures(self) -> list[object]:
@@ -78,6 +99,7 @@ class Assessment:
             "metadata": dict(self.metadata),
             "reported_statuses": dict(self.reported_statuses),
             "stage_caps": [cap.to_dict() for cap in self.stage_caps],
+            "not_understood": list(self.not_understood),
         }
 
 
@@ -120,6 +142,25 @@ class AEEEngine:
         # outcome, summary) so they can never disagree about a stage.
         overrides = effective_stage_overrides(items)
         override_notes = override_reasons(items, overrides)
+        # Spec 004 R5.1: the machine-only gate caps the effective
+        # stage at `checked` for claims carried exclusively by
+        # machine-checkable evidence. Merged with the P1 overrides -
+        # the lowest cap wins; the gate's reason is recorded wherever
+        # it binds (alone or tied).
+        machine = machine_only_overrides(items)
+        for claim_id, stage in machine.items():
+            current = overrides.get(claim_id)
+            if current is None or STAGE_ORDER[stage] < STAGE_ORDER[current]:
+                overrides[claim_id] = stage
+            if overrides.get(claim_id) == stage:
+                claim = next(item for item in items if item.id == claim_id)
+                reason = machine_only_reason(claim)
+                if reason:
+                    override_notes[claim_id] = (
+                        f"{override_notes[claim_id]}; {reason}"
+                        if claim_id in override_notes
+                        else reason
+                    )
         # FR-6.2: the shared-evidence warning is an engine-level check
         # (it needs the whole bundle, like the stress tester's graph
         # checks) and folds in with caller-supplied failures below.
@@ -136,6 +177,12 @@ class AEEEngine:
         # outcome beyond what the cap itself implies).
         extra_failures.extend(decomposition_failures(items))
         extra_failures.extend(_stage_cap_failures(items, overrides, override_notes))
+        # Spec 004 R3.3: verified-but-unexplained is a named risk
+        # state for claims at stage `checked`+ with no exposition
+        # evidence. A risk record, not a correctness failure: it
+        # never lowers a score and never routes the outcome (see
+        # _NON_OUTCOME_CATEGORIES).
+        extra_failures.extend(_verified_unexplained_failures(items))
         if additional_failures:
             extra_failures.extend(additional_failures)
         if extra_failures:
@@ -193,6 +240,9 @@ class AEEEngine:
                 for verdict in verdicts.values()
             ):
                 outcome = "iterate"
+        not_understood = _not_understood(
+            items, caps, failures, scores, self.threshold, metadata
+        )
         below = sum(score.propagated_score < self.threshold for score in scores.values())
         summary = (
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
@@ -288,13 +338,13 @@ class AEEEngine:
                 1
                 for claim in items
                 for failure in claim.failures
-                if failure.category not in {"draft_cap", "stage_cap"}
+                if failure.category not in {"draft_cap", "stage_cap", "verified_unexplained"}
             )
             open_count = sum(
                 1
                 for claim in items
                 for failure in claim.unresolved_failures
-                if failure.category not in {"draft_cap", "stage_cap"}
+                if failure.category not in {"draft_cap", "stage_cap", "verified_unexplained"}
             )
             summary += (
                 f" Dispositions: {raised} challenge(s) raised, "
@@ -312,6 +362,14 @@ class AEEEngine:
             )
             if counts[Verdict.UNJUDGED]:
                 summary += f" Unjudged (stage 'created'): {counts[Verdict.UNJUDGED]}."
+        if not_understood:
+            # R5.3/R6.3: the residual-unknowns statement travels with
+            # the verdict wherever the verdict is rendered, starting
+            # with the summary line itself.
+            summary += (
+                f" Not understood: {len(not_understood)} residual unknown(s) "
+                "are recorded on this assessment (Spec 004 R5.2)."
+            )
         return Assessment(
             project=project,
             phase=phase,
@@ -329,6 +387,7 @@ class AEEEngine:
             # field and is never conflated with this stamp.
             reported_statuses=reported_statuses(items, overrides),
             stage_caps=caps,
+            not_understood=not_understood,
             metadata={
                 "threshold": self.threshold,
                 **(metadata or {}),
@@ -359,7 +418,7 @@ class AEEEngine:
             failure
             for claim in claims
             for failure in claim.unresolved_failures
-            if failure.category != "stage_cap"
+            if failure.category not in _NON_OUTCOME_CATEGORIES
         ]
         if not claims:
             # Spec 003 FR-1.1 (RT1-01): vacuity is not success. Over
@@ -530,6 +589,125 @@ def _stage_cap_failures(
             )
         )
     return failures
+
+
+# Failure categories that EXPLAIN or FLAG a report rather than
+# contest its correctness: the stage-cap record (R1.3), the
+# verified-unexplained risk flag (R3.3). They are reported wherever
+# failure modes are reported, but they never route the outcome and
+# never lower a score - the rules that own them do their own work
+# (stage caps in _outcome's R1.4 rule; the risk flag is a state, not
+# a verdict).
+_NON_OUTCOME_CATEGORIES = frozenset({"stage_cap", "verified_unexplained"})
+
+
+def _verified_unexplained_failures(items: list[Claim]) -> list[FailureMode]:
+    """Spec 004 R3.3: one MEDIUM risk record per claim at stage
+    `checked` or beyond that carries no exposition evidence."""
+    failures: list[FailureMode] = []
+    for claim in items:
+        if STAGE_ORDER[claim.stage] < STAGE_ORDER[ClaimStage.CHECKED]:
+            continue
+        if any(item.kind == EvidenceKind.EXPOSITION for item in claim.evidence):
+            continue
+        failures.append(
+            FailureMode(
+                id=f"AEE-{claim.id}-VERIFIED-UNEXPLAINED",
+                claim_id=claim.id,
+                challenge="Verified but unexplained",
+                breakpoint=(
+                    "Claim is at stage 'checked' or beyond with no exposition "
+                    "evidence: machines have checked it, no named human has "
+                    "explained it (Spec 004 R3.3)"
+                ),
+                severity=Severity.MEDIUM,
+                category="verified_unexplained",
+                recovery_hint=(
+                    "Record exposition evidence by a named human (an identity-"
+                    "registry id) explaining the claim, why the evidence "
+                    "supports it, and where its boundary lies."
+                ),
+            )
+        )
+    return failures
+
+
+def _not_understood(
+    items: list[Claim],
+    caps: list[StageCap],
+    failures: list[FailureMode],
+    scores: dict[str, ClaimScore],
+    threshold: float,
+    metadata: dict[str, Any] | None,
+) -> list[str]:
+    """Spec 004 R5.2: the residual-unknowns statement, generated from
+    inspectable assessment state - never a free-floating disclaimer.
+
+    Sources: stage caps, verified-unexplained flags, incomplete
+    decompositions, lenient stage defaults, open challenge categories,
+    sub-threshold scores, and declared-but-unverified content hashes,
+    plus any author-supplied entries carried in the assessment
+    metadata under `not_understood`.
+    """
+    entries: list[str] = []
+    for cap in caps:
+        entries.append(f"{cap.claim_id}: {cap.note}")
+    for failure in failures:
+        if failure.category == "verified_unexplained":
+            entries.append(
+                f"{failure.claim_id}: verified but unexplained - no named human "
+                "has explained this claim, so what the check establishes is "
+                "narrower than the claim's wording suggests."
+            )
+        elif failure.category == "decomposition_incomplete":
+            entries.append(f"{failure.claim_id}: {failure.challenge}")
+    explained_categories = _NON_OUTCOME_CATEGORIES | {
+        "draft_cap",
+        "decomposition_incomplete",
+    }
+    for claim in items:
+        if claim.stage_defaulted:
+            entries.append(
+                f"{claim.id}: its lifecycle stage was not recorded and "
+                "defaulted to 'created' on load - its position in the "
+                "lifecycle is unrecorded, not established."
+            )
+        open_categories = sorted(
+            {
+                failure.category
+                for failure in claim.unresolved_failures
+                if failure.category not in explained_categories
+            }
+        )
+        if open_categories:
+            entries.append(
+                f"{claim.id}: open challenges this assessment does not "
+                f"resolve: {', '.join(open_categories)}."
+            )
+        score = scores.get(claim.id)
+        if score is not None and score.propagated_score < threshold:
+            entries.append(
+                f"{claim.id}: propagated score {score.propagated_score:.3f} is "
+                f"below the {threshold:.2f} threshold - the claim is not "
+                "established by its evidence as recorded."
+            )
+        unverified = sum(
+            1
+            for item in claim.evidence
+            if item.content_hash is not None and item.content_hash_status is None
+        )
+        if unverified:
+            entries.append(
+                f"{claim.id}: {unverified} evidence item(s) declare a content "
+                "hash that was not recomputed in this run - their contents "
+                "are asserted, not inspected."
+            )
+    author = (metadata or {}).get("not_understood")
+    if isinstance(author, list):
+        entries.extend(str(entry) for entry in author)
+    elif isinstance(author, str) and author.strip():
+        entries.append(author)
+    return entries
 
 
 def _support_set(claim: Claim) -> frozenset[tuple[str, str, str, str, str]]:

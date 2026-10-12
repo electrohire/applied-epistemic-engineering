@@ -76,6 +76,12 @@
         "$ref": "#/$defs/verdict"
       }
     },
+    "not_understood": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "reported_statuses": {
       "type": "object",
       "additionalProperties": {
