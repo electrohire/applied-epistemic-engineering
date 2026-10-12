@@ -259,19 +259,22 @@ class GapEngine:
         content = gaps_path.read_text(encoding="utf-8")
         lines = content.splitlines()
 
-        # Extract timestamp
+        # Extract timestamp and source. Parse by the full label
+        # prefix, never split(":", 1): the label itself contains a
+        # colon ("**Updated:**") and the timestamp contains more, so
+        # a first-colon split corrupts both fields on every
+        # load/rewrite cycle (Spec 003 FR-5 round-trip fidelity).
         generated_at = ""
         for line in lines:
             if line.startswith("**Updated:**"):
-                generated_at = line.split(":", 1)[1].strip()
+                generated_at = line.removeprefix("**Updated:**").strip()
                 break
 
-        # Extract source
         source_matrix = ""
         source_evidence = ""
         for line in lines:
             if line.startswith("**Source:**"):
-                parts = line.split(":", 1)[1].strip()
+                parts = line.removeprefix("**Source:**").strip()
                 # Format: "matrix.md + evidence"
                 if " + " in parts:
                     source_matrix, source_evidence = parts.split(" + ", 1)
