@@ -304,6 +304,55 @@ class StressTester:
                     "Resolve, narrow, or supersede the claim without deleting counterevidence.",
                 )
             )
+        failures.extend(self._polarity_failures(claim))
+        return failures
+
+    def _polarity_failures(self, claim: Claim) -> list[FailureMode]:
+        """Polarity coherence (Spec 003 FR-2.2, RT1-03).
+
+        An item's ``direction`` is the only routing signal scoring,
+        challenge, and policy read — so a refutation relabelled
+        ``direction: context`` used to vanish from all three at once
+        (score 0.25/clarify became 1.0/pass with zero failures). Kind
+        and direction must now cohere:
+
+        The incoherence is one-directional by design: ``kind`` says
+        what an item IS (``contradicted`` = its content is a
+        refutation) while ``direction`` says how it is routed. A
+        refutation (kind ``contradicted``) routed as anything but
+        ``contradicts`` is hidden — HIGH, category ``contradiction``,
+        the same routing as honest counterevidence, so laundering
+        cannot produce a cleaner outcome than honesty would. The
+        reverse combination is NOT incoherent: an observed or inferred
+        item routed ``contradicts`` is ordinary honest
+        counter-evidence (a measurement that refutes), and flagging it
+        would punish the honest labelling this check exists to protect.
+        """
+        failures: list[FailureMode] = []
+        hidden = [
+            item
+            for item in claim.evidence
+            if item.kind == EvidenceKind.CONTRADICTED
+            and item.direction != EvidenceDirection.CONTRADICTS
+        ]
+        if hidden:
+            refs = ", ".join(sorted({item.ref for item in hidden}))
+            failures.append(
+                self._failure(
+                    claim.id,
+                    "Polarity coherence challenge",
+                    f"Contradicted-kind evidence is routed as "
+                    f"{hidden[0].direction.value} instead of contradiction "
+                    f"(ref(s): {refs}); kind and direction must cohere, "
+                    "a refutation cannot be relabelled into invisibility",
+                    Severity.HIGH,
+                    "contradiction",
+                    (
+                        "Route refutations with direction 'contradicts', or "
+                        "correct the kind if the item is not a refutation."
+                    ),
+                )
+            )
         return failures
 
     @staticmethod

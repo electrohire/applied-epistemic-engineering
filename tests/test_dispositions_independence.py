@@ -21,6 +21,7 @@ from aee import (
     AEEEngine,
     BundleValidationError,
     Claim,
+    ClaimStatus,
     Disposition,
     DispositionKind,
     Evidence,
@@ -39,6 +40,12 @@ def _dispositioned_claim(**overrides: object) -> Claim:
     base: dict[str, object] = {
         "id": "CLM-D1",
         "text": IRREDUCIBLE_TEXT,
+        # Explicitly ratified, not the default draft: a disposition IS a
+        # human judgment on a reviewed claim, and under Spec 003 FR-2.3
+        # a draft's outcome is capped at iterate — these tests exercise
+        # dispositions, whose own outcome expectations (pass when fully
+        # dispositioned) require a non-draft claim.
+        "status": ClaimStatus.SUPPORTED,
         "boundary": ["bench rig"],
         "falsification_tests": ["Observe the valve shut while pressure is applied"],
         "evidence": [
