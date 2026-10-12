@@ -7,8 +7,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from aee._version import __version__ as _ENGINE_VERSION
 from aee.challenge import StressTester
-from aee.model import Claim, Severity
+from aee.model import Claim, FailureMode, Severity
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.reliability import ReliabilityTable
@@ -91,9 +92,27 @@ class AEEEngine:
         phase: str = "after_plan",
         metadata: dict[str, Any] | None = None,
         as_of: datetime | None = None,
+        additional_failures: Iterable[FailureMode] | None = None,
     ) -> Assessment:
         items = list(claims)
         failures = self.stress_tester.run(items)
+        if additional_failures:
+            # Caller-supplied failure modes (e.g. evidence verification,
+            # Spec 002 FR-3.5) fold in AFTER the stress tester — which
+            # replaces claim.failures wholesale — and BEFORE recovery,
+            # outcome, and summary, so they count everywhere the
+            # regenerated challenges count. A failure naming a claim
+            # outside this assessment is a caller error, not a verdict.
+            by_id = {claim.id: claim for claim in items}
+            for failure in additional_failures:
+                target = by_id.get(failure.claim_id)
+                if target is None:
+                    raise ValueError(
+                        f"additional failure {failure.id!r} names claim "
+                        f"{failure.claim_id!r}, which is not in this assessment"
+                    )
+                target.failures.append(failure)
+                failures.append(failure)
         scores = self.scoring_engine.score(items, as_of=as_of)
         recoveries = self.recovery_operator.propose(failures)
         outcome = self._outcome(items, scores)
@@ -140,7 +159,16 @@ class AEEEngine:
             outcome=outcome,
             summary=summary,
             created_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-            metadata={"threshold": self.threshold, **(metadata or {})},
+            # FR-4.1: the engine version stamp is authoritative — it is
+            # applied after caller metadata so it cannot be overridden
+            # or fabricated by the caller. methodology_version (on the
+            # Assessment itself) is a DISTINCT, separately-versioned
+            # field and is never conflated with this stamp.
+            metadata={
+                "threshold": self.threshold,
+                **(metadata or {}),
+                "engine_version": _ENGINE_VERSION,
+            },
         )
 
     def _outcome(self, claims: list[Claim], scores: dict[str, ClaimScore]) -> str:

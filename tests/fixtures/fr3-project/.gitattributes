@@ -1,0 +1,4 @@
+# The fr3 bundles declare sha256 content_hashes over these files' exact
+# bytes. Force LF checkouts on every platform so a Windows CRLF checkout
+# cannot change the bytes (and silently break the declared hashes).
+* text eol=lf

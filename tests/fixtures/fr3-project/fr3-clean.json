@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {
+      "id": "CLM-FR3-02",
+      "kind": "requirement",
+      "status": "supported",
+      "text": "The widget holds for 10 s under load",
+      "boundary": [
+        "lab bench"
+      ],
+      "falsification_tests": [
+        "Drop the widget under load and observe it slip before 10 s"
+      ],
+      "evidence": [
+        {
+          "ref": "tests/check_widget.py",
+          "kind": "observed",
+          "source_quality": "test",
+          "content_hash": "sha256:10596c9d4e0f3872ac9da015bec62b31220a88b71cd4e34e991d1d9a71ce7976",
+          "observed_at": "2026-10-01T12:00:00Z",
+          "description": "Test evidence whose declared quality and hash both check out"
+        },
+        {
+          "ref": "docs/design-record.md",
+          "kind": "asserted",
+          "source_quality": "primary",
+          "content_hash": "a3dec53674e4e706de4c49ecfcb12560f9abff0412de6933ad14eafa6fba5322",
+          "description": "Design record declared primary, with a bare-hex hash"
+        },
+        {
+          "ref": "reports/run.log",
+          "kind": "observed",
+          "description": "No declared source_quality: must stay unknown in all outputs even though the ref type derives artifact"
+        },
+        {
+          "ref": "https://example.org/widget-study",
+          "kind": "asserted",
+          "source_quality": "secondary",
+          "description": "URL ref: reported unresolvable-offline, never fetched"
+        }
+      ]
+    }
+  ]
+}

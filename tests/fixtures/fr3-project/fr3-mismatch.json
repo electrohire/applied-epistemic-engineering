@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {
+      "id": "CLM-FR3-01",
+      "kind": "requirement",
+      "status": "supported",
+      "text": "The widget holds for 10 s under load",
+      "boundary": [
+        "lab bench"
+      ],
+      "falsification_tests": [
+        "Drop the widget under load and observe it slip before 10 s"
+      ],
+      "evidence": [
+        {
+          "ref": "reports/missing-run.json",
+          "kind": "observed",
+          "source_quality": "artifact",
+          "description": "Dangling ref: this file does not exist (acceptance case a)"
+        },
+        {
+          "ref": "reports/run.log",
+          "kind": "observed",
+          "source_quality": "artifact",
+          "content_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+          "description": "Corrupted content_hash: all zeros (acceptance case b)"
+        },
+        {
+          "ref": "tests/check_widget.py",
+          "kind": "observed",
+          "source_quality": "tertiary",
+          "description": "A tests/ ref declared tertiary; derived quality is test (acceptance case c)"
+        }
+      ]
+    }
+  ]
+}

@@ -3,9 +3,11 @@
 Copyright (c) 2026 ElectroHire Inc.
 """
 
+from aee._version import __version__ as __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.challenge import StressTester
 from aee.engine import AEEEngine, Assessment
+from aee.evidence_check import EvidenceFinding, EvidenceReport, check_evidence
 from aee.gaps import GapEngine, GapEntry, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import HashChainLedger, LedgerVerification
@@ -30,8 +32,6 @@ from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queu
 from aee.scoring import ClaimScore, ScoringEngine
 from aee.session import AEESession
 
-__version__ = "1.4.0"
-
 __all__ = [
     "AEEEngine",
     "AEESession",
@@ -48,7 +48,9 @@ __all__ = [
     "EvaluatorAdapter",
     "Evidence",
     "EvidenceDirection",
+    "EvidenceFinding",
     "EvidenceKind",
+    "EvidenceReport",
     "FailureMode",
     "GapEngine",
     "GapEntry",
@@ -70,4 +72,5 @@ __all__ = [
     "Verdict",
     "VerdictChange",
     "build_review_queue",
+    "check_evidence",
 ]

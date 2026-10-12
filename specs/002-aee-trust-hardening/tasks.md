@@ -33,18 +33,18 @@
 
 ## FR-3 — Verifiable evidence [engine]
 
-- [ ] T301 [engine] New `src/aee/evidence_check.py`: ref resolution inside project root (path-safety), URL refs reported unresolvable-offline.
-- [ ] T302 [engine] content_hash recomputation + observed_at parse validation in evidence_check.
-- [ ] T303 [engine] Deterministic derived-quality rules + declared-vs-derived mismatch challenges; undeclared quality never upgraded from `unknown`.
-- [ ] T304 [engine] `aee verify-evidence` subcommand; `assess --verify-evidence` folding findings into failure modes.
-- [ ] T305 [engine] Fixtures + tests: dangling ref, corrupted hash, quality mismatch, clean bundle.
+- [x] T301 [engine] New `src/aee/evidence_check.py`: ref resolution inside project root (path-safety), URL refs reported unresolvable-offline.
+- [x] T302 [engine] content_hash recomputation + observed_at parse validation in evidence_check.
+- [x] T303 [engine] Deterministic derived-quality rules + declared-vs-derived mismatch challenges; undeclared quality never upgraded from `unknown`.
+- [x] T304 [engine] `aee verify-evidence` subcommand; `assess --verify-evidence` folding findings into failure modes.
+- [x] T305 [engine] Fixtures + tests: dangling ref, corrupted hash, quality mismatch, clean bundle.
 
 ## FR-4 — Version coherence [engine + extension]
 
-- [ ] T401 [engine] Stamp `metadata.engine_version` from `aee.__version__` in engine/cli metadata assembly.
-- [ ] T402 [engine] Drift test: `aee --version` string equals the stamped version source.
+- [x] T401 [engine] Stamp `metadata.engine_version` from `aee.__version__` in engine/cli metadata assembly.
+- [x] T402 [engine] Drift test: `aee --version` string equals the stamped version source.
 - [ ] T403 [extension] Runner passes extension version; recorded as `metadata.extension_version`; absent (not fabricated) on the bare-CLI path.
-- [ ] T404 [engine] Version policy doc (README/docs): engine version = source of truth, extension floor = compatibility contract, catalog update in the same release PR as an extension bump.
+- [x] T404 [engine] Version policy doc (README/docs): engine version = source of truth, extension floor = compatibility contract, catalog update in the same release PR as an extension bump.
 
 ## FR-5 — Challenge dispositions [engine]
 
