@@ -7,7 +7,6 @@ caps the parent at `checked`; priority is a read over the ledger and
 priority citations resolve by recomputed entry hash.
 """
 
-import pytest
 from test_scoring import strong_evidence
 
 from aee import (
@@ -204,7 +203,7 @@ def test_priority_record_is_earliest_registration(tmp_path):
 
 
 def test_priority_evidence_resolves_by_entry_hash(tmp_path):
-    ledger, entry = _assessed_ledger(tmp_path)
+    _ledger, entry = _assessed_ledger(tmp_path)
     citing = Claim(
         id="CITE",
         text="This work was public first",
@@ -224,7 +223,7 @@ def test_priority_evidence_resolves_by_entry_hash(tmp_path):
 
 
 def test_priority_evidence_rejects_wrong_hash_and_missing_entry(tmp_path):
-    ledger, entry = _assessed_ledger(tmp_path)
+    _ledger, entry = _assessed_ledger(tmp_path)
     wrong_hash = Claim(
         id="CITE",
         text="Cites a hash that is not the entry's",

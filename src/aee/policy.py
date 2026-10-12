@@ -188,9 +188,10 @@ def counterevidence_present(claim: Claim) -> int:
     """
     count = 0
     for item in claim.evidence:
-        if item.direction == EvidenceDirection.CONTRADICTS:
-            count += 1
-        elif item.kind == EvidenceKind.CONTRADICTED:
+        if (
+            item.direction == EvidenceDirection.CONTRADICTS
+            or item.kind == EvidenceKind.CONTRADICTED
+        ):
             count += 1
     return count
 

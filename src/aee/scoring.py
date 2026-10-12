@@ -561,11 +561,17 @@ def _falsification_credit(entry: str) -> tuple[float, list[str]]:
     checkable = (
         any(char.isdigit() for char in entry)
         or any(symbol in entry for symbol in ("<", ">", "=", "≤", "≥"))
-        or any(f" {phrase} " in lowered or lowered.strip().startswith(phrase) for phrase in COMPARATOR_PHRASES)
+        or any(
+            f" {phrase} " in lowered or lowered.strip().startswith(phrase)
+            for phrase in COMPARATOR_PHRASES
+        )
         or any(term in lowered for term in FALSIFIABILITY_TERMS)
     )
     if not checkable:
-        failed.append("no checkable condition (no numeric bound, comparator, or observation/action term)")
+        failed.append(
+            "no checkable condition (no numeric bound, comparator, "
+            "or observation/action term)"
+        )
     return (1.0 if not failed else _PARTIAL_CREDIT), failed
 
 

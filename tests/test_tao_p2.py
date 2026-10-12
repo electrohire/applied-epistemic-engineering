@@ -5,7 +5,6 @@ verified-but-unexplained risk flag (R3.3).
 
 import json
 
-import pytest
 from test_scoring import strong_evidence
 
 from aee import (
@@ -144,7 +143,7 @@ def test_flag_does_not_route_the_outcome_or_score():
     # but no exposition - flagged, counted, and still a pass, with
     # the lane-2 lag stated in the summary.
     claims = []
-    for index, suffix in enumerate(("A", "B")):
+    for _index, suffix in enumerate(("A", "B")):
         claim = machine_claim(id=suffix)
         claim.evidence = [
             strong_evidence(f"{suffix}-one", f"{suffix}-S1"),

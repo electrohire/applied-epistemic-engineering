@@ -195,7 +195,8 @@ def test_substantive_entries_earn_full_credit():
 @pytest.mark.parametrize("text", [
     "The system encrypts stored passwords plus deletes backup copies nightly",
     "The widget heats the sample while-stirring it throughout the cycle",
-    "The service stores user data in the EU region with retention set to 30 days plus export on request",
+    "The service stores user data in the EU region with retention "
+    "set to 30 days plus export on request",
     "Release 2 ships the new parser together with a migration of all stored records",
     "The gateway authenticates callers as well as authorising every request",
 ])
@@ -254,8 +255,16 @@ def test_relevant_boundary_suppresses_absolute_challenge():
 
 def test_same_subject_negation_pair_fires():
     pair = [
-        claim("E3", [ev("a"), ev("b")], text="The database stores passwords in plaintext form"),
-        claim("E4", [ev("a"), ev("b")], text="The database does not store passwords in plaintext form"),
+        claim(
+            "E3",
+            [ev("a"), ev("b")],
+            text="The database stores passwords in plaintext form",
+        ),
+        claim(
+            "E4",
+            [ev("a"), ev("b")],
+            text="The database does not store passwords in plaintext form",
+        ),
     ]
     failures = StressTester().run(pair)
     assert any("Negation conflict" in f.challenge for f in failures)
@@ -263,8 +272,19 @@ def test_same_subject_negation_pair_fires():
 
 def test_different_subjects_sharing_vocabulary_do_not_fire():
     pair = [
-        claim("F1", [ev("a"), ev("b")], text="The audit service does not log credit card numbers at rest"),
-        claim("F2", [ev("a"), ev("b")], text="The billing service logs credit card numbers at rest for reconciliation"),
+        claim(
+            "F1",
+            [ev("a"), ev("b")],
+            text="The audit service does not log credit card numbers at rest",
+        ),
+        claim(
+            "F2",
+            [ev("a"), ev("b")],
+            text=(
+                "The billing service logs credit card numbers at rest "
+                "for reconciliation"
+            ),
+        ),
     ]
     failures = StressTester().run(pair)
     assert not any("Negation conflict" in f.challenge for f in failures)

@@ -63,7 +63,9 @@ def anchor_assessment(
             "installed (Spec 002 FR-8.6); the assessment itself is "
             "unaffected - install axiomere to enable Axiomere anchoring"
         )
-    import axiomere
+    # The optional package has no stubs on this path; availability
+    # was verified by anchor_available() above (FR-8.6).
+    import axiomere  # type: ignore[import-not-found]
 
     digest = assessment_content_digest(assessment)
     metadata = assessment.get("metadata", {})
@@ -75,7 +77,11 @@ def anchor_assessment(
         "methodology_version": assessment.get("methodology_version"),
     }
     path = Path(ledger_path)
-    database = axiomere.Database.open(str(path)) if path.exists() else axiomere.Database.create(str(path))
+    database = (
+        axiomere.Database.open(str(path))
+        if path.exists()
+        else axiomere.Database.create(str(path))
+    )
     event = database.append(ANCHOR_EVENT_TYPE, payload, actor=actor)
     checkpoint = database.checkpoint(actor=actor)
     checkpoint_payload = checkpoint.get("payload", {})

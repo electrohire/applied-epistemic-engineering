@@ -56,13 +56,13 @@ a limited queue):
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 from aee.model import ConfidenceBand, Severity
 
 if TYPE_CHECKING:
-    from aee.model import FailureMode
     from aee.policy import ClaimVerdict
     from aee.scoring import ClaimScore
 
@@ -79,8 +79,14 @@ class AssessmentView(Protocol):
     @property
     def verdicts(self) -> dict[str, ClaimVerdict]: ...
 
+    # The failure channel is read duck-typed (claim_id / id /
+    # severity / resolved, via getattr in _failures_by_claim): an
+    # Assessment carries FailureMode records, while the CLI's view
+    # rebuilt from a serialised assessment carries lightweight
+    # namespaces with the same attributes. Declaring the element
+    # type as FailureMode stated a contract neither producer meets.
     @property
-    def failures(self) -> list[FailureMode]: ...
+    def failures(self) -> Sequence[Any]: ...
 
 
 DEFAULT_MATERIALITY = 0.05
@@ -243,7 +249,9 @@ def build_review_queue(
     cur_failures = _failures_by_claim(current)
     items_by_claim: dict[str, ReviewItem] = {}
 
-    def _item(claim_id: str, before: float, after: float, kind: str, detail: str = "") -> ReviewItem:
+    def _item(
+        claim_id: str, before: float, after: float, kind: str, detail: str = ""
+    ) -> ReviewItem:
         return ReviewItem(
             claim_id=claim_id,
             previous_score=before,

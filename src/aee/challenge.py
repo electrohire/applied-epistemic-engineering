@@ -7,6 +7,12 @@ from collections import Counter
 from collections.abc import Iterable
 
 from aee.graph import ClaimGraph
+from aee.lexicons import (
+    BOUNDARY_SCOPE_TERMS,
+    COMPOUND_CONNECTIVES,
+    TOKEN_SYNONYMS,
+    VAGUE_TERMS,
+)
 from aee.model import (
     Claim,
     ClaimKind,
@@ -17,13 +23,6 @@ from aee.model import (
     FailureMode,
     Severity,
     SourceQuality,
-)
-
-from aee.lexicons import (
-    BOUNDARY_SCOPE_TERMS,
-    COMPOUND_CONNECTIVES,
-    TOKEN_SYNONYMS,
-    VAGUE_TERMS,
 )
 
 
@@ -518,7 +517,7 @@ class StressTester:
         deliberately so - it errs toward silence between different
         subjects rather than noise across them.
         """
-        tokens = [
+        tokens: list[str] = [
             token
             for token in re.findall(r"[a-z0-9]+", text.lower())
             if token not in {"the", "a", "an"}

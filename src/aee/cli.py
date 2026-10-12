@@ -12,8 +12,8 @@ import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from types import SimpleNamespace
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, cast
 
 from aee import __version__
@@ -263,10 +263,18 @@ def build_parser() -> argparse.ArgumentParser:
 
     anchor = sub.add_parser(
         "anchor",
-        help="Deposit an assessment's SHA-256 in an Axiomere .axmr ledger (optional, Spec 002 FR-8b)",
+        help=(
+            "Deposit an assessment's SHA-256 in an Axiomere .axmr "
+            "ledger (optional, Spec 002 FR-8b)"
+        ),
     )
     anchor.add_argument("--input", type=Path, required=True)
-    anchor.add_argument("--ledger", type=Path, required=True, help="Path to the .axmr ledger (created if absent)")
+    anchor.add_argument(
+        "--ledger",
+        type=Path,
+        required=True,
+        help="Path to the .axmr ledger (created if absent)",
+    )
     anchor.add_argument("--actor", default="aee-anchor")
     anchor.add_argument("--project")
     anchor.add_argument("--phase")

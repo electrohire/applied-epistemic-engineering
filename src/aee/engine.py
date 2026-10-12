@@ -468,7 +468,7 @@ class AEEEngine:
         self,
         claims: list[Claim],
         scores: dict[str, ClaimScore],
-        overrides: dict | None = None,
+        overrides: dict[str, ClaimStage] | None = None,
     ) -> str:
         # Threshold rule (Spec 003 FR-8.13(b)): the threshold is
         # INCLUSIVE - a propagated score of exactly the threshold
@@ -624,8 +624,8 @@ def _draft_cap_failures(items: list[Claim]) -> list[FailureMode]:
 
 def _stage_cap_failures(
     items: list[Claim],
-    overrides: dict | None = None,
-    reasons: dict | None = None,
+    overrides: dict[str, ClaimStage] | None = None,
+    reasons: dict[str, str] | None = None,
 ) -> list[FailureMode]:
     """Spec 004 R1.3 visibility record for stage caps.
 

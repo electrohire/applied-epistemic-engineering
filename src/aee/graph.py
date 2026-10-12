@@ -166,9 +166,7 @@ class ClaimGraph:
         or a single member with a self-dependency."""
         cyclic = []
         for component in self.strongly_connected_components():
-            if len(component) > 1:
-                cyclic.append(component)
-            elif component[0] in self.claims[component[0]].depends_on:
+            if len(component) > 1 or component[0] in self.claims[component[0]].depends_on:
                 cyclic.append(component)
         return cyclic
 
