@@ -164,8 +164,7 @@ class ScoringEngine:
             evidence_score *= 1.0 - value
         evidence_score = 1.0 - evidence_score if weighted else 0.0
 
-        source_ids = {item.source_id or item.ref for item in support if item.ref}
-        independence_score = min(1.0, len(source_ids) / 2.0) if support else 0.0
+        independence_score, independence_basis, source_count = self._independence(support)
         falsifiability_score = 1.0 if claim.falsification_tests else 0.0
         boundary_score = 1.0 if claim.boundary else 0.0
         contradiction_penalty = min(
@@ -191,8 +190,21 @@ class ScoringEngine:
             notes.append("No supporting evidence")
         if support and not any(item.kind == EvidenceKind.OBSERVED for item in support):
             notes.append("No observed supporting evidence")
-        if len(source_ids) < 2:
+        if source_count < 2:
             notes.append("Fewer than two independent supporting sources")
+        # FR-6.4: the independence basis is always named — an assumption
+        # surfaced, not buried. The inferred basis carries the caveat
+        # that distinct references may share an origin (FR-6.1).
+        if independence_basis == "declared":
+            notes.append("Independence basis: declared (independent_of declarations honored)")
+        elif independence_basis == "inferred-from-references":
+            notes.append(
+                "Independence basis: inferred-from-references (distinct references "
+                "counted as independent; may overstate independence when "
+                "references share an origin)"
+            )
+        else:
+            notes.append("Independence basis: none (no identifiable supporting sources)")
         if freshness_penalty:
             notes.append(f"Freshness penalty {freshness_penalty:.3f}")
         if unparseable_dates:
@@ -214,6 +226,59 @@ class ScoringEngine:
             contradiction_penalty=round(contradiction_penalty, 6),
             notes=notes,
         )
+
+    @staticmethod
+    def _independence(support: Sequence[Evidence]) -> tuple[float, str, int]:
+        """Independence component (Spec 002 FR-6.1/6.4).
+
+        Returns ``(score, basis, source_count)``. Supporting items are
+        grouped by source identity (``source_id or ref``); items in one
+        group count as ONE source. A declared ``independent_of`` entry
+        naming another item (by ref or source_id) separates the two
+        items even when they share an identity — declarations are
+        honored, not ignored as they were when the field was write-only.
+
+        Basis: ``declared`` when any independent_of declaration links
+        two supporting items, ``inferred-from-references`` when the
+        count rests on distinct references alone, ``none`` when no
+        supporting item carries a source identity.
+        """
+        if not support:
+            return 0.0, "none", 0
+
+        def identifiers(item: Evidence) -> set[str]:
+            return {value for value in (item.source_id, item.ref) if value}
+
+        def declared_pair(left: Evidence, right: Evidence) -> bool:
+            return bool(
+                set(left.independent_of) & identifiers(right)
+                or set(right.independent_of) & identifiers(left)
+            )
+
+        declared_any = any(
+            declared_pair(left, right)
+            for index, left in enumerate(support)
+            for right in support[index + 1 :]
+        )
+        # Greedy grouping in evidence order: an item joins the first
+        # same-identity group it is not declared independent of a
+        # member of; otherwise it starts a new group (a new source).
+        groups: list[tuple[str, list[Evidence]]] = []
+        for item in support:
+            key = item.source_id or item.ref
+            if not key:
+                continue
+            for group_key, members in groups:
+                if group_key == key and not any(declared_pair(item, member) for member in members):
+                    members.append(item)
+                    break
+            else:
+                groups.append((key, [item]))
+        source_count = len(groups)
+        if source_count == 0:
+            return 0.0, "none", 0
+        basis = "declared" if declared_any else "inferred-from-references"
+        return min(1.0, source_count / 2.0), basis, source_count
 
     @staticmethod
     def _freshness_penalty(evidence: Sequence[Evidence], as_of: datetime) -> tuple[float, int]:
