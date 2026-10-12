@@ -89,6 +89,9 @@ aee assess --input claims.json --phase after_plan --output assessment.json \
   --evaluator-output evaluator-result.json --ledger .aee/epistemic-ledger.jsonl
 
 aee challenge --input claims.json --phase after_plan --output challenge.json
+aee validate claims.json   # strict load + structural checks (CI: 0 valid, 2 invalid)
+aee verify-evidence claims.json --project-root .   # refs resolve, hashes recompute, quality is derived vs declared
+aee assess --input claims.json --verify-evidence --project-root .   # the same checks, folded into the assessment
 aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAPS.md
 aee verify-ledger --ledger .aee/epistemic-ledger.jsonl
 aee graph --input claims.json --output claim-graph.mmd
@@ -127,6 +130,8 @@ collection/abstention, and `2` for a hard block or invalid ledger.
 Full documentation is configured for Read the Docs at
 [applied-epistemic-engineering.readthedocs.io](https://applied-epistemic-engineering.readthedocs.io).
 Users adopting AEE from another implementation can follow the [migration guide](docs/migration.md).
+How the engine, extension, and catalog versions relate is specified in the
+[version policy](docs/versioning.md).
 
 ## Ownership and license
 
