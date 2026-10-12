@@ -13,6 +13,7 @@ from aee.model import (
     Claim,
     ClaimKind,
     ClaimStatus,
+    DispositionKind,
     Evidence,
     EvidenceKind,
     FailureMode,
@@ -86,6 +87,23 @@ def validate_bundle_structure(claims: list[Claim]) -> tuple[list[str], list[str]
                     f"claim '{claim.id}': conflicts_with references '{ref}', "
                     "which is not in this bundle"
                 )
+        # FR-5.3: split dispositions name their successors; a successor
+        # outside the bundle is a warning here (assessment reports it
+        # as a failure mode as well).
+        for disposition in claim.dispositions:
+            if disposition.kind is not DispositionKind.SPLIT:
+                continue
+            if not disposition.successors:
+                warnings.append(
+                    f"claim '{claim.id}': split disposition for "
+                    f"'{disposition.challenge_category}' names no successor claims"
+                )
+            for ref in disposition.successors:
+                if ref not in seen:
+                    warnings.append(
+                        f"claim '{claim.id}': split disposition successor '{ref}' "
+                        "is not in this bundle"
+                    )
     return errors, warnings
 
 
