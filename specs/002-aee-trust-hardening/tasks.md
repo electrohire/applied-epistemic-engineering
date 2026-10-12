@@ -48,19 +48,20 @@
 
 ## FR-5 — Challenge dispositions [engine]
 
-- [ ] T501 [engine] `dispositions` record on Claim (model + JSON schema): kind (split|accepted-atomic|waived), reason (required), author, date; strict-load validity.
-- [ ] T502 [engine] Challenge regeneration honors stored dispositions: matched challenges report resolved with reason inspectable; `split` successors validated for existence.
-- [ ] T503 [engine] Disposition coverage in assessment summary (raised / dispositioned / open).
-- [ ] T504 [engine] `_COMPOUND` recalibration + atomic-prose fixture set that must not draw the irreducibility challenge.
-- [ ] T505 [engine] Tests: reasoned disposition persists across runs; reasonless waiver fails strict load; removing a disposition reopens the challenge.
+- [x] T501 [engine] `dispositions` record on Claim (model + JSON schema): kind (split|accepted-atomic|waived), reason (required), author, date; strict-load validity.
+- [x] T502 [engine] Challenge regeneration honors stored dispositions: matched challenges report resolved with reason inspectable; `split` successors validated for existence.
+- [x] T503 [engine] Disposition coverage in assessment summary (raised / dispositioned / open).
+- [x] T504 [engine] `_COMPOUND` recalibration + atomic-prose fixture set that must not draw the irreducibility challenge.
+  - **Scope note 2026-10-12**: this phase recalibrates only the FR-5.5 case — punctuation-only signal + exactly one falsification test no longer draws the challenge; connective words still fire. The deeper lexicon/recall work stays with Spec 003 FR-8.15/FR-8.8, which owns it later.
+- [x] T505 [engine] Tests: reasoned disposition persists across runs; reasonless waiver fails strict load; removing a disposition reopens the challenge.
 
 ## FR-6 — Dependency & independence on-ramps [engine + extension]
 
-- [ ] T601 [engine] Scoring consumes `Evidence.independent_of` (`src/aee/scoring.py`).
-- [ ] T602 [engine] Independence basis in score notes (`declared` / `inferred-from-references` / `none`); inferred basis carries the shared-origin caveat.
-- [ ] T603 [engine] Shared-evidence warning class (`independence_unmodeled`) when claims share supporting refs/source_ids without declarations.
+- [x] T601 [engine] Scoring consumes `Evidence.independent_of` (`src/aee/scoring.py`).
+- [x] T602 [engine] Independence basis in score notes (`declared` / `inferred-from-references` / `none`); inferred basis carries the shared-origin caveat.
+- [x] T603 [engine] Shared-evidence warning class (`independence_unmodeled`) when claims share supporting refs/source_ids without declarations.
 - [ ] T604 [extension] Draft-claims scaffolds `depends_on` proposals from explicit spec cross-references (rides on T202/T203).
-- [ ] T605 [engine] Tests: same-origin-different-ref fixture no longer reports unqualified 1.0; declarations change the computation; disjoint fixture stays silent.
+- [x] T605 [engine] Tests: same-origin-different-ref fixture no longer reports unqualified 1.0; declarations change the computation; disjoint fixture stays silent.
 
 ## FR-7 — Reference evaluator [evaluator]
 
