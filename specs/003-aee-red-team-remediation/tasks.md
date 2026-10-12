@@ -10,17 +10,17 @@
 
 ## Phase 0 — Baseline
 
-- [ ] T001 [engine] Re-run the full red-team probe suite (RT1 p1–p7, RT2 p01–p14) against the current engine; archive outputs as the pre-change baseline in the spec's hidden work records.
+- [x] T001 [engine] Re-run the full red-team probe suite (RT1 p1–p7, RT2 p01–p14) against the current engine; archive outputs as the pre-change baseline in the spec's hidden work records. — FR-1-relevant subset done with the FR-1 phase (RT1 p2, RT2 p05, RT2 p09 re-run pre/post and archived in ~/workspace/aee-redteam/baseline-003-fr1/); the remaining probes are baselined by the phases that consume them.
 - [ ] T002 [evaluator] Re-run RT4 probe suite (`probe_compose`, `probe2`, `probe_engine`, `probe_engine_compose`) and archive as baseline.
 - [ ] T003 [benchmark] Re-run RT4 `probe_bench` + benchmark unit tests; record the stale-stack baseline (pins, failures) before any re-pin.
 
 ## FR-1 — Outcome integrity [engine]
 
-- [ ] T101 [engine] Empty-bundle rule in `src/aee/engine.py` per OD-2: zero claims never yields `pass`; explicit empty-bundle failure or exit-2 input error, decision recorded in the PR.
-- [ ] T102 [engine] Duplicate claim ids: reorder/guard assess so the CRITICAL duplicate-identity challenge produces a completed assessment (expected `block`) instead of the `ClaimGraph` `ValueError`.
-- [ ] T103 [engine] `AEESession.load()` applies the same duplicate rule (refuse/report, never last-wins) in `src/aee/session.py`.
-- [ ] T104 [engine] `aee gate` cross-checks: outcome vs. scores/summary/threshold metadata, and assessment hash against the ledger where one is present; fabricated files gate as input errors.
-- [ ] T105 [engine] Tests inverting RT1 `p2` §§A/C, RT2 `p09` §6, `p05` §§2–3 (empty, fabricated gate, duplicates) including exit-code assertions (never traceback, never exit 1 for input errors).
+- [x] T101 [engine] Empty-bundle rule in `src/aee/engine.py` per OD-2: zero claims never yields `pass`; explicit empty-bundle failure or exit-2 input error, decision recorded in the PR. — OD-2 implemented as belt-and-braces (branch impl/003-fr1-outcome-integrity): the CLI refuses an explicitly empty bundle as a clean exit-2 input error naming the zero claims, AND the engine returns outcome `block` (never `pass`, healthy False) for a zero-claim list so API consumers are protected too; the owner may reverse the CLI half.
+- [x] T102 [engine] Duplicate claim ids: reorder/guard assess so the CRITICAL duplicate-identity challenge produces a completed assessment (expected `block`) instead of the `ClaimGraph` `ValueError`. — Scoring builds its graph over first-occurrence ids (ClaimGraph.add's refusal stays for direct graph consumers); the assessment completes as `block` on the stress tester's CRITICAL challenge.
+- [x] T103 [engine] `AEESession.load()` applies the same duplicate rule (refuse/report, never last-wins) in `src/aee/session.py`. — load() raises ValueError("duplicate claim id: …"), the same message shape as add_claim.
+- [x] T104 [engine] `aee gate` cross-checks: outcome vs. scores/summary/threshold metadata, and assessment hash against the ledger where one is present; fabricated files gate as input errors. — Gate requires a structurally complete assessment, verifies summary counts against contents, recomputes the outcome from failures/scores/threshold/verdicts under the engine's rules, and (where metadata records a ledger) verifies the chain and the assessment's SHA-256 entry; every failure is a clean exit-2 input error.
+- [x] T105 [engine] Tests inverting RT1 `p2` §§A/C, RT2 `p09` §6, `p05` §§2–3 (empty, fabricated gate, duplicates) including exit-code assertions (never traceback, never exit 1 for input errors). — tests/test_outcome_integrity.py (15 tests).
 
 ## FR-2 — Score-inflation kit [engine]
 
