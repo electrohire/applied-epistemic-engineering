@@ -13,6 +13,7 @@ from typing import Any, cast
 from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.engine import AEEEngine
+from aee.evidence_check import check_evidence
 from aee.extract import load_claims, migrate_bundle, validate_bundle_structure
 from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
@@ -72,6 +73,34 @@ def build_parser() -> argparse.ArgumentParser:
         "historical silent-default loader instead of strict validation. "
         "Its use is echoed into the assessment metadata.",
     )
+    assess.add_argument(
+        "--verify-evidence",
+        action="store_true",
+        help="Verify evidence refs inline (Spec 002 FR-3.5): refs are "
+        "resolved inside the project root, content_hash values are "
+        "recomputed, and findings fold into the assessment as failure modes.",
+    )
+    assess.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Project root evidence refs resolve against with "
+        "--verify-evidence (default: current working directory).",
+    )
+
+    verify_evidence = sub.add_parser(
+        "verify-evidence",
+        help="Resolve evidence refs, recompute content_hash values, and "
+        "report declared-vs-derived source quality (Spec 002 FR-3)",
+    )
+    verify_evidence.add_argument("bundle", type=Path)
+    verify_evidence.add_argument(
+        "--project-root",
+        type=Path,
+        default=None,
+        help="Project root evidence refs resolve against (default: current working directory).",
+    )
+    verify_evidence.add_argument("--output", type=Path)
 
     validate = sub.add_parser(
         "validate",
@@ -146,6 +175,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _assess(args)
         if args.command == "validate":
             return _validate(args)
+        if args.command == "verify-evidence":
+            return _verify_evidence(args)
         if args.command == "migrate":
             return _migrate(args)
         if args.command == "challenge":
@@ -178,6 +209,27 @@ def _validate(args: argparse.Namespace) -> int:
             print(f"Error: {error}", file=sys.stderr)
         return 2
     print(f"valid: {len(claims)} claim(s) in {args.bundle.as_posix()}")
+    return 0
+
+
+def _verify_evidence(args: argparse.Namespace) -> int:
+    claims = load_claims(args.bundle)
+    root = args.project_root if args.project_root is not None else Path.cwd()
+    report = check_evidence(claims, root)
+    _write_or_print(report.to_dict(), args.output)
+    if report.findings:
+        for finding in report.findings:
+            print(
+                f"finding: claim '{finding.claim_id}' evidence[{finding.evidence_index}] "
+                f"({finding.category}): {finding.message}",
+                file=sys.stderr,
+            )
+        return 2
+    print(
+        f"verified: {report.checked} evidence item(s), "
+        f"{report.unresolvable_offline} unresolvable offline",
+        file=sys.stderr,
+    )
     return 0
 
 
@@ -217,11 +269,24 @@ def _assess(args: argparse.Namespace) -> int:
     if args.lenient:
         # FR-1.3: lenient mode is never silent — its use is on the record.
         metadata["loading_mode"] = "lenient"
+    evidence_failures: list[FailureMode] | None = None
+    if args.verify_evidence:
+        # FR-3.5: the same checks as `aee verify-evidence`, folded into
+        # the assessment as failure modes and summarized in metadata.
+        root = args.project_root if args.project_root is not None else Path.cwd()
+        report = check_evidence(claims, root)
+        evidence_failures = report.failure_modes()
+        metadata["evidence_verification"] = {
+            "checked": report.checked,
+            "findings": len(report.findings),
+            "unresolvable_offline": report.unresolvable_offline,
+        }
     assessment = engine.assess(
         claims,
         project=args.project,
         phase=args.phase,
         metadata=metadata,
+        additional_failures=evidence_failures,
     )
     if args.ledger:
         HashChainLedger(args.ledger).append_assessment(assessment, actor=args.actor)
