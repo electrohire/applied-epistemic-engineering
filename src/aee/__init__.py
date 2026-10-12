@@ -40,7 +40,7 @@ from aee.model import (
     Uncertainty,
     normalize_claim_id,
 )
-from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, verdict_ceiling
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
 from aee.reliability import ReliabilityTable, SourceRecord
 from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queue
@@ -105,4 +105,5 @@ __all__ = [
     "normalize_source_identity",
     "source_identity",
     "validate_evaluator_result",
+    "verdict_ceiling",
 ]

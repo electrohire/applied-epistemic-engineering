@@ -9,7 +9,16 @@ from typing import Any
 
 from aee._version import __version__ as _ENGINE_VERSION
 from aee.challenge import StressTester
-from aee.model import Claim, ClaimStatus, EvidenceDirection, FailureMode, Severity
+from aee.model import (
+    STAGE_ORDER,
+    Claim,
+    ClaimStage,
+    ClaimStatus,
+    EvidenceDirection,
+    EvidenceKind,
+    FailureMode,
+    Severity,
+)
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.reliability import ReliabilityTable
@@ -48,6 +57,14 @@ class Assessment:
     # never a silent rewrite of the claim record.
     reported_statuses: dict[str, str] = field(default_factory=dict)
     stage_caps: list[StageCap] = field(default_factory=list)
+    # Spec 004 R3.3/R5.2: per-claim digestion tracking (stage,
+    # whether exposition evidence is present, who the explainers
+    # are) and the residual-unknowns statement. `not_understood` is
+    # generated from inspectable assessment state — stage caps,
+    # verified-but-unexplained claims, stage defaults/derivations,
+    # and open failure modes — never a free-floating disclaimer.
+    digestion: dict[str, Any] = field(default_factory=dict)
+    not_understood: list[str] = field(default_factory=list)
 
     @property
     def failures(self) -> list[object]:
@@ -73,6 +90,8 @@ class Assessment:
             "metadata": dict(self.metadata),
             "reported_statuses": dict(self.reported_statuses),
             "stage_caps": [cap.to_dict() for cap in self.stage_caps],
+            "digestion": dict(self.digestion),
+            "not_understood": list(self.not_understood),
         }
 
 
@@ -122,6 +141,21 @@ class AEEEngine:
         # explains a lowered report; it must never escalate an
         # outcome beyond what the cap itself implies).
         extra_failures.extend(_stage_cap_failures(items))
+        # Spec 004 R3.2 (lenient half): exposition items that failed
+        # identity resolution at load are re-emitted here as
+        # claim-attributed failure modes (category
+        # `identity_resolution`) — the load-time record alone would
+        # be wiped by the stress tester's wholesale replacement of
+        # claim.failures above.
+        extra_failures.extend(_identity_resolution_failures(items))
+        # Spec 004 R3.3: digestion tracking + the
+        # verified-but-unexplained risk state. A claim at stage
+        # `checked` or beyond with no (resolved) exposition evidence
+        # is flagged MEDIUM with NO score effect — the flag is a risk
+        # state, not a correctness failure, and like the stage_cap
+        # record it does not route the outcome (see _outcome).
+        digestion = _digestion_tracking(items)
+        extra_failures.extend(_verified_unexplained_failures(items, digestion))
         if additional_failures:
             extra_failures.extend(additional_failures)
         if extra_failures:
@@ -226,6 +260,30 @@ class AEEEngine:
                 "a stage defaulted to 'created' (lenient path, Spec 004 R1.1; "
                 "recorded in metadata.stage_defaulted_claims)."
             )
+        # Spec 004 R6.3 (P0 form): the lane-2 lag is stated, not
+        # hidden — counts of claims by stage appear wherever the
+        # summary does, including when the outcome is `pass` with
+        # stage caps present.
+        if items:
+            stage_counts = {
+                stage: sum(1 for claim in items if claim.stage == stage)
+                for stage in ClaimStage
+            }
+            summary += " Stages: " + ", ".join(
+                f"{stage_counts[stage]} {stage.value}" for stage in ClaimStage
+            ) + "."
+        unexplained = [
+            claim.id
+            for claim in items
+            if STAGE_ORDER[claim.stage] >= STAGE_ORDER[ClaimStage.CHECKED]
+            and not digestion[claim.id]["exposition_present"]
+        ]
+        if unexplained:
+            summary += (
+                f" Verified but unexplained: {len(unexplained)} claim(s) at "
+                "stage 'checked' or beyond have no exposition evidence by a "
+                "named human (Spec 004 R3.3)."
+            )
         # FR-5.4: disposition coverage — how many of the challenges
         # raised were answered by a stored disposition, and how many
         # remain open. Reported whenever dispositions are in play (a
@@ -245,13 +303,13 @@ class AEEEngine:
                 1
                 for claim in items
                 for failure in claim.failures
-                if failure.category not in {"draft_cap", "stage_cap"}
+                if failure.category not in {"draft_cap", "stage_cap", "verified_unexplained"}
             )
             open_count = sum(
                 1
                 for claim in items
                 for failure in claim.unresolved_failures
-                if failure.category not in {"draft_cap", "stage_cap"}
+                if failure.category not in {"draft_cap", "stage_cap", "verified_unexplained"}
             )
             summary += (
                 f" Dispositions: {raised} challenge(s) raised, "
@@ -269,6 +327,7 @@ class AEEEngine:
             )
             if counts[Verdict.UNJUDGED]:
                 summary += f" Unjudged (stage 'created'): {counts[Verdict.UNJUDGED]}."
+        not_understood = _not_understood(items, caps, digestion, unexplained)
         return Assessment(
             project=project,
             phase=phase,
@@ -278,6 +337,8 @@ class AEEEngine:
             verdicts=verdicts,
             outcome=outcome,
             summary=summary,
+            digestion=digestion,
+            not_understood=not_understood,
             created_at=datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             # FR-4.1: the engine version stamp is authoritative — it is
             # applied after caller metadata so it cannot be overridden
@@ -296,6 +357,19 @@ class AEEEngine:
                     if any(c.stage_defaulted for c in items)
                     else {}
                 ),
+                # The task-named form of the same record: the claim
+                # ids whose stage was defaulted on the lenient path.
+                **(
+                    {"stage_defaults": [c.id for c in items if c.stage_defaulted]}
+                    if any(c.stage_defaulted for c in items)
+                    else {}
+                ),
+                # Lane-2 state at bundle level: how many claims sit
+                # at each lifecycle stage in this assessment.
+                "stage_counts": {
+                    stage.value: sum(1 for c in items if c.stage == stage)
+                    for stage in ClaimStage
+                },
                 "engine_version": _ENGINE_VERSION,
             },
         )
@@ -307,11 +381,16 @@ class AEEEngine:
         # claim whose only record is its qualified-supported cap can
         # still pass, exactly as R1.4 allows. (The draft_cap record
         # is different by design: FR-2.3's cap IS outcome-bearing.)
+        # verified_unexplained records (R3.3) are likewise a named
+        # RISK STATE, not a correctness failure: reported and counted
+        # everywhere failure modes are, but they do not route the
+        # outcome either — the R1.4 stage rule and the claim's real
+        # challenges do that work.
         outcome_failures = [
             failure
             for claim in claims
             for failure in claim.unresolved_failures
-            if failure.category != "stage_cap"
+            if failure.category not in {"stage_cap", "verified_unexplained"}
         ]
         if not claims:
             # Spec 003 FR-1.1 (RT1-01): vacuity is not success. Over
@@ -471,6 +550,161 @@ def _stage_cap_failures(items: list[Claim]) -> list[FailureMode]:
             )
         )
     return failures
+
+
+def _digestion_tracking(items: list[Claim]) -> dict[str, Any]:
+    """Per-claim digestion tracking (Spec 004 R3.3).
+
+    For every claim: its stage, whether exposition evidence is
+    present, and who the explainers are. An exposition item whose
+    source_id failed identity resolution on the lenient path (it is
+    in the claim's `unresolved_exposition`) confers NO credit: it is
+    not an explanation by a resolved named human, so it neither
+    marks exposition present nor names an explainer.
+    """
+    tracking: dict[str, Any] = {}
+    for claim in items:
+        explainers = sorted(
+            {
+                item.source_id
+                for item in claim.evidence
+                if item.kind == EvidenceKind.EXPOSITION
+                and item.source_id
+                and item.source_id not in claim.unresolved_exposition
+            }
+        )
+        tracking[claim.id] = {
+            "stage": claim.stage.value,
+            "exposition_present": bool(explainers),
+            "explainers": explainers,
+        }
+    return tracking
+
+
+def _verified_unexplained_failures(
+    items: list[Claim], digestion: dict[str, Any]
+) -> list[FailureMode]:
+    """Spec 004 R3.3: the verified-but-unexplained risk state.
+
+    One MEDIUM failure per claim at stage `checked` or beyond with
+    no exposition evidence. MEDIUM and outcome-neutral (see
+    _outcome): the flag names a risk state, not a correctness
+    failure, and it has NO score effect — scores are computed from
+    evidence by the scoring engine, which never reads failures.
+    """
+    return [
+        FailureMode(
+            id=f"AEE-{claim.id}-VERIFIED-UNEXPLAINED",
+            claim_id=claim.id,
+            challenge="Verified but unexplained",
+            breakpoint=(
+                f"Claim is at stage '{claim.stage.value}' with no exposition "
+                "evidence: the claim has been checked, but no named human has "
+                "explained what it asserts, why the evidence supports it, and "
+                "where its boundary lies (Spec 004 R3.3)"
+            ),
+            severity=Severity.MEDIUM,
+            category="verified_unexplained",
+            recovery_hint=(
+                "Add exposition evidence (kind 'exposition') whose source_id "
+                "resolves to a 'person' entry in the project identity registry."
+            ),
+        )
+        for claim in items
+        if STAGE_ORDER[claim.stage] >= STAGE_ORDER[ClaimStage.CHECKED]
+        and not digestion[claim.id]["exposition_present"]
+    ]
+
+
+def _identity_resolution_failures(items: list[Claim]) -> list[FailureMode]:
+    """Spec 004 R3.2 (lenient half), re-emitted at assessment time.
+
+    One failure per (claim, unresolved exposition source_id),
+    mirroring the load-time record in `Claim.from_dict` — re-emitted
+    because the stress tester replaces claim.failures wholesale.
+    """
+    failures: list[FailureMode] = []
+    for claim in items:
+        for index, source_id in enumerate(dict.fromkeys(claim.unresolved_exposition)):
+            failures.append(
+                FailureMode(
+                    id=f"AEE-{claim.id}-IDENTITY-RESOLUTION-{index}",
+                    claim_id=claim.id,
+                    challenge="Exposition identity resolution (lenient load)",
+                    breakpoint=(
+                        f"Exposition evidence source_id {source_id!r} did not "
+                        "resolve to a 'person' entry in the project identity "
+                        "registry at load time (Spec 004 R3.2); the item "
+                        "confers no explanation credit"
+                    ),
+                    severity=Severity.MEDIUM,
+                    category="identity_resolution",
+                    recovery_hint=(
+                        "Name a 'person' entry of the project identity "
+                        "registry as the exposition item's source_id, or "
+                        "load strictly to see the FR-1 error shape."
+                    ),
+                )
+            )
+    return failures
+
+
+def _not_understood(
+    items: list[Claim],
+    caps: list[StageCap],
+    digestion: dict[str, Any],
+    unexplained: list[str],
+) -> list[str]:
+    """The residual-unknowns statement (Spec 004 R5.2, P0 form).
+
+    Generated entirely from inspectable assessment state, in a
+    deterministic order: stage-cap reasons, verified-but-unexplained
+    entries, stage-default/derivation notices, then a per-claim
+    summary of the open failure modes the assessment did not
+    resolve. The bundle outcome stays the lane-1 word; this list is
+    what the assessment states it does NOT establish.
+    """
+    entries: list[str] = []
+    for cap in caps:
+        entries.append(
+            f"claim '{cap.claim_id}': stage cap at stage '{cap.stage}' — "
+            f"{cap.note} Lifting event: {cap.lifting_event}."
+        )
+    for claim_id in unexplained:
+        entries.append(
+            f"claim '{claim_id}': verified but unexplained — at stage "
+            f"'{digestion[claim_id]['stage']}' with no exposition evidence "
+            "by a named human (Spec 004 R3.3); the evidence has been "
+            "checked, but no human explanation is on record."
+        )
+    for claim in items:
+        if claim.stage_defaulted:
+            entries.append(
+                f"claim '{claim.id}': stage defaulted to 'created' on the "
+                "lenient load path — the bundle recorded no stage, so "
+                "nothing about this claim's lifecycle is established "
+                "(Spec 004 R1.1)."
+            )
+        elif claim.stage_derived:
+            entries.append(
+                f"claim '{claim.id}': stage '{claim.stage.value}' was "
+                "derived from its latest recorded stage event; the bundle "
+                "recorded no stored stage (Spec 004 R1.2)."
+            )
+    for claim in items:
+        open_failures = [
+            failure
+            for failure in claim.unresolved_failures
+            if failure.category not in {"stage_cap", "verified_unexplained"}
+        ]
+        if open_failures:
+            categories = ", ".join(sorted({failure.category for failure in open_failures}))
+            entries.append(
+                f"claim '{claim.id}': {len(open_failures)} open failure "
+                f"mode(s) ({categories}); the assessment does not establish "
+                "that these challenges are answered."
+            )
+    return entries
 
 
 def _support_set(claim: Claim) -> frozenset[tuple[str, str, str, str, str]]:

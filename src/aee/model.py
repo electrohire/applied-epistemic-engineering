@@ -598,41 +598,54 @@ class IdentityRegistry:
 
     @classmethod
     def from_dict(cls, value: Any, *, context: str = "identity registry") -> IdentityRegistry:
-        rows: list[Any]
+        # Normalise the accepted shapes to raw entry rows first, so
+        # the registry-level rules below run in a fixed order:
+        # duplicate ids are reported before per-entry shape problems
+        # (a registry with two spellings of one id is ambiguous no
+        # matter what else is wrong with it).
+        raw_rows: list[tuple[Any, str]]
         if isinstance(value, dict) and "identities" in value:
             rows = value["identities"]
             if not isinstance(rows, list):
                 raise BundleValidationError(f"{context}: field 'identities' must be a list")
-            parsed = [
-                IdentityEntry.from_dict(row, context=f"{context} identities[{index}]")
-                for index, row in enumerate(rows)
-            ]
+            raw_rows = [(row, f"{context} identities[{index}]") for index, row in enumerate(rows)]
         elif isinstance(value, list):
-            parsed = [
-                IdentityEntry.from_dict(row, context=f"{context} identities[{index}]")
-                for index, row in enumerate(value)
-            ]
+            raw_rows = [(row, f"{context} identities[{index}]") for index, row in enumerate(value)]
         elif isinstance(value, dict):
-            parsed = []
+            raw_rows = []
             for entry_id, row in value.items():
                 if not isinstance(row, dict):
                     raise BundleValidationError(
-                        f"{context}: entry '{entry_id}' must be an object, got {type(row).__name__}"
+                        f"{context}: entry '{entry_id}' must be an object, "
+                        f"got {type(row).__name__}"
                     )
-                merged = {"id": entry_id, **row}
-                parsed.append(
-                    IdentityEntry.from_dict(merged, context=f"{context} entry '{entry_id}'")
-                )
+                raw_rows.append(({"id": entry_id, **row}, f"{context} entry '{entry_id}'"))
         else:
             raise BundleValidationError(
                 f"{context}: registry must be an object or a list, got {type(value).__name__}"
             )
-        entries: dict[str, IdentityEntry] = {}
-        for entry in parsed:
-            if entry.id in entries:
-                raise BundleValidationError(f"{context}: duplicate identity id '{entry.id}'")
-            entries[entry.id] = entry
-        return cls(entries=entries)
+        seen_ids: set[str] = set()
+        for row, _row_ctx in raw_rows:
+            if isinstance(row, dict) and isinstance(row.get("id"), str):
+                if row["id"] in seen_ids:
+                    raise BundleValidationError(
+                        f"{context}: duplicate identity id '{row['id']}'"
+                    )
+                seen_ids.add(row["id"])
+        parsed: list[IdentityEntry] = []
+        for row, row_ctx in raw_rows:
+            # OD-T4 shape rule: an entry must DECLARE its kind. An
+            # entry with no `kind` does not silently become a person
+            # — "needs kind == 'person'" means the registry says so.
+            if isinstance(row, dict) and "kind" not in row:
+                raise BundleValidationError(
+                    f"{row_ctx}: field 'kind' is required but missing; an identity "
+                    "entry must declare its kind ('person', 'tool', 'model', or "
+                    "'team') — only a declared 'person' can resolve as an explainer "
+                    "(Spec 004 R3.2/OD-T4)"
+                )
+            parsed.append(IdentityEntry.from_dict(row, context=row_ctx))
+        return cls(entries={entry.id: entry for entry in parsed})
 
     @classmethod
     def from_path(cls, path: str) -> IdentityRegistry:
@@ -916,6 +929,19 @@ class Claim:
     stage: ClaimStage = ClaimStage.CREATED
     stage_events: list[StageEvent] = field(default_factory=list)
     stage_defaulted: bool = False
+    # More load-time bookkeeping (never serialised): `stage_derived`
+    # is True when the lenient loader derived the stage from the
+    # latest recorded stage event because the bundle carried events
+    # but no stored stage (stored stage wins; else derive from the
+    # latest event; else `created`). `unresolved_exposition` lists
+    # the source_ids of exposition items that FAILED identity
+    # resolution on the lenient path (R3.2): the engine re-emits
+    # them as `identity_resolution` failure modes at assessment time
+    # (the stress tester replaces `failures` wholesale, so a
+    # load-time record alone would be lost) and digestion tracking
+    # gives those items no stage/explanation credit.
+    stage_derived: bool = False
+    unresolved_exposition: list[str] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.id.strip():
@@ -1042,7 +1068,7 @@ class Claim:
         exposes it."""
         if not strict:
             confidence = value.get("confidence")
-            return cls(
+            claim = cls(
                 # FR-5.7: id identity is normalised on every load path,
                 # lenient included — split identities are a correctness
                 # defect, not a strictness preference.
@@ -1087,6 +1113,50 @@ class Claim:
                 ],
                 stage_defaulted="stage" not in value,
             )
+            # Stage resolution (R1.1/R1.2): a stored stage wins; with
+            # no stored stage, the stage is DERIVED from the latest
+            # recorded stage event when events exist; only with
+            # neither does the lenient `created` default apply (and
+            # stay recorded via stage_defaulted).
+            if "stage" not in value and claim.stage_events:
+                claim.stage = ClaimStage(claim.stage_events[-1].kind.value)
+                claim.stage_defaulted = False
+                claim.stage_derived = True
+            # R3.2 on the lenient path: an exposition item that fails
+            # identity resolution is not a load error here — it
+            # becomes a claim-attributed failure mode (category
+            # `identity_resolution`) and confers no explanation
+            # credit (its source_id is recorded on
+            # `unresolved_exposition`; the engine re-emits the
+            # failure at assessment time). A registry that fails to
+            # PARSE is a hard error in both modes — that happens in
+            # IdentityRegistry.from_path, before this code runs.
+            lenient_ctx = context or f"claim '{claim.id}'"
+            for index, item in enumerate(claim.evidence):
+                if item.kind != EvidenceKind.EXPOSITION:
+                    continue
+                try:
+                    validate_exposition_evidence(
+                        item, identity_registry, context=f"{lenient_ctx} evidence[{index}]"
+                    )
+                except BundleValidationError as exc:
+                    claim.unresolved_exposition.append(item.source_id)
+                    claim.failures.append(
+                        FailureMode(
+                            id=f"AEE-{claim.id}-IDENTITY-RESOLUTION-{index}",
+                            claim_id=claim.id,
+                            challenge="Exposition identity resolution (lenient load)",
+                            breakpoint=str(exc),
+                            severity=Severity.MEDIUM,
+                            category="identity_resolution",
+                            recovery_hint=(
+                                "Name a 'person' entry of the project identity "
+                                "registry as the exposition item's source_id, or "
+                                "load strictly to see the FR-1 error shape."
+                            ),
+                        )
+                    )
+            return claim
         if not isinstance(value, dict):
             raise BundleValidationError(
                 f"{context or 'claim'}: claim must be an object, got {type(value).__name__}"

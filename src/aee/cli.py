@@ -722,11 +722,14 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
         )
     # Spec 004 R1.3: stage_cap records are explanatory and never route
     # the outcome (the R1.4 stage rule below does that work), so the
-    # recompute excludes them, mirroring AEEEngine._outcome.
+    # recompute excludes them, mirroring AEEEngine._outcome. The
+    # verified_unexplained risk-state records (R3.3) are excluded for
+    # the same reason: reported and counted, never outcome-routing.
     unresolved = [
         failure
         for failure in failures
-        if not failure.get("resolved", False) and failure.get("category") != "stage_cap"
+        if not failure.get("resolved", False)
+        and failure.get("category") not in {"stage_cap", "verified_unexplained"}
     ]
 
     def _severity(failure: dict[str, Any]) -> str:

@@ -155,6 +155,44 @@
         },
         "additionalProperties": false
       }
+    },
+    "digestion": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "stage",
+          "exposition_present",
+          "explainers"
+        ],
+        "properties": {
+          "stage": {
+            "enum": [
+              "created",
+              "checked",
+              "explained",
+              "accepted",
+              "digested"
+            ]
+          },
+          "exposition_present": {
+            "type": "boolean"
+          },
+          "explainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "not_understood": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   },
   "$defs": {

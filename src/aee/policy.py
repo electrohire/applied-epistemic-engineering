@@ -43,7 +43,23 @@ from typing import TYPE_CHECKING
 
 from aee.model import Claim, ClaimStage, ClaimStatus, EvidenceDirection, EvidenceKind
 from aee.sources import source_identity
-from aee.stage import LIFTING_EVENT
+from aee.stage import LIFTING_EVENT, VERDICT_CEILING
+
+
+def verdict_ceiling(stage: ClaimStage) -> str:
+    """The policy verdict ceiling for a lifecycle stage (Spec 004 R1.3).
+
+    The public, programmatic form of the stage -> verdict-ceiling
+    table: ``created`` -> ``"unjudged"`` (no verdict is issued),
+    ``checked``/``explained`` -> ``"challenge"``, ``accepted``/
+    ``digested`` -> ``"accept"``. The table itself lives in
+    ``aee.stage`` (the R1.3 table as data); this function is the
+    policy layer's exposed accessor so later phases (P2/P3) and
+    downstream consumers read the ceiling from the policy module
+    instead of duplicating the table. ``evaluate_policy`` enforces
+    exactly what this function reports.
+    """
+    return VERDICT_CEILING[stage]
 
 # Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
 # corroboration_sources (positive contribution vs zero/negative). The
