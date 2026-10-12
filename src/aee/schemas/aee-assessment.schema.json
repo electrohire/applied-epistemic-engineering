@@ -76,6 +76,9 @@
         "$ref": "#/$defs/verdict"
       }
     },
+    "lanes": {
+      "type": "object"
+    },
     "not_understood": {
       "type": "array",
       "items": {

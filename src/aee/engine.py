@@ -10,10 +10,12 @@ from typing import Any
 from aee._version import __version__ as _ENGINE_VERSION
 from aee.challenge import StressTester
 from aee.decomposition import (
+    attribution_contests,
     decomposition_failures,
     effective_stage_overrides,
     override_reasons,
 )
+from aee.lanes import build_lanes, lane_summary_lines
 from aee.model import (
     STAGE_ORDER,
     Claim,
@@ -74,6 +76,12 @@ class Assessment:
     # empty when nothing is open); an assessment without the field
     # is itself a finding at the gate (R5.3).
     not_understood: list[str] = field(default_factory=list)
+    # Spec 004 R6/R8: the two lanes as a reported pair (lane 1
+    # machine verification, lane 2 human acceptance), per claim and
+    # per bundle. Serialised inside the assessment, so the record
+    # is covered by the ledger's assessment hash like every other
+    # realignment record.
+    lanes: dict[str, Any] = field(default_factory=dict)
 
     @property
     def failures(self) -> list[object]:
@@ -100,6 +108,7 @@ class Assessment:
             "reported_statuses": dict(self.reported_statuses),
             "stage_caps": [cap.to_dict() for cap in self.stage_caps],
             "not_understood": list(self.not_understood),
+            "lanes": self.lanes,
         }
 
 
@@ -243,6 +252,20 @@ class AEEEngine:
         not_understood = _not_understood(
             items, caps, failures, scores, self.threshold, metadata
         )
+        lanes = build_lanes(
+            items,
+            scores=scores,
+            caps=caps,
+            verified_unexplained_claim_ids={
+                failure.claim_id
+                for failure in failures
+                if failure.category == "verified_unexplained"
+            },
+            contested_attribution_ids=set(attribution_contests(items)),
+            overrides=overrides,
+            outcome=outcome,
+            threshold=self.threshold,
+        )
         below = sum(score.propagated_score < self.threshold for score in scores.values())
         summary = (
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
@@ -370,6 +393,10 @@ class AEEEngine:
                 f" Not understood: {len(not_understood)} residual unknown(s) "
                 "are recorded on this assessment (Spec 004 R5.2)."
             )
+        # R6.3: the lanes travel together - wherever the lane-1
+        # outcome is stated, the lane-2 state is stated with it.
+        lane_1_line, lane_2_line = lane_summary_lines(lanes)
+        summary += f" {lane_1_line} {lane_2_line}"
         return Assessment(
             project=project,
             phase=phase,
@@ -388,6 +415,7 @@ class AEEEngine:
             reported_statuses=reported_statuses(items, overrides),
             stage_caps=caps,
             not_understood=not_understood,
+            lanes=lanes,
             metadata={
                 "threshold": self.threshold,
                 **(metadata or {}),

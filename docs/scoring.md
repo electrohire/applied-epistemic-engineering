@@ -24,6 +24,21 @@ Scores communicate the state of the recorded evidence. They do not measure metap
 legal sufficiency, or safety certification.
 
 
+## The two lanes (Spec 004 R6/R8)
+
+Every assessment reports two lanes as a pair, per claim and per
+bundle, under `lanes` in the assessment JSON and as two sentences in
+the summary. **Lane 1 (machine verification)** is the score, the
+threshold comparison, and the outcome — everything this document
+describes. **Lane 2 (human acceptance)** is state, never a score:
+each claim's effective lifecycle stage and whether it was capped
+(and why), whether a named human has explained it (exposition), the
+verified-but-unexplained count, and contested attributions. The
+lanes are never blended into one number, and the lane-2 sentence is
+emitted wherever the lane-1 outcome is stated — a green lane 1 with
+a lagging lane 2 (claims still at `created`/`checked`, or checked
+but unexplained) is reported as exactly that, not as settled work.
+
 ## Lifecycle stage and stage caps (Spec 004)
 
 Scores are lane-1 quantities: what machine checking established.
