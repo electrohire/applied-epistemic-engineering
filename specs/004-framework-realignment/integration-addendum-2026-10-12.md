@@ -90,7 +90,7 @@ That branch was never an ancestor of the stack. Verdicts:
 - Orphan surface forms NOT reintroduced (P2/P3 superseded them):
   the `Stages:` / `Verified but unexplained: N` summary sentences
   and the `stage_defaults` / metadata `stage_counts` keys. The
-  ported tests (tests/test_tao_p0_completion.py: 14 of 19 orphan
+  ported tests (tests/test_stage_p0_completion.py: 14 of 19 orphan
   tests verbatim, 5 adapted) name each supersession.
 
 ## Inherited gate failures, repaired

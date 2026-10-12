@@ -1,6 +1,6 @@
 {
  "record": "stage-reclassifications-2026-10-12",
- "model": "Spec 004 Tao realignment (TA-004), applied retroactively per owner directive 2026-10-12",
+ "model": "Spec 004 framework realignment (TA-004), applied retroactively per owner directive 2026-10-12",
  "append_only": true,
  "modifies_frozen_artifacts": false,
  "stage_rule": "checked = engine/CI/probe verification exists (lane 1). explained requires exposition by a NAMED human under Spec 004 R3.2 \u2014 program/agent-authored prose, however good, does not qualify, because the artifacts name no human explainer. accepted requires an identifiable named-human acceptance act whose object is the claim/decision itself (document-level merges are recorded as document-level lane-2 state, not per-claim acceptance). digested requires explanation + acceptance + incorporation over time; nothing in the corpus qualifies and nothing is promoted retroactively.",
@@ -813,7 +813,7 @@
   },
   {
    "id": "TA-004-01",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -821,12 +821,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-02",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=0.99725; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.99725, bundle outcome iterate",
@@ -834,12 +834,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-03",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -847,12 +847,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-04",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -860,12 +860,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-05",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=0.99725; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.99725, bundle outcome iterate",
@@ -873,12 +873,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-06",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -886,12 +886,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-07",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=0.99725; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.99725, bundle outcome iterate",
@@ -899,12 +899,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-08",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -912,12 +912,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-09",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=partially_supported in bundle; assessed after_specify, propagated_score=0.99725; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.99725, bundle outcome iterate",
@@ -925,12 +925,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-10",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=1.0; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 1.0, bundle outcome iterate",
@@ -938,12 +938,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-11",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=supported in bundle; assessed after_specify, propagated_score=0.99725; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.99725, bundle outcome iterate",
@@ -951,12 +951,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-12",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -964,12 +964,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-13",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -977,12 +977,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-14",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -990,12 +990,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-15",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1003,12 +1003,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-16",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1016,12 +1016,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-17",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1029,12 +1029,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-18",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1042,12 +1042,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-19",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1055,12 +1055,12 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {
    "id": "TA-004-20",
-   "source_artifact": "specs/004-tao-realignment/claims.json + assessment.json",
+   "source_artifact": "specs/004-framework-realignment/claims.json + assessment.json",
    "previous_treatment": "status=draft in bundle; assessed after_specify, propagated_score=0.480625; treated per bundle status vocabulary (supported = settled-leaning label)",
    "stage_under_realigned_model": "checked",
    "lane1_state": "checked: engine 1.4.0 assessment, score 0.480625, bundle outcome iterate",
@@ -1068,7 +1068,7 @@
    "falsifier_present": true,
    "attribution_present": false,
    "not_understood_stated": false,
-   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its Tao sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
+   "notes": "Self-referential case: the realignment's own problem claims are checked-stage observations about the code (correctly scored 0.997-1.0, outcome ITERATE, outcome claims honestly draft). The spec names its sources in prose (keynote, declaration, interview) \u2014 prose attribution exists, but no attribution CLAIM exists even here, and TA-004-15 is the bundle's own attribution requirement claim, itself draft. This audit is the retroactive application the spec's model demands; it does not retroactively raise any TA claim's stage.",
    "date": "2026-10-12"
   },
   {

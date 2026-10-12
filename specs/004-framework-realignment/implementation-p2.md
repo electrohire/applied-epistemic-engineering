@@ -73,10 +73,10 @@ fixtures written before it — "clean"/ratified bundles built from
 observed/test evidence only — now cap exactly as the rule says.
 Eight test files gained one human-paced item (observed/primary or
 equivalent) in the fixture whose intent is an uncapped claim, each
-annotated in place: test_tao_p0 (strong_claim helper),
+annotated in place: test_stage_p0 (strong_claim helper),
 test_policy (clean_claim), test_cli_policy (JSON strong_claim;
 the single-source test slices back to one item), test_review,
-test_score_inflation, test_tao_p1 (headline), test_engine_adapter,
+test_score_inflation, test_stage_p1 (headline), test_engine_adapter,
 test_dispositions_independence. No assertion was weakened; the
 fixtures now model the human-paced support they always claimed to
 represent.

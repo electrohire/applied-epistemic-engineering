@@ -52,7 +52,7 @@ fixture corpus below.
 
 ## Tests
 
-- New: `tests/test_tao_p1.py` (11 tests): complete decomposition is
+- New: `tests/test_stage_p1.py` (11 tests): complete decomposition is
   silent; missing role fails HIGH + caps parent to created/unjudged;
   an existing-but-unlinked role does not count; contested attribution
   via status and via HIGH contradiction failure caps the parent at

@@ -36,7 +36,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "source_ref": "specs/004-framework-realignment/spec.md#r1",
       "domain": "aee-framework"
     },
     {
@@ -74,7 +74,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "source_ref": "specs/004-framework-realignment/spec.md#r1",
       "domain": "aee-framework"
     },
     {
@@ -112,7 +112,7 @@
       ],
       "uncertainty": "low",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#r2",
+      "source_ref": "specs/004-framework-realignment/spec.md#r2",
       "domain": "aee-framework"
     },
     {
@@ -150,7 +150,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r3",
+      "source_ref": "specs/004-framework-realignment/spec.md#r3",
       "domain": "aee-framework"
     },
     {
@@ -188,7 +188,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r4",
+      "source_ref": "specs/004-framework-realignment/spec.md#r4",
       "domain": "aee-framework"
     },
     {
@@ -226,7 +226,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "source_ref": "specs/004-framework-realignment/spec.md#r5",
       "domain": "aee-framework"
     },
     {
@@ -264,7 +264,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r6",
+      "source_ref": "specs/004-framework-realignment/spec.md#r6",
       "domain": "aee-framework"
     },
     {
@@ -302,7 +302,7 @@
       ],
       "uncertainty": "low",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "source_ref": "specs/004-framework-realignment/spec.md#r7",
       "domain": "aee-framework"
     },
     {
@@ -340,7 +340,7 @@
       ],
       "uncertainty": "medium",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "source_ref": "specs/004-framework-realignment/spec.md#r7",
       "domain": "aee-framework"
     },
     {
@@ -378,7 +378,7 @@
       ],
       "uncertainty": "low",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#r8",
+      "source_ref": "specs/004-framework-realignment/spec.md#r8",
       "domain": "aee-framework"
     },
     {
@@ -416,7 +416,7 @@
       ],
       "uncertainty": "low",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#8-interactions",
+      "source_ref": "specs/004-framework-realignment/spec.md#8-interactions",
       "domain": "aee-framework"
     },
     {
@@ -431,7 +431,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p0.md",
+          "ref": "specs/004-framework-realignment/implementation-p0.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -454,7 +454,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r1",
+      "source_ref": "specs/004-framework-realignment/spec.md#r1",
       "domain": "aee-framework"
     },
     {
@@ -469,7 +469,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p1.md",
+          "ref": "specs/004-framework-realignment/implementation-p1.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -492,7 +492,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r2",
+      "source_ref": "specs/004-framework-realignment/spec.md#r2",
       "domain": "aee-framework"
     },
     {
@@ -507,7 +507,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p0.md (exposition) + implementation-p2.md (verified_unexplained)",
+          "ref": "specs/004-framework-realignment/implementation-p0.md (exposition) + implementation-p2.md (verified_unexplained)",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -530,7 +530,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r3",
+      "source_ref": "specs/004-framework-realignment/spec.md#r3",
       "domain": "aee-framework"
     },
     {
@@ -545,7 +545,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p1.md",
+          "ref": "specs/004-framework-realignment/implementation-p1.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -568,7 +568,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r4",
+      "source_ref": "specs/004-framework-realignment/spec.md#r4",
       "domain": "aee-framework"
     },
     {
@@ -583,7 +583,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p2.md",
+          "ref": "specs/004-framework-realignment/implementation-p2.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -606,7 +606,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "source_ref": "specs/004-framework-realignment/spec.md#r5",
       "domain": "aee-framework"
     },
     {
@@ -621,7 +621,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p2.md",
+          "ref": "specs/004-framework-realignment/implementation-p2.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -644,7 +644,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r5",
+      "source_ref": "specs/004-framework-realignment/spec.md#r5",
       "domain": "aee-framework"
     },
     {
@@ -659,7 +659,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p3.md (engine) + Spec 004 P5 branches in spec-kit-aee (impl/004-p5-vocabulary-alignment) and spec-kit-evaluator (impl/004-p5-lane-paired-composition)",
+          "ref": "specs/004-framework-realignment/implementation-p3.md (engine) + Spec 004 P5 branches in spec-kit-aee (impl/004-p5-vocabulary-alignment) and spec-kit-evaluator (impl/004-p5-lane-paired-composition)",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -682,7 +682,7 @@
       ],
       "uncertainty": "high",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#r6",
+      "source_ref": "specs/004-framework-realignment/spec.md#r6",
       "domain": "aee-framework"
     },
     {
@@ -697,7 +697,7 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/implementation-p1.md",
+          "ref": "specs/004-framework-realignment/implementation-p1.md",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
@@ -720,7 +720,7 @@
       ],
       "uncertainty": "high",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#r7",
+      "source_ref": "specs/004-framework-realignment/spec.md#r7",
       "domain": "aee-framework"
     },
     {
@@ -735,12 +735,12 @@
       "conflicts_with": [],
       "evidence": [
         {
-          "ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+          "ref": "specs/004-framework-realignment/spec.md#9-owner-decisions",
           "kind": "asserted",
           "direction": "supports",
           "source_quality": "primary",
           "description": "Requirement stated in Spec 004, which this claim commits to test.",
-          "source_id": "spec-004-tao-realignment"
+          "source_id": "spec-004-framework-realignment"
         }
       ],
       "assumptions": [],
@@ -750,7 +750,7 @@
       ],
       "uncertainty": "high",
       "severity": "medium",
-      "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+      "source_ref": "specs/004-framework-realignment/spec.md#9-owner-decisions",
       "domain": "aee-framework"
     },
     {
@@ -775,12 +775,12 @@
           "source_id": "owner-directive-2026-10-12"
         },
         {
-          "ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+          "ref": "specs/004-framework-realignment/spec.md#9-owner-decisions",
           "kind": "observed",
           "direction": "supports",
           "source_quality": "artifact",
           "description": "Decision OD-T1 as recorded in Spec 004 section 9: interleave, with the orthogonal-phases refinement and the joint FR-8 + Spec 004 methodology bump.",
-          "source_id": "spec-004-tao-realignment"
+          "source_id": "spec-004-framework-realignment"
         }
       ],
       "assumptions": [],
@@ -790,7 +790,7 @@
       ],
       "uncertainty": "low",
       "severity": "high",
-      "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+      "source_ref": "specs/004-framework-realignment/spec.md#9-owner-decisions",
       "domain": "aee-framework"
     }
   ]
