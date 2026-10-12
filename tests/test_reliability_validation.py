@@ -184,6 +184,7 @@ def _write_claims(tmp_path) -> str:
                 "id": "A",
                 "text": "Latency is below 100 ms",
                 "status": "supported",
+                "stage": "accepted",
                 "boundary": ["p95 in production"],
                 "falsification_tests": ["Observe p95 at or above 100 ms"],
                 "evidence": [

@@ -35,7 +35,7 @@ def test_extract_numbered_heading_with_inline_id(tmp_path) -> None:
 
 def test_load_json(tmp_path) -> None:
     path = tmp_path / "claims.json"
-    path.write_text(json.dumps({"claims": [{"id": "A", "text": "A"}]}))
+    path.write_text(json.dumps({"claims": [{"id": "A", "text": "A", "stage": "created"}]}))
     assert load_claims(path)[0].id == "A"
 
 
@@ -90,6 +90,7 @@ def test_cli_assess_and_ledger(tmp_path) -> None:
                     {
                         "id": "A",
                         "text": "A measurable result",
+                        "stage": "created",
                         "boundary": ["test"],
                     }
                 ]

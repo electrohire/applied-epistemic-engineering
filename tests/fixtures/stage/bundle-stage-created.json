@@ -1,0 +1,37 @@
+{
+  "claims": [
+    {
+      "id": "STG-1",
+      "text": "The widget holds for 10 s under load profile L",
+      "kind": "requirement",
+      "status": "supported",
+      "stage": "created",
+      "stage_events": [],
+      "boundary": [
+        "load profile L"
+      ],
+      "falsification_tests": [
+        "drop the widget and observe failure"
+      ],
+      "evidence": [
+        {
+          "ref": "reports/t.json",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "lab-1",
+          "independent_of": [
+            "lab-2"
+          ]
+        },
+        {
+          "ref": "reports/u.json",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "source_id": "lab-2"
+        }
+      ]
+    }
+  ]
+}

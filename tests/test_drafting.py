@@ -161,7 +161,7 @@ def test_draft_claims_from_spec_text_api() -> None:
 def _bundle(tmp_path: Path) -> Path:
     bundle = tmp_path / "claims.json"
     bundle.write_text(
-        json.dumps({"claims": [{"id": "A", "text": "A measurable result"}]}),
+        json.dumps({"claims": [{"id": "A", "text": "A measurable result", "stage": "created"}]}),
         encoding="utf-8",
     )
     return bundle

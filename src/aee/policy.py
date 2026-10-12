@@ -41,15 +41,23 @@ from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from aee.model import Claim, ClaimStatus, EvidenceDirection, EvidenceKind
+from aee.model import Claim, ClaimStage, ClaimStatus, EvidenceDirection, EvidenceKind
 from aee.sources import source_identity
+from aee.stage import LIFTING_EVENT
 
 # Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
 # corroboration_sources (positive contribution vs zero/negative). The
 # scoring module owns the magnitudes; only the sign matters here, and
 # importing scoring from policy would be circular (engine imports both,
 # scoring imports neither).
-_POSITIVE_KINDS = frozenset({EvidenceKind.OBSERVED, EvidenceKind.INFERRED, EvidenceKind.ASSERTED})
+_POSITIVE_KINDS = frozenset(
+    {
+        EvidenceKind.OBSERVED,
+        EvidenceKind.INFERRED,
+        EvidenceKind.ASSERTED,
+        EvidenceKind.EXPOSITION,
+    }
+)
 
 if TYPE_CHECKING:
     from aee.scoring import ClaimScore
@@ -59,6 +67,11 @@ class Verdict(StrEnum):
     ACCEPT = "accept"
     CHALLENGE = "challenge"
     ABSTAIN = "abstain"
+    # Spec 004 R1.3: at stage `created` no verdict is issued - the
+    # claim is reported as unjudged, a distinct statement from
+    # abstention (abstention says judged-and-unmeasurable; unjudged
+    # says not yet through the checking stage at all).
+    UNJUDGED = "unjudged"
 
 
 @dataclass(frozen=True, slots=True)
@@ -135,6 +148,18 @@ def evaluate_policy(
     wanting), so a claim with no usable support abstains even if it
     is also contradicted.
     """
+    if claim.stage == ClaimStage.CREATED:
+        # R1.3 stage ceiling, first in rule order: a created claim
+        # has not been through checking, so no verdict is issued -
+        # reported unjudged, whatever the evidence looks like.
+        return ClaimVerdict(
+            claim.id,
+            Verdict.UNJUDGED,
+            [
+                "stage cap (Spec 004 R1.3): claim is at stage 'created'; "
+                "no policy verdict is issued (unjudged) until " + LIFTING_EVENT[ClaimStage.CREATED]
+            ],
+        )
     supporting = [item for item in claim.evidence if item.direction == EvidenceDirection.SUPPORTS]
     if not supporting:
         return ClaimVerdict(claim.id, Verdict.ABSTAIN, ["no supporting evidence"])
@@ -166,4 +191,18 @@ def evaluate_policy(
         reasons.append("draft claim: policy verdict capped below accept (FR-2.3 draft cap)")
     if reasons:
         return ClaimVerdict(claim.id, Verdict.CHALLENGE, reasons)
+    if claim.stage in {ClaimStage.CHECKED, ClaimStage.EXPLAINED}:
+        # R1.3 stage ceiling: `accept` is reserved for claims at
+        # stage accepted+ - a checked or explained claim that clears
+        # every gate is CHALLENGEd by the stage cap alone (demote
+        # only; the cap never touches the score).
+        return ClaimVerdict(
+            claim.id,
+            Verdict.CHALLENGE,
+            [
+                f"stage cap (Spec 004 R1.3): claim is at stage "
+                f"'{claim.stage.value}'; policy verdict ceiling is "
+                f"'challenge' until {LIFTING_EVENT[claim.stage]}"
+            ],
+        )
     return ClaimVerdict(claim.id, Verdict.ACCEPT, [])

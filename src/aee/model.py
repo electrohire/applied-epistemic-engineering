@@ -52,12 +52,41 @@ class ClaimStatus(StrEnum):
     SUPERSEDED = "superseded"
 
 
+class ClaimStage(StrEnum):
+    """Lifecycle stage of a claim (Spec 004 R1.1, OD-T2 ratified).
+
+    Tao's five stage terms verbatim: a claim is ``created``, then
+    ``checked``, ``explained``, ``accepted``, and ``digested``.
+    Stage is a stored record advanced only by recorded stage events
+    (R1.2), never recomputed from a score.
+    """
+
+    CREATED = "created"
+    CHECKED = "checked"
+    EXPLAINED = "explained"
+    ACCEPTED = "accepted"
+    DIGESTED = "digested"
+
+
+STAGE_ORDER: dict[ClaimStage, int] = {
+    ClaimStage.CREATED: 0,
+    ClaimStage.CHECKED: 1,
+    ClaimStage.EXPLAINED: 2,
+    ClaimStage.ACCEPTED: 3,
+    ClaimStage.DIGESTED: 4,
+}
+
+
 class EvidenceKind(StrEnum):
     OBSERVED = "observed"
     INFERRED = "inferred"
     ASSERTED = "asserted"
     CONTRADICTED = "contradicted"
     UNSUPPORTED = "unsupported"
+    # Spec 004 R3.1: evidence that a named human explained the claim.
+    # Strict loading enforces the named-human rule on this kind
+    # (R3.2, OD-T4): see validate_exposition_evidence.
+    EXPOSITION = "exposition"
 
 
 class EvidenceDirection(StrEnum):
@@ -168,12 +197,15 @@ def _check_unknown_fields(value: dict[str, Any], known: set[str], context: str) 
 def _enum_field(
     enum_cls: type[ClaimKind]
     | type[ClaimStatus]
+    | type[ClaimStage]
     | type[EvidenceKind]
     | type[EvidenceDirection]
     | type[SourceQuality]
     | type[Uncertainty]
     | type[Severity]
-    | type[DispositionKind],
+    | type[DispositionKind]
+    | type[StageEventKind]
+    | type[IdentityKind],
     raw: Any,
     *,
     context: str,
@@ -486,6 +518,260 @@ class Disposition:
         )
 
 
+class IdentityKind(StrEnum):
+    """What a project-local identity registry entry IS (Spec 004 OD-T4).
+
+    Only ``person`` entries can satisfy the named-human rule for
+    exposition evidence (R3.2). The other values exist so a registry
+    can declare a tool, model, or team alias explicitly — and so the
+    engine can reject it by shape, not by guessing from the id.
+    """
+
+    PERSON = "person"
+    TOOL = "tool"
+    MODEL = "model"
+    TEAM = "team"
+
+
+@dataclass(slots=True)
+class IdentityEntry:
+    """One entry in a project-local identity registry (OD-T4)."""
+
+    id: str
+    name: str = ""
+    kind: IdentityKind = IdentityKind.PERSON
+
+    def __post_init__(self) -> None:
+        if not self.id.strip():
+            raise ValueError("identity entry id must not be empty")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"id": self.id, "name": self.name, "kind": self.kind.value}
+
+    _FIELDS = frozenset({"id", "name", "kind"})
+
+    @classmethod
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str = "identity entry"
+    ) -> IdentityEntry:
+        if not strict:
+            return cls(
+                id=str(value.get("id", "")),
+                name=str(value.get("name", "")),
+                kind=IdentityKind(value.get("kind", IdentityKind.PERSON.value)),
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context}: identity entry must be an object, got {type(value).__name__}"
+            )
+        _check_unknown_fields(value, set(cls._FIELDS), context)
+        return cls(
+            id=_str_field(value, "id", context=context, required=True, non_empty=True),
+            name=_str_field(value, "name", context=context),
+            kind=_enum_field(
+                IdentityKind,
+                value.get("kind", IdentityKind.PERSON.value),
+                context=context,
+                field="kind",
+            ),
+        )
+
+
+@dataclass(slots=True)
+class IdentityRegistry:
+    """A project-local registry of named identities (Spec 004 OD-T4).
+
+    The engine cannot own a global person registry, so a deployment
+    supplies one: either a bundle-adjacent ``identities.json`` file
+    (discovered by ``aee.extract.load_claims`` beside the bundle) or
+    an explicit registry passed to the loader / ``--identity-registry``
+    on the CLI. File shape: ``{"identities": [{"id": ..., "name": ...,
+    "kind": "person"}, ...]}`` (a bare list, or an object mapping id
+    to entry, is also accepted). Resolution is by exact ``id`` match
+    against an exposition item's ``source_id``.
+    """
+
+    entries: dict[str, IdentityEntry] = field(default_factory=dict)
+
+    def resolve(self, source_id: str) -> IdentityEntry | None:
+        return self.entries.get(source_id)
+
+    @classmethod
+    def from_dict(cls, value: Any, *, context: str = "identity registry") -> IdentityRegistry:
+        rows: list[Any]
+        if isinstance(value, dict) and "identities" in value:
+            rows = value["identities"]
+            if not isinstance(rows, list):
+                raise BundleValidationError(f"{context}: field 'identities' must be a list")
+            parsed = [
+                IdentityEntry.from_dict(row, context=f"{context} identities[{index}]")
+                for index, row in enumerate(rows)
+            ]
+        elif isinstance(value, list):
+            parsed = [
+                IdentityEntry.from_dict(row, context=f"{context} identities[{index}]")
+                for index, row in enumerate(value)
+            ]
+        elif isinstance(value, dict):
+            parsed = []
+            for entry_id, row in value.items():
+                if not isinstance(row, dict):
+                    raise BundleValidationError(
+                        f"{context}: entry '{entry_id}' must be an object, got {type(row).__name__}"
+                    )
+                merged = {"id": entry_id, **row}
+                parsed.append(
+                    IdentityEntry.from_dict(merged, context=f"{context} entry '{entry_id}'")
+                )
+        else:
+            raise BundleValidationError(
+                f"{context}: registry must be an object or a list, got {type(value).__name__}"
+            )
+        entries: dict[str, IdentityEntry] = {}
+        for entry in parsed:
+            if entry.id in entries:
+                raise BundleValidationError(f"{context}: duplicate identity id '{entry.id}'")
+            entries[entry.id] = entry
+        return cls(entries=entries)
+
+    @classmethod
+    def from_path(cls, path: str) -> IdentityRegistry:
+        import json
+        from pathlib import Path
+
+        source = Path(path)
+        try:
+            value = json.loads(source.read_text(encoding="utf-8-sig"))
+        except (OSError, ValueError) as exc:
+            raise BundleValidationError(
+                f"identity registry {source.as_posix()}: cannot load: {exc}"
+            ) from None
+        return cls.from_dict(value, context=f"identity registry {source.as_posix()}")
+
+
+def validate_exposition_evidence(
+    evidence: Evidence, registry: IdentityRegistry | None, *, context: str
+) -> None:
+    """The named-human rule for exposition evidence (Spec 004 R3.2).
+
+    Strict loading rejects, in the FR-1 error shape (claim, field,
+    problem, valid alternatives where enumerable): an exposition item
+    with an empty ``source_id``; an exposition item when no identity
+    registry is available; a ``source_id`` that does not resolve in
+    the registry; and a ``source_id`` resolving to an entry that is
+    not a person (a tool, model, or team alias — even when the id
+    matches). A model-generated explanation attached as exposition is
+    a load error, not a judgment call.
+    """
+    if evidence.kind != EvidenceKind.EXPOSITION:
+        return
+    ctx = f"{context}: field 'source_id'"
+    if not evidence.source_id.strip():
+        raise BundleValidationError(
+            f"{ctx} must not be empty for exposition evidence (Spec 004 R3.2): "
+            "exposition requires a named human; name the explainer by the id of a "
+            "'person' entry in the project identity registry"
+        )
+    if registry is None:
+        raise BundleValidationError(
+            f"{ctx} value {evidence.source_id!r} cannot be resolved: no identity "
+            "registry is available for exposition evidence (Spec 004 R3.2/OD-T4); "
+            "supply one via a bundle-adjacent identities.json file, "
+            "load_claims(identity_registry=...), or --identity-registry"
+        )
+    entry = registry.resolve(evidence.source_id)
+    if entry is None:
+        known = ", ".join(sorted(registry.entries)) or "(registry is empty)"
+        raise BundleValidationError(
+            f"{ctx} value {evidence.source_id!r} does not resolve in the identity "
+            f"registry (Spec 004 R3.2); registered ids: {known}"
+        )
+    if entry.kind != IdentityKind.PERSON:
+        raise BundleValidationError(
+            f"{ctx} value {evidence.source_id!r} resolves to identity "
+            f"'{entry.id}' of kind '{entry.kind.value}', not 'person' "
+            "(Spec 004 R3.2): exposition requires a named human — a tool, "
+            "model, or team alias cannot explain a claim"
+        )
+
+
+class StageEventKind(StrEnum):
+    """Kind of a recorded stage-advance event (Spec 004 R1.2).
+
+    The kind names the stage the event advanced the claim TO:
+    ``checked`` (an assessment run), ``explained`` (exposition
+    evidence under R3), ``accepted`` (a recorded human acceptance),
+    ``digested`` (a digestion record under R3.4), ``created`` (the
+    claim's creation, when recorded).
+    """
+
+    CREATED = "created"
+    CHECKED = "checked"
+    EXPLAINED = "explained"
+    ACCEPTED = "accepted"
+    DIGESTED = "digested"
+
+
+@dataclass(slots=True)
+class StageEvent:
+    """A recorded stage-advance event on a claim (Spec 004 R1.2).
+
+    Stored on the claim in the dispositions precedent (Spec 002
+    FR-5): kind, author, date, and a non-empty ``basis`` — the reason
+    / evidence the advance rests on. A stage is a stored record,
+    never silently recomputed; the event that advanced a claim is
+    inspectable in the claim's record.
+    """
+
+    kind: StageEventKind
+    basis: str
+    author: str = ""
+    date: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.basis.strip():
+            raise ValueError("stage event basis must not be empty")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind.value,
+            "author": self.author,
+            "date": self.date,
+            "basis": self.basis,
+        }
+
+    _FIELDS = frozenset({"kind", "author", "date", "basis"})
+
+    @classmethod
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str = "stage event"
+    ) -> StageEvent:
+        if not strict:
+            return cls(
+                kind=StageEventKind(value.get("kind", StageEventKind.CREATED.value)),
+                basis=str(value.get("basis", "")),
+                author=str(value.get("author", "")),
+                date=str(value.get("date", "")),
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context}: stage event must be an object, got {type(value).__name__}"
+            )
+        _check_unknown_fields(value, set(cls._FIELDS), context)
+        return cls(
+            kind=_enum_field(
+                StageEventKind,
+                value.get("kind", StageEventKind.CREATED.value),
+                context=context,
+                field="kind",
+            ),
+            # R1.2: an advance without a stated basis is not auditable.
+            basis=_str_field(value, "basis", context=context, required=True, non_empty=True),
+            author=_str_field(value, "author", context=context),
+            date=_str_field(value, "date", context=context),
+        )
+
+
 @dataclass(slots=True)
 class FailureMode:
     """A reproducible challenge and the breakpoint it exposes."""
@@ -621,6 +907,15 @@ class Claim:
     # across runs — distinct from `failures`, which are regenerated
     # output state. See Disposition.
     dispositions: list[Disposition] = field(default_factory=list)
+    # Lifecycle stage (Spec 004 R1.1/R1.2): a stored record, advanced
+    # only by recorded stage events, never by score. `stage_defaulted`
+    # is load-time bookkeeping (never serialised): True when the
+    # lenient loader supplied the `created` default for a bundle that
+    # carried no stage, so the assessment can record the default
+    # (R1.1 - silence is never the compatibility strategy).
+    stage: ClaimStage = ClaimStage.CREATED
+    stage_events: list[StageEvent] = field(default_factory=list)
+    stage_defaulted: bool = False
 
     def __post_init__(self) -> None:
         if not self.id.strip():
@@ -652,6 +947,28 @@ class Claim:
         self.evidence.append(evidence)
         return self
 
+    def advance_stage(
+        self, stage: ClaimStage, *, author: str = "", date: str = "", basis: str
+    ) -> StageEvent:
+        """Advance the claim's stage, recording the event (R1.2).
+
+        The ONLY way stage moves: an explicit, recorded event with a
+        basis. Forward-only - a backward move is a reclassification,
+        which is append-only record work, not a silent rewrite; and
+        no score anywhere calls this, so stage never advances by
+        score.
+        """
+        if STAGE_ORDER[stage] <= STAGE_ORDER[self.stage]:
+            raise ValueError(
+                f"stage advance must move forward: claim is at '{self.stage.value}', "
+                f"cannot advance to '{stage.value}'"
+            )
+        event = StageEvent(kind=StageEventKind(stage.value), basis=basis, author=author, date=date)
+        self.stage_events.append(event)
+        self.stage = stage
+        self.stage_defaulted = False
+        return event
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
@@ -674,6 +991,8 @@ class Claim:
             "failures": [failure.to_dict() for failure in self.failures],
             "metadata": dict(self.metadata),
             "dispositions": [disposition.to_dict() for disposition in self.dispositions],
+            "stage": self.stage.value,
+            "stage_events": [event.to_dict() for event in self.stage_events],
         }
 
     # 'confidence_band' is emitted by to_dict as derived output; it is a
@@ -700,12 +1019,19 @@ class Claim:
             "failures",
             "metadata",
             "dispositions",
+            "stage",
+            "stage_events",
         }
     )
 
     @classmethod
     def from_dict(
-        cls, value: dict[str, Any], *, strict: bool = True, context: str | None = None
+        cls,
+        value: dict[str, Any],
+        *,
+        strict: bool = True,
+        context: str | None = None,
+        identity_registry: IdentityRegistry | None = None,
     ) -> Claim:
         """Load a claim. Strict by default (Spec 002 FR-1): unknown fields,
         missing/empty text, bad enum values, and wrong types are loud errors
@@ -750,6 +1076,16 @@ class Claim:
                     Disposition.from_dict(item, strict=False)
                     for item in value.get("dispositions", [])
                 ],
+                # R1.1 lenient path: a bundle without a stage loads
+                # with stage `created`, and the default is RECORDED
+                # on the claim (stage_defaulted) so the assessment
+                # metadata can name every claim it touched.
+                stage=ClaimStage(value.get("stage", ClaimStage.CREATED.value)),
+                stage_events=[
+                    StageEvent.from_dict(item, strict=False)
+                    for item in value.get("stage_events", [])
+                ],
+                stage_defaulted="stage" not in value,
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -775,6 +1111,11 @@ class Claim:
         if not isinstance(dispositions_raw, list):
             raise BundleValidationError(
                 f"{ctx}: field 'dispositions' must be a list, got {type(dispositions_raw).__name__}"
+            )
+        stage_events_raw = value.get("stage_events", [])
+        if not isinstance(stage_events_raw, list):
+            raise BundleValidationError(
+                f"{ctx}: field 'stage_events' must be a list, got {type(stage_events_raw).__name__}"
             )
         metadata = value.get("metadata", {})
         if not isinstance(metadata, dict):
@@ -818,7 +1159,7 @@ class Claim:
                     "falsification test before this claim can load strictly"
                 )
         try:
-            return cls(
+            claim = cls(
                 id=normalize_claim_id(claim_id),
                 text=text,
                 kind=_enum_field(
@@ -873,8 +1214,40 @@ class Claim:
                     Disposition.from_dict(item, context=f"{ctx} dispositions[{index}]")
                     for index, item in enumerate(dispositions_raw)
                 ],
+                stage=_enum_field(
+                    ClaimStage,
+                    value.get("stage", ClaimStage.CREATED.value),
+                    context=ctx,
+                    field="stage",
+                ),
+                stage_events=[
+                    StageEvent.from_dict(item, context=f"{ctx} stage_events[{index}]")
+                    for index, item in enumerate(stage_events_raw)
+                ],
             )
         except BundleValidationError:
             raise
         except ValueError as exc:  # e.g. __post_init__ confidence range
             raise BundleValidationError(f"{ctx}: {exc}") from None
+        # R1.1: stage is a REQUIRED field under strict loading. The
+        # check runs after every other field has been parsed, so a
+        # bundle with several problems still reports the most specific
+        # one first (the FR-1 error precedence the existing fixtures
+        # pin); a bundle whose only problem is the missing stage gets
+        # this loud, named error. Pre-realignment bundles take the
+        # lenient path (default `created`, recorded) or `aee migrate`
+        # (backfill `created`, reported per claim).
+        if "stage" not in value:
+            valid = ", ".join(member.value for member in ClaimStage)
+            raise BundleValidationError(
+                f"{ctx}: field 'stage' is required but missing (Spec 004 R1.1); "
+                f"valid values: {valid}; run 'aee migrate' to backfill "
+                "'created', or load leniently to default it (the default "
+                "is recorded in the assessment metadata)"
+            )
+        # R3.2: exposition evidence must name a resolvable human.
+        for index, item in enumerate(claim.evidence):
+            validate_exposition_evidence(
+                item, identity_registry, context=f"{ctx} evidence[{index}]"
+            )
+        return claim

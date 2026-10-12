@@ -42,7 +42,7 @@ def test_caller_metadata_cannot_override_the_stamp() -> None:
 def test_cli_assessment_carries_the_stamp(tmp_path: Path) -> None:
     bundle = tmp_path / "claims.json"
     bundle.write_text(
-        json.dumps({"claims": [{"id": "CLM-V", "text": "A claim"}]}),
+        json.dumps({"claims": [{"id": "CLM-V", "text": "A claim", "stage": "created"}]}),
         encoding="utf-8",
     )
     out = tmp_path / "assessment.json"

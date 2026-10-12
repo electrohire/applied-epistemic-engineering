@@ -28,7 +28,11 @@ from aee import cli
 from aee.cli import main
 from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger
 
-BUNDLE = {"claims": [{"id": "CLM-1", "text": "The widget works", "status": "draft"}]}
+BUNDLE = {
+    "claims": [
+        {"id": "CLM-1", "text": "The widget works", "status": "draft", "stage": "created"}
+    ]
+}
 
 MATRIX_TEXT = (
     "| Test ID | Requirements | Layer | Gate |\n|---|---|---|---|\n| T-X-001 | R | unit | g |\n"
@@ -502,6 +506,7 @@ def test_two_claim_loads_produce_independent_objects(tmp_path: Path):
                     {
                         "id": "C-1",
                         "text": "t",
+                        "stage": "created",
                         "evidence": [{"ref": "a.md"}],
                         "metadata": {"nested": {"x": 1}},
                     }

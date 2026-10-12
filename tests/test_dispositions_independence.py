@@ -21,6 +21,7 @@ from aee import (
     AEEEngine,
     BundleValidationError,
     Claim,
+    ClaimStage,
     ClaimStatus,
     Disposition,
     DispositionKind,
@@ -46,6 +47,9 @@ def _dispositioned_claim(**overrides: object) -> Claim:
         # dispositions, whose own outcome expectations (pass when fully
         # dispositioned) require a non-draft claim.
         "status": ClaimStatus.SUPPORTED,
+        # Spec 004 R1.4: a pass outcome additionally requires stage
+        # explained+; a dispositioned, ratified claim sits at accepted.
+        "stage": ClaimStage.ACCEPTED,
         "boundary": ["bench rig"],
         "falsification_tests": ["Observe the valve shut while pressure is applied"],
         "evidence": [

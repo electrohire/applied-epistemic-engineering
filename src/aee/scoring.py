@@ -32,6 +32,10 @@ _KIND_WEIGHTS = {
     EvidenceKind.OBSERVED: 1.0,
     EvidenceKind.INFERRED: 0.65,
     EvidenceKind.ASSERTED: 0.25,
+    # Spec 004 R3.1: exposition (a named human's explanation) carries
+    # asserted-level weight as evidence for the claim's truth - its
+    # epistemic role is lane-2 (explanation), not verification.
+    EvidenceKind.EXPOSITION: 0.25,
     EvidenceKind.CONTRADICTED: -0.75,
     EvidenceKind.UNSUPPORTED: 0.0,
 }

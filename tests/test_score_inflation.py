@@ -17,6 +17,7 @@ import pytest
 from aee import (
     AEEEngine,
     Claim,
+    ClaimStage,
     ClaimStatus,
     Evidence,
     EvidenceDirection,
@@ -50,6 +51,11 @@ def claim(
         id=cid,
         text=text,
         status=status,
+        # Spec 004 migration of this factory: these fixtures model
+        # ratified claims, which in the stage vocabulary sit at
+        # `accepted` (below it, verdicts/outcomes are stage-capped
+        # and the FR-2/FR-3 gate behavior under test is unreachable).
+        stage=ClaimStage.ACCEPTED,
         boundary=["load profile L"],
         falsification_tests=["measure p95 != 42"],
         evidence=evidence,
@@ -443,6 +449,7 @@ def test_control_bundle_scores_unchanged() -> None:
         id="CTL-5",
         text="Two labs measured the same tensile strength",
         status=ClaimStatus.SUPPORTED,
+        stage=ClaimStage.ACCEPTED,
         boundary=["lab conditions"],
         falsification_tests=["repeat the tensile test"],
         evidence=[

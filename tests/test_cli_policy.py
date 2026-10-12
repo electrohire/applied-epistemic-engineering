@@ -23,6 +23,7 @@ def strong_claim(claim_id="A", sources=("S1", "S2")):
         "id": claim_id,
         "text": "Latency is below 100 ms",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [
@@ -102,6 +103,7 @@ def test_assess_reliability_blends_scores(tmp_path) -> None:
         "id": "A",
         "text": "The model says latency is fine",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [

@@ -13,6 +13,7 @@ from aee import (
     AEEEngine,
     AssessmentPolicy,
     Claim,
+    ClaimStage,
     ClaimStatus,
     ScoringEngine,
     build_review_queue,
@@ -25,6 +26,7 @@ def scored(claims):
 
 def bare_claim(claim_id: str, evidence=None) -> Claim:
     return Claim(
+        stage=ClaimStage.ACCEPTED,
         id=claim_id,
         text=claim_id,
         status=ClaimStatus.SUPPORTED,

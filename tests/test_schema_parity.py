@@ -29,6 +29,7 @@ from aee.extract import load_claims  # noqa: E402
 from aee.model import (  # noqa: E402
     Claim,
     ClaimKind,
+    ClaimStage,
     ClaimStatus,
     DispositionKind,
     Evidence,
@@ -67,6 +68,10 @@ def test_claim_schema_enums_are_the_model_enums() -> None:
     defs = ("$defs", "claim", "properties")
     assert _enum_values(CLAIM_SCHEMA, *defs, "kind", "enum") == {m.value for m in ClaimKind}
     assert _enum_values(CLAIM_SCHEMA, *defs, "status", "enum") == {m.value for m in ClaimStatus}
+    assert _enum_values(CLAIM_SCHEMA, *defs, "stage", "enum") == {m.value for m in ClaimStage}
+    assert _enum_values(
+        CLAIM_SCHEMA, "$defs", "stage_event", "properties", "kind", "enum"
+    ) == {m.value for m in ClaimStage}
     assert _enum_values(CLAIM_SCHEMA, *defs, "uncertainty", "enum") == {
         m.value for m in Uncertainty
     }
@@ -98,7 +103,9 @@ def test_claim_schema_fields_match_model_field_sets() -> None:
     assert set(CLAIM_SCHEMA["$defs"]["disposition"]["properties"]) == set(DispositionModel._FIELDS)
     for name in ("claim", "evidence", "failure", "disposition"):
         assert CLAIM_SCHEMA["$defs"][name]["additionalProperties"] is False
-    assert CLAIM_SCHEMA["$defs"]["claim"]["required"] == ["id", "text"]
+    # Spec 004 R1.1: stage joins the required set - the schema and
+    # the strict loader name the same missing field on old bundles.
+    assert CLAIM_SCHEMA["$defs"]["claim"]["required"] == ["id", "text", "stage"]
     assert CLAIM_SCHEMA["$defs"]["evidence"]["required"] == ["ref"]
     assert CLAIM_SCHEMA["$defs"]["failure"]["required"] == ["id", "claim_id", "challenge"]
     assert CLAIM_SCHEMA["$defs"]["disposition"]["required"] == ["challenge_category", "reason"]
@@ -152,6 +159,10 @@ _FULL_CLAIM: dict[str, Any] = {
             "disposition": None,
         }
     ],
+    "stage": "accepted",
+    "stage_events": [
+        {"kind": "accepted", "author": "reviewer", "date": "2026-10-12", "basis": "reviewed"}
+    ],
     "metadata": {"origin": "corpus"},
     "dispositions": [
         {
@@ -178,7 +189,11 @@ def _variant(**changes: Any) -> dict[str, Any]:
 
 CORPUS: list[tuple[str, Any, bool]] = [
     # --- valid under both ---
-    ("minimal claim", _bundle({"id": "C-1", "text": "t"}), True),
+    ("minimal claim with stage", _bundle({"id": "C-1", "text": "t", "stage": "created"}), True),
+    # Spec 004 R1.1: a claim without a stage is invalid under both.
+    ("claim without stage", _bundle({"id": "C-1", "text": "t"}), False),
+    ("bad stage enum", _variant(stage="settled"), False),
+    ("stage event without basis", _variant(stage_events=[{"kind": "checked"}]), False),
     ("full claim", _bundle(_FULL_CLAIM), True),
     ("empty claims list", {"claims": []}, True),
     ("bare list bundle", [_FULL_CLAIM], True),
@@ -254,14 +269,25 @@ def test_schema_and_strict_loader_agree(tmp_path: Path, name: str, value: Any, e
 
 
 def test_real_spec_bundles_validate_and_load() -> None:
+    # Spec 004 R1.1: the repo's historical spec bundles predate the
+    # stage field. The schema and the strict loader agree on them
+    # too - both reject them for the missing stage; the lenient path
+    # loads them with the default recorded, and after `aee migrate`
+    # backfills the stage they validate and load strictly.
+    from aee.extract import migrate_bundle
+
     validator = jsonschema.Draft202012Validator(CLAIM_SCHEMA)
     bundles = sorted((REPO_ROOT / "specs").glob("*/claims.json"))
     assert bundles, "expected the repo's own spec bundles to be present"
     for bundle in bundles:
         value = json.loads(bundle.read_text(encoding="utf-8"))
-        errors = list(validator.iter_errors(value))
-        assert errors == [], f"{bundle}: {[e.message for e in errors]}"
-        assert load_claims(bundle), f"{bundle}: loader returned no claims"
+        assert not validator.is_valid(value), f"{bundle}: schema accepted a stageless bundle"
+        with pytest.raises(Exception, match="field 'stage'"):
+            load_claims(bundle)
+        assert load_claims(bundle, strict=False), f"{bundle}: lenient loader returned no claims"
+        migrated, _report = migrate_bundle(value)
+        errors = list(validator.iter_errors(migrated))
+        assert errors == [], f"{bundle} migrated: {[e.message for e in errors]}"
 
 
 # ---------------------------------------------------------------------

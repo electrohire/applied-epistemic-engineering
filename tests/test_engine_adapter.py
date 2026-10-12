@@ -1,6 +1,6 @@
 import json
 
-from aee import AEEEngine, Claim, ClaimStatus, EvaluatorAdapter
+from aee import AEEEngine, Claim, ClaimStage, ClaimStatus, EvaluatorAdapter
 
 
 def test_clean_assessment_passes() -> None:
@@ -13,6 +13,7 @@ def test_clean_assessment_passes() -> None:
         boundary=["p95 in production"],
         falsification_tests=["Observe p95 at or above 100 ms"],
         evidence=[strong_evidence("one", "S1"), strong_evidence("two", "S2")],
+        stage=ClaimStage.ACCEPTED,
     )
     result = AEEEngine().assess([claim])
     assert result.outcome == "pass"

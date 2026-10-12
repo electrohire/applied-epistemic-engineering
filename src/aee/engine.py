@@ -15,6 +15,7 @@ from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.reliability import ReliabilityTable
 from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
 from aee.sources import source_identity
+from aee.stage import StageCap, below_explained, reported_statuses, stage_cap_for, stage_caps
 
 _SEVERITY_ORDER = {
     Severity.INFO: 0,
@@ -40,6 +41,13 @@ class Assessment:
     verdicts: dict[str, ClaimVerdict] = field(default_factory=dict)
     methodology_version: str = "1.0"
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Spec 004 R1.3: the per-claim status as REPORTED (capped by
+    # stage) and the cap records that lowered it. The claims' own
+    # `status` fields keep the author-declared posture; the reported
+    # vocabulary lives here so the cap is inspectable (R8.1/R8.2),
+    # never a silent rewrite of the claim record.
+    reported_statuses: dict[str, str] = field(default_factory=dict)
+    stage_caps: list[StageCap] = field(default_factory=list)
 
     @property
     def failures(self) -> list[object]:
@@ -63,6 +71,8 @@ class Assessment:
             "verdicts": {key: verdict.to_dict() for key, verdict in self.verdicts.items()},
             "recoveries": [item.to_dict() for item in self.recoveries],
             "metadata": dict(self.metadata),
+            "reported_statuses": dict(self.reported_statuses),
+            "stage_caps": [cap.to_dict() for cap in self.stage_caps],
         }
 
 
@@ -105,6 +115,13 @@ class AEEEngine:
         # failure record, not only as the aggregate outcome — see
         # _outcome for the cap rule itself.
         extra_failures.extend(_draft_cap_failures(items))
+        # Spec 004 R1.3: a stage-capped claim carries a failure-mode
+        # record (category `stage_cap`) naming the cap and the event
+        # that would lift it - visible wherever failure modes are
+        # reported, in the draft-cap precedent's shape (LOW: the cap
+        # explains a lowered report; it must never escalate an
+        # outcome beyond what the cap itself implies).
+        extra_failures.extend(_stage_cap_failures(items))
         if additional_failures:
             extra_failures.extend(additional_failures)
         if extra_failures:
@@ -125,6 +142,12 @@ class AEEEngine:
                 target.failures.append(failure)
                 failures.append(failure)
         scores = self.scoring_engine.score(items, as_of=as_of)
+        # R1.3: the cap also lands on the score record as a note -
+        # the score itself is NOT changed (the cap lowers reported
+        # vocabulary only, never the lane-1 number).
+        caps = stage_caps(items)
+        for cap in caps:
+            scores[cap.claim_id].notes.append(cap.note)
         recoveries = self.recovery_operator.propose(failures)
         outcome = self._outcome(items, scores)
         verdicts: dict[str, ClaimVerdict] = {}
@@ -142,7 +165,8 @@ class AEEEngine:
             ):
                 outcome = "abstain"
             elif outcome == "pass" and any(
-                verdict.verdict == Verdict.CHALLENGE for verdict in verdicts.values()
+                verdict.verdict in {Verdict.CHALLENGE, Verdict.UNJUDGED}
+                for verdict in verdicts.values()
             ):
                 outcome = "iterate"
         below = sum(score.propagated_score < self.threshold for score in scores.values())
@@ -180,6 +204,28 @@ class AEEEngine:
                 f" Draft cap: {draft_capped} draft claim(s) capped at "
                 "gather_evidence/iterate (FR-2.3)."
             )
+        # Spec 004 R1.3/R1.4: stage state is stated wherever the
+        # outcome is — how many claims sit below `explained` (and so
+        # block a settlement-worded pass), and how many reports were
+        # lowered by a stage cap.
+        below = below_explained(items)
+        if below:
+            summary += (
+                f" Stage cap: {len(below)} claim(s) below stage 'explained'; "
+                "the outcome cannot be 'pass' (Spec 004 R1.4)."
+            )
+        if caps:
+            summary += (
+                f" Stage caps applied: {len(caps)} claim(s) reported below "
+                "their author-declared status or in qualified form (Spec 004 R1.3)."
+            )
+        stage_defaulted = [claim.id for claim in items if claim.stage_defaulted]
+        if stage_defaulted:
+            summary += (
+                f" Stage default: {len(stage_defaulted)} claim(s) loaded without "
+                "a stage defaulted to 'created' (lenient path, Spec 004 R1.1; "
+                "recorded in metadata.stage_defaulted_claims)."
+            )
         # FR-5.4: disposition coverage — how many of the challenges
         # raised were answered by a stored disposition, and how many
         # remain open. Reported whenever dispositions are in play (a
@@ -199,13 +245,13 @@ class AEEEngine:
                 1
                 for claim in items
                 for failure in claim.failures
-                if failure.category != "draft_cap"
+                if failure.category not in {"draft_cap", "stage_cap"}
             )
             open_count = sum(
                 1
                 for claim in items
                 for failure in claim.unresolved_failures
-                if failure.category != "draft_cap"
+                if failure.category not in {"draft_cap", "stage_cap"}
             )
             summary += (
                 f" Dispositions: {raised} challenge(s) raised, "
@@ -221,6 +267,8 @@ class AEEEngine:
                 f"{counts[Verdict.CHALLENGE]} challenge, "
                 f"{counts[Verdict.ABSTAIN]} abstain."
             )
+            if counts[Verdict.UNJUDGED]:
+                summary += f" Unjudged (stage 'created'): {counts[Verdict.UNJUDGED]}."
         return Assessment(
             project=project,
             phase=phase,
@@ -236,14 +284,35 @@ class AEEEngine:
             # or fabricated by the caller. methodology_version (on the
             # Assessment itself) is a DISTINCT, separately-versioned
             # field and is never conflated with this stamp.
+            reported_statuses=reported_statuses(items),
+            stage_caps=caps,
             metadata={
                 "threshold": self.threshold,
                 **(metadata or {}),
+                # R1.1: lenient stage defaults are on the record —
+                # every claim whose stage was defaulted is named.
+                **(
+                    {"stage_defaulted_claims": [c.id for c in items if c.stage_defaulted]}
+                    if any(c.stage_defaulted for c in items)
+                    else {}
+                ),
                 "engine_version": _ENGINE_VERSION,
             },
         )
 
     def _outcome(self, claims: list[Claim], scores: dict[str, ClaimScore]) -> str:
+        # stage_cap records are EXPLANATORY (R1.3): they name why a
+        # report was lowered. They never route the outcome - the
+        # R1.4 stage rule below does that work - so an explained
+        # claim whose only record is its qualified-supported cap can
+        # still pass, exactly as R1.4 allows. (The draft_cap record
+        # is different by design: FR-2.3's cap IS outcome-bearing.)
+        outcome_failures = [
+            failure
+            for claim in claims
+            for failure in claim.unresolved_failures
+            if failure.category != "stage_cap"
+        ]
         if not claims:
             # Spec 003 FR-1.1 (RT1-01): vacuity is not success. Over
             # empty collections every check below is trivially true,
@@ -254,7 +323,7 @@ class AEEEngine:
             # bundle as an input error (exit 2) — OD-2 implemented as
             # belt-and-braces; the owner may reverse the CLI half.
             return "block"
-        failures = [failure for claim in claims for failure in claim.unresolved_failures]
+        failures = outcome_failures
         if any(failure.severity == Severity.CRITICAL for failure in failures):
             return "block"
         if any(
@@ -281,6 +350,15 @@ class AEEEngine:
             # scored and why the outcome stopped at iterate. Reached
             # only when nothing worse routed the outcome above, so the
             # cap never MASKS a gather_evidence/clarify/block verdict.
+            return "iterate"
+        if below_explained(claims):
+            # Spec 004 R1.4: the bundle outcome inherits the stage
+            # caps — `pass` is a settlement word, reported only when
+            # every covered claim is at stage `explained` or beyond.
+            # P0 implements the conservative rule (the lane-qualified
+            # outcome form is P3/R6). Like the draft cap, this lives
+            # in the outcome layer and is reached only when nothing
+            # worse routed the outcome above.
             return "iterate"
         return "pass"
 
@@ -366,6 +444,33 @@ def _draft_cap_failures(items: list[Claim]) -> list[FailureMode]:
         for claim in items
         if claim.status == ClaimStatus.DRAFT
     ]
+
+
+def _stage_cap_failures(items: list[Claim]) -> list[FailureMode]:
+    """Spec 004 R1.3 visibility record for stage caps.
+
+    One LOW failure per capped claim, in the draft-cap precedent's
+    shape: LOW so the record explains the lowered report without
+    escalating the outcome beyond what the stage rules themselves
+    imply (the R1.4 outcome cap in _outcome does that work).
+    """
+    failures: list[FailureMode] = []
+    for claim in items:
+        cap = stage_cap_for(claim)
+        if cap is None:
+            continue
+        failures.append(
+            FailureMode(
+                id=f"AEE-{claim.id}-STAGE-CAP",
+                claim_id=claim.id,
+                challenge="Stage cap",
+                breakpoint=(f"{cap.note}; the cap lifts with {cap.lifting_event} (Spec 004 R1.3)"),
+                severity=Severity.LOW,
+                category="stage_cap",
+                recovery_hint=(f"Record the stage event that lifts the cap: {cap.lifting_event}."),
+            )
+        )
+    return failures
 
 
 def _support_set(claim: Claim) -> frozenset[tuple[str, str, str, str, str]]:

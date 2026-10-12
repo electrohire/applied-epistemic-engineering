@@ -84,7 +84,7 @@ def test_failure_mode_strict() -> None:
 
 
 def test_strict_is_default_and_round_trip_holds() -> None:
-    claim = Claim.from_dict({"id": "X", "text": "t"})
+    claim = Claim.from_dict({"id": "X", "text": "t", "stage": "created"})
     assert Claim.from_dict(claim.to_dict()).id == "X"
 
 
@@ -100,7 +100,7 @@ def test_lenient_mode_is_explicit_and_keeps_old_behavior() -> None:
 
 def test_validate_valid_bundle_exits_0(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
     path = tmp_path / "ok.json"
-    path.write_text(json.dumps({"claims": [{"id": "A", "text": "A claim"}]}))
+    path.write_text(json.dumps({"claims": [{"id": "A", "text": "A claim", "stage": "created"}]}))
     assert main(["validate", str(path)]) == 0
     assert "valid: 1 claim(s)" in capsys.readouterr().out
 
@@ -116,15 +116,28 @@ def test_validate_invalid_bundle_exits_2_without_traceback(
 
 def test_validate_duplicate_ids_are_structural_errors(tmp_path: Path) -> None:
     path = tmp_path / "dup.json"
-    row = {"id": "A", "text": "A claim"}
+    row = {"id": "A", "text": "A claim", "stage": "created"}
     path.write_text(json.dumps({"claims": [row, row]}))
     assert main(["validate", str(path)]) == 2
 
 
-def test_validate_repo_spec_bundles_pass() -> None:
+def test_validate_repo_spec_bundles_pass(tmp_path: Path) -> None:
+    # Spec 004 R1.1 contract change: the repo's historical spec
+    # bundles predate the stage field, so they no longer validate
+    # strictly as-is - strict validation must NAME the missing
+    # stage, the lenient path must load them with the default
+    # recorded, and the migrated bundle must validate strictly.
     specs = Path(__file__).parent.parent / "specs"
     for bundle in sorted(specs.glob("*/claims.json")):
-        assert main(["validate", str(bundle)]) == 0, bundle
+        assert main(["validate", str(bundle)]) == 2, bundle
+        claims = load_claims(bundle, strict=False)
+        assert claims and all(c.stage.value == "created" for c in claims), bundle
+        assert all(c.stage_defaulted for c in claims), bundle
+        migrated, report = migrate_bundle(json.loads(bundle.read_text()))
+        assert any("stage missing -> backfilled 'created'" in line for line in report), bundle
+        out = tmp_path / f"migrated-{bundle.parent.name}.json"
+        out.write_text(json.dumps(migrated))
+        assert main(["validate", str(out)]) == 0, bundle
 
 
 # --- T105/T106: migrate --------------------------------------------------------
@@ -203,7 +216,7 @@ def test_assess_lenient_echoes_metadata(tmp_path: Path) -> None:
     assert value["metadata"]["loading_mode"] == "lenient"
     strict_out = tmp_path / "strict.json"
     ok = tmp_path / "ok.json"
-    ok.write_text(json.dumps({"claims": [{"id": "A", "text": "A claim"}]}))
+    ok.write_text(json.dumps({"claims": [{"id": "A", "text": "A claim", "stage": "checked"}]}))
     assert main(["assess", "--input", str(ok), "--output", str(strict_out), "--no-ledger"]) in (
         0,
         1,
