@@ -250,6 +250,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     except (ValueError, KeyError, AttributeError, TypeError, OSError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 2
+    except (RecursionError, OverflowError) as exc:
+        # Spec 003 FR-5.3 (RT2-M6): input-driven parser/conversion
+        # failures — JSON nested deeper than the interpreter stack, a
+        # several-hundred-digit integer literal hitting float() — are
+        # input errors (exit 2), never a traceback at exit 1, which
+        # the contract reserves for scored soft verdicts.
+        print(f"Error: input exceeds processing limits: {exc}", file=sys.stderr)
+        return 2
     raise AssertionError("unreachable")
 
 
@@ -984,7 +992,12 @@ def _load_json_strict(path: Path, *, what: str) -> Any:
             "is not allowed in strict JSON"
         )
 
-    return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+    try:
+        return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+    except RecursionError:
+        raise ValueError(
+            f"{what} file {path.as_posix()}: JSON nesting too deep to process"
+        ) from None
 
 
 def _guard_output_path(

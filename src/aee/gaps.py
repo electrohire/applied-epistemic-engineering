@@ -126,8 +126,12 @@ class GapEngine:
         Returns:
             A populated GapRegister.
         """
+        if matrix_path.is_dir():
+            raise ValueError(f"Verification matrix is a directory, not a file: {matrix_path}")
         if not matrix_path.is_file():
             raise FileNotFoundError(f"Verification matrix not found: {matrix_path}")
+        if evidence_dir.exists() and not evidence_dir.is_dir():
+            raise ValueError(f"Evidence path is not a directory: {evidence_dir}")
 
         matrix_content = matrix_path.read_text(encoding="utf-8")
         test_rows = self._MATRIX_ROW_RE.findall(matrix_content)

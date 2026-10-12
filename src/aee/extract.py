@@ -41,7 +41,15 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
                 "allowed in a claims bundle (Spec 003 FR-3.3)"
             )
 
-        value = json.loads(source.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+        try:
+            value = json.loads(source.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+        except RecursionError:
+            # Spec 003 FR-5.3 (RT2-M6): nesting deeper than the
+            # interpreter stack is a named input error, not a leaked
+            # RecursionError traceback.
+            raise BundleValidationError(
+                f"{source.as_posix()}: JSON nesting too deep to process"
+            ) from None
         if isinstance(value, dict):
             if "claims" not in value:
                 raise ValueError(
