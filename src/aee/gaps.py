@@ -127,6 +127,11 @@ class GapEngine:
 
         Returns:
             A populated GapRegister.
+
+        Raises:
+            ValueError: If any entry in the evidence tree is a
+                symlink resolving outside the evidence root
+                (FR-5.11 confinement; the offenders are named).
         """
         if matrix_path.is_dir():
             raise ValueError(f"Verification matrix is a directory, not a file: {matrix_path}")
@@ -354,12 +359,49 @@ class GapEngine:
     # -- Private helpers --
 
     def _collect_passing_tests(self, evidence_dir: Path) -> set[str]:
-        """Walk the evidence directory and collect passing test IDs."""
+        """Walk the evidence directory and collect passing test IDs.
+
+        FR-5.11 confinement: the walk never leaves the resolved
+        evidence root. A symlink whose resolved target lies outside
+        that root refuses the whole collection — a ValueError naming
+        every offending entry and its target — because out-of-root
+        evidence must never silently close a gap (the engine-side
+        companion to the extension runner's gaps pre-flight, which
+        refuses symlinked paths the same way). Symlinks resolving
+        inside the root are legitimate evidence. Each resolved
+        directory is visited at most once, so in-root symlink cycles
+        cannot loop the walk.
+        """
         passing: set[str] = set()
         if not evidence_dir.is_dir():
             return passing
 
-        for fpath in evidence_dir.rglob("*.json"):
+        root = evidence_dir.resolve()
+        offenders: list[tuple[Path, Path]] = []
+        evidence_files: list[Path] = []
+        visited_dirs: set[Path] = {root}
+        stack: list[Path] = [evidence_dir]
+        while stack:
+            current = stack.pop()
+            for entry in sorted(current.iterdir(), key=lambda p: p.name):
+                if entry.is_symlink():
+                    target = entry.resolve()
+                    if not target.is_relative_to(root):
+                        offenders.append((entry, target))
+                        continue
+                if entry.is_dir():
+                    resolved_dir = entry.resolve()
+                    if resolved_dir not in visited_dirs:
+                        visited_dirs.add(resolved_dir)
+                        stack.append(entry)
+                elif entry.is_file() and entry.suffix == ".json":
+                    evidence_files.append(entry)
+
+        if offenders:
+            named = "; ".join(f"{entry} -> {target}" for entry, target in offenders)
+            raise ValueError(f"evidence entry escapes the evidence root via symlink: {named}")
+
+        for fpath in evidence_files:
             if not fpath.is_file():
                 continue
             try:
