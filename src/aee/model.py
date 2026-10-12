@@ -55,7 +55,7 @@ class ClaimStatus(StrEnum):
 class ClaimStage(StrEnum):
     """Lifecycle stage of a claim (Spec 004 R1.1, OD-T2 ratified).
 
-    Tao's five stage terms verbatim: a claim is ``created``, then
+    The five stage terms verbatim: a claim is ``created``, then
     ``checked``, ``explained``, ``accepted``, and ``digested``.
     Stage is a stored record advanced only by recorded stage events
     (R1.2), never recomputed from a score.

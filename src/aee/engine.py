@@ -68,7 +68,7 @@ class Assessment:
     # Spec 003 FR-8 (scoring/challenge/review semantics) implemented
     # together with Spec 004's model phases P0-P4, recorded in
     # specs/003-aee-red-team-remediation/implementation-fr8.md and
-    # specs/004-tao-realignment/implementation-p4.md.
+    # specs/004-framework-realignment/implementation-p4.md.
     methodology_version: str = "2.0"
     metadata: dict[str, Any] = field(default_factory=dict)
     # Spec 004 R1.3: the per-claim status as REPORTED (capped by

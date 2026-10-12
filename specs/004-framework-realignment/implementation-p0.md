@@ -1,6 +1,6 @@
 # Spec 004 Phase P0 — Implementation Record (vocabulary + model)
 
-**Branch:** `impl/004-p0-vocabulary` (spec/004-tao-realignment @ af0871a
+**Branch:** `impl/004-p0-vocabulary` (Spec 004 specification branch @ af0871a
 + merge of origin/main 655de24, then the P0 commits).
 **Decisions applied:** OD-T2 (five stage terms verbatim), OD-T3 (cap
 `supported` by stage, R1.3), OD-T4 (project-local identity registry +
@@ -70,7 +70,7 @@ discipline applying to the framework's own spec first.
 
 - New: `tests/test_stage_vocabulary.py` + `tests/fixtures/stage/`
   (cap table, loading, registry, migration fixtures) and
-  `tests/test_tao_p0.py` (coordinator acceptance tests: cap table
+  `tests/test_stage_p0.py` (coordinator acceptance tests: cap table
   status+verdict per stage, outcome inheritance, forward-only stage
   events, strict/lenient stage loading, migrate backfill, registry
   accept/reject matrix incl. tool/model/team entries).
@@ -216,7 +216,7 @@ branch reproduces them exactly (empty per-claim diff over all 21
 claims; outcome ITERATE; 106 failure modes; all 21 claims named in
 `metadata.stage_defaults`; strict assess of the unmigrated bundle
 errors naming the missing `stage` field). New tests:
-`tests/test_tao_p0_completion.py` (19 tests: ceiling table,
+`tests/test_stage_p0_completion.py` (19 tests: ceiling table,
 verified_unexplained flag/no-flag/no-score-effect/outcome-neutrality
 + gate regression, digestion serialisation, not_understood
 contents, summary stage counts, lenient identity matrix, stage
@@ -245,7 +245,7 @@ the integrated build's after-implement numbers are the P6 records.
 The completion addendum's mechanisms (digestion tracking,
 verified_unexplained, not_understood, lenient identity_resolution,
 registry kind rule, verdict_ceiling accessor) were ported into the
-integrated tree as code (see tests/test_tao_p0_completion.py, ported
+integrated tree as code (see tests/test_stage_p0_completion.py, ported
 with them); its P0-era summary/metadata surface forms were NOT
 reintroduced — P2/P3 superseded them (stack `not_understood` field,
 lane pair, `stage_defaulted_claims` metadata), and the ported tests

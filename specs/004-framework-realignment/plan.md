@@ -1,6 +1,6 @@
-# Plan: Tao Realignment of the AEE Framework (Spec 004)
+# Plan: Realignment of the AEE Framework (Spec 004)
 
-**Input**: `specs/004-tao-realignment/spec.md` + `claims.json` (21 claims, assessed after_specify, ITERATE) + `audit-2026-10-12.md` (retroactive audit) + `stage-reclassifications-2026-10-12.json`
+**Input**: `specs/004-framework-realignment/spec.md` + `claims.json` (21 claims, assessed after_specify, ITERATE) + `audit-2026-10-12.md` (retroactive audit) + `stage-reclassifications-2026-10-12.json`
 
 **Prerequisites**: claims.json (required, assessed), spec.md (required), OD-T1 decided (2026-10-12, interleave — see spec §9). OD-T2/T3/T4 were proposed defaults in §0 below and are now **RATIFIED**. Ratified by owner directive 'Do all that remains' 2026-10-12, applied to the enumerated remaining items including this gate; defaults adopted as proposed.
 
@@ -14,7 +14,7 @@ Each default below was **PROPOSED — PENDING OWNER RATIFICATION** and is now **
 
 The interlocked audit decisions are also adopted: OD-A1 stage rules as audited, OD-A3 Spec 001 standing reading = checked-not-complete, and OD-A4 digestion-record practice adopted for framework specs going forward. OD-A2 was already satisfied by the merged close-out re-assessments.
 
-- **OD-T2 — Stage vocabulary: Tao's five terms verbatim** (`created`, `checked`, `explained`, `accepted`, `digested`). Rationale: all four realigned projects (AEE, the Research Engine, Glossa-Lab, the projected-constraints program) already use these terms; framework-native synonyms would create cross-project translation drift at exactly the boundary the realignment exists to unify.
+- **OD-T2 — Stage vocabulary: the five terms verbatim** (`created`, `checked`, `explained`, `accepted`, `digested`). Rationale: all four realigned projects (AEE, the Research Engine, Glossa-Lab, the projected-constraints program) already use these terms; framework-native synonyms would create cross-project translation drift at exactly the boundary the realignment exists to unify.
 - **OD-T3 — `supported` is capped by stage** (spec R1.3's proposal). Rationale: the status vocabulary stays unchanged — no bundle migration, no renamed enum — but the *reported* status and policy verdict ceiling are bounded by the claim's stage, so `supported` can never again be read as settled beyond what the stage allows.
 - **OD-T4 — Deployment-defined identity registry + engine-enforced shape rules.** Rationale: the engine cannot own a global person registry, so identity resolution is against a project-local registry file the deployment supplies; the engine enforces the shape rules on every exposition item — `source_id` non-empty, resolvable in the registry, and never a tool, a model, a team alias, or an empty string (spec R3.2).
 
