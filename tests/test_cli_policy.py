@@ -47,6 +47,10 @@ def run_assess(tmp_path, claims, *extra):
             write_claims(tmp_path, claims),
             "--output",
             str(output),
+            # FR-8.1: assess ledgers by default now; these tests are
+            # about policy verdicts, not ledgering — opt out explicitly
+            # rather than writing a ledger into the working tree.
+            "--no-ledger",
             *extra,
         ]
     )

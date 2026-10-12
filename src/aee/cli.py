@@ -17,7 +17,7 @@ from aee.evidence_check import check_evidence
 from aee.extract import load_claims, migrate_bundle, validate_bundle_structure
 from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
-from aee.ledger import HashChainLedger
+from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger
 from aee.model import (
     Claim,
     ClaimKind,
@@ -40,7 +40,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    assess = sub.add_parser("assess", help="Assess claims from JSON or Markdown")
+    assess = sub.add_parser(
+        "assess",
+        help="Assess claims from JSON or Markdown. Ledgers by default "
+        f"(Spec 002 FR-8.1): the assessment is appended to "
+        f"{DEFAULT_LEDGER_PATH.as_posix()} under the project root unless "
+        "--ledger selects another ledger or --no-ledger opts out. The "
+        "ledger entry, which records the assessment's SHA-256, is the "
+        "record of what was assessed; the assessment JSON is a working "
+        "copy (FR-8.3). Verify the record with: aee verify-ledger "
+        "--ledger <path>.",
+    )
     assess.add_argument("--input", type=Path, required=True)
     assess.add_argument("--project", default="project")
     assess.add_argument("--phase", default="after_plan")
@@ -49,7 +59,18 @@ def build_parser() -> argparse.ArgumentParser:
     assess.add_argument("--evaluator-output", type=Path)
     assess.add_argument("--artifact", action="append", default=[])
     assess.add_argument("--model")
-    assess.add_argument("--ledger", type=Path)
+    assess.add_argument(
+        "--ledger",
+        type=Path,
+        help="Ledger path to append the assessment to, instead of the "
+        f"default {DEFAULT_LEDGER_PATH.as_posix()} under the project root.",
+    )
+    assess.add_argument(
+        "--no-ledger",
+        action="store_true",
+        help="Opt out of ledgering this assessment (FR-8.1). The opt-out "
+        "is echoed into the assessment metadata, never silent.",
+    )
     assess.add_argument("--actor", default="aee")
     assess.add_argument(
         "--policy",
@@ -84,8 +105,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--project-root",
         type=Path,
         default=None,
-        help="Project root evidence refs resolve against with "
-        "--verify-evidence (default: current working directory).",
+        help="Project root: evidence refs resolve against it with "
+        "--verify-evidence, and the default ledger path is rooted "
+        "here (default: current working directory).",
     )
 
     verify_evidence = sub.add_parser(
@@ -247,6 +269,35 @@ def _migrate(args: argparse.Namespace) -> int:
 
 
 def _assess(args: argparse.Namespace) -> int:
+    if args.ledger is not None and args.no_ledger:
+        print(
+            "Error: --ledger and --no-ledger are mutually exclusive; "
+            "choose a ledger path or opt out, not both",
+            file=sys.stderr,
+        )
+        return 2
+    # FR-8.1 ledger parity: the bare CLI adopts the runner's default.
+    # Resolution: --ledger <path> wins (used as given); otherwise the
+    # documented default path under the project root (--project-root
+    # or the current working directory). --no-ledger is the explicit
+    # opt-out. Whichever happened is echoed into the assessment
+    # metadata (the FR-1.3 lenient-echo pattern): ledgering is never
+    # silent in either direction.
+    # Seam for Spec 003 FR-5 (path-collision guards: output == ledger,
+    # output == input, symlink targets) — deliberately NOT built here;
+    # this resolution is the single place those guards will hook in,
+    # because the final ledger path is decided exactly once, below.
+    ledger_path: Path | None
+    if args.no_ledger:
+        ledger_path = None
+        ledger_meta: dict[str, Any] = {"mode": "disabled", "path": None}
+    elif args.ledger is not None:
+        ledger_path = args.ledger
+        ledger_meta = {"mode": "custom", "path": args.ledger.as_posix()}
+    else:
+        root = args.project_root if args.project_root is not None else Path.cwd()
+        ledger_path = root / DEFAULT_LEDGER_PATH
+        ledger_meta = {"mode": "default", "path": ledger_path.as_posix()}
     claims = load_claims(args.input, strict=not args.lenient)
     policy = None
     if args.policy:
@@ -265,7 +316,7 @@ def _assess(args: argparse.Namespace) -> int:
         reliability=reliability,
         reliability_alpha=args.reliability_alpha,
     )
-    metadata: dict[str, Any] = {"input": args.input.as_posix()}
+    metadata: dict[str, Any] = {"input": args.input.as_posix(), "ledger": ledger_meta}
     if args.lenient:
         # FR-1.3: lenient mode is never silent — its use is on the record.
         metadata["loading_mode"] = "lenient"
@@ -288,8 +339,8 @@ def _assess(args: argparse.Namespace) -> int:
         metadata=metadata,
         additional_failures=evidence_failures,
     )
-    if args.ledger:
-        HashChainLedger(args.ledger).append_assessment(assessment, actor=args.actor)
+    if ledger_path is not None:
+        HashChainLedger(ledger_path).append_assessment(assessment, actor=args.actor)
     value = assessment.to_dict()
     _write_or_print(value, args.output)
     if args.evaluator_output:

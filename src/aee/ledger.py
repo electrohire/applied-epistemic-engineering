@@ -24,6 +24,12 @@ except ImportError:  # non-Windows
 
 GENESIS_HASH = "0" * 64
 
+# Spec 002 FR-8.1: the documented default assessment-ledger location,
+# relative to the project root. The spec-kit-aee runner already ledgers
+# to exactly this path by default; the bare engine CLI adopts the same
+# default so the two entry points converge (FR-8a ledger parity).
+DEFAULT_LEDGER_PATH = Path(".specify/extensions/aee/ledger/epistemic-ledger.jsonl")
+
 
 @dataclass(frozen=True, slots=True)
 class LedgerVerification:

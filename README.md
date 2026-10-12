@@ -86,14 +86,20 @@ print(assessment.outcome, assessment.summary)
 
 ```bash
 aee assess --input claims.json --phase after_plan --output assessment.json \
-  --evaluator-output evaluator-result.json --ledger .aee/epistemic-ledger.jsonl
+  --evaluator-output evaluator-result.json
+# assess ledgers by default (Spec 002 FR-8.1): the assessment above was
+# also appended to .specify/extensions/aee/ledger/epistemic-ledger.jsonl
+# under the project root (the CWD, or --project-root when given) — the
+# same default the spec-kit-aee runner uses. --ledger <path> selects a
+# different ledger; --no-ledger opts out, and the choice is echoed into
+# the assessment metadata either way.
+aee verify-ledger --ledger .specify/extensions/aee/ledger/epistemic-ledger.jsonl
 
 aee challenge --input claims.json --phase after_plan --output challenge.json
 aee validate claims.json   # strict load + structural checks (CI: 0 valid, 2 invalid)
 aee verify-evidence claims.json --project-root .   # refs resolve, hashes recompute, quality is derived vs declared
 aee assess --input claims.json --verify-evidence --project-root .   # the same checks, folded into the assessment
 aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAPS.md
-aee verify-ledger --ledger .aee/epistemic-ledger.jsonl
 aee graph --input claims.json --output claim-graph.mmd
 aee gate --input assessment.json
 aee demo   # self-contained demonstration assessment
@@ -106,6 +112,14 @@ aee review --previous assessment-t1.json --current assessment-t2.json
 
 Exit codes are CI-friendly: `0` for pass/warn, `1` for iteration/clarification/evidence
 collection/abstention, and `2` for a hard block or invalid ledger.
+
+**The ledger is the record; the JSON is a working copy** (Spec 002 FR-8.3). Each ledger
+entry stores the assessment's SHA-256 alongside its project, phase, outcome, and claim
+ids, so the entry — not the assessment file, which tools routinely overwrite on the
+next run — is the durable record of what was assessed. The documented loop is
+`aee assess` → `aee verify-ledger --ledger <path>`; the CLI and the spec-kit-aee
+runner describe identical semantics (ledger by default, same default path,
+`--no-ledger` as the explicit opt-out).
 
 ## Architecture
 

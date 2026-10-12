@@ -191,6 +191,10 @@ def test_cli_assess_verify_evidence_folds_failure_modes(tmp_path: Path) -> None:
             "--project-root",
             PROJECT.as_posix(),
             "--verify-evidence",
+            # FR-8.1: --project-root would root the new default ledger
+            # inside the fixture tree; opt out — ledgering is not the
+            # subject of this test.
+            "--no-ledger",
             "--output",
             out.as_posix(),
         ]
@@ -224,6 +228,7 @@ def test_cli_assess_without_verify_evidence_has_no_folded_modes(tmp_path: Path) 
             "assess",
             "--input",
             (PROJECT / "fr3-mismatch.json").as_posix(),
+            "--no-ledger",  # FR-8.1 default ledgering is not the subject here
             "--output",
             out.as_posix(),
         ]

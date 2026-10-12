@@ -156,7 +156,12 @@ def test_migrate_legacy_fixture_round_trip_to_assessment(tmp_path: Path) -> None
     assert len(claims) == 7
     assessment = tmp_path / "assessment.json"
     # A soft verdict (1) or pass (0) both prove assessability; 2 would be error.
-    assert main(["assess", "--input", str(out), "--output", str(assessment)]) in (0, 1)
+    # FR-8.1: assess ledgers by default now; opt out so the round-trip
+    # test does not write a ledger into the working tree.
+    assert main(["assess", "--input", str(out), "--output", str(assessment), "--no-ledger"]) in (
+        0,
+        1,
+    )
 
 
 def test_migrate_refuses_unmappable_values_loudly() -> None:
@@ -188,6 +193,7 @@ def test_assess_lenient_echoes_metadata(tmp_path: Path) -> None:
             "--input",
             str(FIXTURES / "fr1-renamed-field.json"),
             "--lenient",
+            "--no-ledger",  # FR-8.1: ledgering is not the subject here
             "--output",
             str(out),
         ]
@@ -198,5 +204,8 @@ def test_assess_lenient_echoes_metadata(tmp_path: Path) -> None:
     strict_out = tmp_path / "strict.json"
     ok = tmp_path / "ok.json"
     ok.write_text(json.dumps({"claims": [{"id": "A", "text": "A claim"}]}))
-    assert main(["assess", "--input", str(ok), "--output", str(strict_out)]) in (0, 1)
+    assert main(["assess", "--input", str(ok), "--output", str(strict_out), "--no-ledger"]) in (
+        0,
+        1,
+    )
     assert "loading_mode" not in json.loads(strict_out.read_text())["metadata"]
