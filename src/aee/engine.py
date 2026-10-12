@@ -3,12 +3,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from typing import Any
 
 from aee._version import __version__ as _ENGINE_VERSION
 from aee.challenge import StressTester
+from aee.decomposition import (
+    decomposition_failures,
+    effective_stage_overrides,
+    override_reasons,
+)
 from aee.model import Claim, ClaimStatus, EvidenceDirection, FailureMode, Severity
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
@@ -107,6 +112,14 @@ class AEEEngine:
     ) -> Assessment:
         items = list(claims)
         failures = self.stress_tester.run(items)
+        # Spec 004 P1 (R2.3/R4.3): decomposition and attribution rules
+        # cap EFFECTIVE stages - an incomplete headline is treated as
+        # `created`, a contested attribution caps its parent at
+        # `checked`. Computed once, here, from the stress tester's
+        # failures, and read by every surface below (caps, verdicts,
+        # outcome, summary) so they can never disagree about a stage.
+        overrides = effective_stage_overrides(items)
+        override_notes = override_reasons(items, overrides)
         # FR-6.2: the shared-evidence warning is an engine-level check
         # (it needs the whole bundle, like the stress tester's graph
         # checks) and folds in with caller-supplied failures below.
@@ -121,7 +134,8 @@ class AEEEngine:
         # reported, in the draft-cap precedent's shape (LOW: the cap
         # explains a lowered report; it must never escalate an
         # outcome beyond what the cap itself implies).
-        extra_failures.extend(_stage_cap_failures(items))
+        extra_failures.extend(decomposition_failures(items))
+        extra_failures.extend(_stage_cap_failures(items, overrides, override_notes))
         if additional_failures:
             extra_failures.extend(additional_failures)
         if extra_failures:
@@ -145,16 +159,26 @@ class AEEEngine:
         # R1.3: the cap also lands on the score record as a note -
         # the score itself is NOT changed (the cap lowers reported
         # vocabulary only, never the lane-1 number).
-        caps = stage_caps(items)
+        caps = stage_caps(items, overrides, override_notes)
         for cap in caps:
             scores[cap.claim_id].notes.append(cap.note)
         recoveries = self.recovery_operator.propose(failures)
-        outcome = self._outcome(items, scores)
+        outcome = self._outcome(items, scores, overrides)
         verdicts: dict[str, ClaimVerdict] = {}
         if self.policy is not None:
+            # Policy reads the EFFECTIVE stage: a claim capped by the
+            # decomposition/attribution rules is judged at its capped
+            # stage, not its stored one (R2.3/R4.3).
             verdicts = {
                 claim.id: evaluate_policy(
-                    claim, scores[claim.id], self.policy, threshold=self.threshold
+                    (
+                        replace(claim, stage=overrides[claim.id])
+                        if claim.id in overrides
+                        else claim
+                    ),
+                    scores[claim.id],
+                    self.policy,
+                    threshold=self.threshold,
                 )
                 for claim in items
             }
@@ -208,11 +232,30 @@ class AEEEngine:
         # outcome is — how many claims sit below `explained` (and so
         # block a settlement-worded pass), and how many reports were
         # lowered by a stage cap.
-        below = below_explained(items)
+        below = below_explained(items, overrides)
         if below:
             summary += (
                 f" Stage cap: {len(below)} claim(s) below stage 'explained'; "
                 "the outcome cannot be 'pass' (Spec 004 R1.4)."
+            )
+        incomplete = [
+            failure for failure in failures if failure.category == "decomposition_incomplete"
+        ]
+        if incomplete:
+            summary += (
+                f" Decomposition: {len(incomplete)} headline claim(s) incomplete "
+                "(missing required sub-claim roles, Spec 004 R2); their stages "
+                "are capped at 'created'."
+            )
+        contested_parents = {
+            claim_id
+            for claim_id, reason in override_notes.items()
+            if "contested" in reason
+        }
+        if contested_parents:
+            summary += (
+                f" Attribution: {len(contested_parents)} claim(s) stage-capped "
+                "by a contested attribution claim (Spec 004 R4.3)."
             )
         if caps:
             summary += (
@@ -284,7 +327,7 @@ class AEEEngine:
             # or fabricated by the caller. methodology_version (on the
             # Assessment itself) is a DISTINCT, separately-versioned
             # field and is never conflated with this stamp.
-            reported_statuses=reported_statuses(items),
+            reported_statuses=reported_statuses(items, overrides),
             stage_caps=caps,
             metadata={
                 "threshold": self.threshold,
@@ -300,7 +343,12 @@ class AEEEngine:
             },
         )
 
-    def _outcome(self, claims: list[Claim], scores: dict[str, ClaimScore]) -> str:
+    def _outcome(
+        self,
+        claims: list[Claim],
+        scores: dict[str, ClaimScore],
+        overrides: dict | None = None,
+    ) -> str:
         # stage_cap records are EXPLANATORY (R1.3): they name why a
         # report was lowered. They never route the outcome - the
         # R1.4 stage rule below does that work - so an explained
@@ -351,7 +399,7 @@ class AEEEngine:
             # only when nothing worse routed the outcome above, so the
             # cap never MASKS a gather_evidence/clarify/block verdict.
             return "iterate"
-        if below_explained(claims):
+        if below_explained(claims, overrides):
             # Spec 004 R1.4: the bundle outcome inherits the stage
             # caps — `pass` is a settlement word, reported only when
             # every covered claim is at stage `explained` or beyond.
@@ -446,17 +494,28 @@ def _draft_cap_failures(items: list[Claim]) -> list[FailureMode]:
     ]
 
 
-def _stage_cap_failures(items: list[Claim]) -> list[FailureMode]:
+def _stage_cap_failures(
+    items: list[Claim],
+    overrides: dict | None = None,
+    reasons: dict | None = None,
+) -> list[FailureMode]:
     """Spec 004 R1.3 visibility record for stage caps.
 
     One LOW failure per capped claim, in the draft-cap precedent's
     shape: LOW so the record explains the lowered report without
     escalating the outcome beyond what the stage rules themselves
-    imply (the R1.4 outcome cap in _outcome does that work).
+    imply (the R1.4 outcome cap in _outcome does that work). P1:
+    caps are computed at EFFECTIVE stages (decomposition/attribution
+    overrides), with the imposing rule named in the record.
     """
     failures: list[FailureMode] = []
     for claim in items:
-        cap = stage_cap_for(claim)
+        effective = (overrides or {}).get(claim.id)
+        cap = stage_cap_for(
+            claim,
+            effective_stage=effective,
+            reason=(reasons or {}).get(claim.id, ""),
+        )
         if cap is None:
             continue
         failures.append(

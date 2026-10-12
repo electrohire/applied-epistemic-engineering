@@ -76,6 +76,17 @@ STAGE_ORDER: dict[ClaimStage, int] = {
     ClaimStage.DIGESTED: 4,
 }
 
+# The five required sub-claim roles for a headline claim (Spec 004
+# R2.1). A headline claim's decomposition is complete only when a
+# linked (`depends_on`) sub-claim exists for every role here.
+DECOMPOSITION_ROLES: tuple[str, ...] = (
+    "statement-fidelity",
+    "evidence-verification",
+    "novelty",
+    "attribution",
+    "significance",
+)
+
 
 class EvidenceKind(StrEnum):
     OBSERVED = "observed"
@@ -220,6 +231,30 @@ def _enum_field(
         raise BundleValidationError(
             f"{context}: field '{field}' has invalid value {raw!r}; valid values: {valid}"
         ) from None
+
+
+def _bool_field(value: dict[str, Any], field: str, *, context: str) -> bool:
+    raw = value.get(field, False)
+    if not isinstance(raw, bool):
+        raise BundleValidationError(
+            f"{context}: field '{field}' must be a boolean, got {type(raw).__name__}"
+        )
+    return raw
+
+
+def _role_field(value: dict[str, Any], context: str) -> str | None:
+    """A sub-claim's decomposition role (Spec 004 R2.1): null, or one
+    of DECOMPOSITION_ROLES - anything else is a loud strict error."""
+    raw = value.get("role")
+    if raw is None:
+        return None
+    if not isinstance(raw, str) or raw not in DECOMPOSITION_ROLES:
+        valid = ", ".join(DECOMPOSITION_ROLES)
+        raise BundleValidationError(
+            f"{context}: field 'role' has invalid value {raw!r}; "
+            f"valid values: {valid} (or null for a non-sub-claim)"
+        )
+    return raw
 
 
 def _str_field(
@@ -916,6 +951,13 @@ class Claim:
     stage: ClaimStage = ClaimStage.CREATED
     stage_events: list[StageEvent] = field(default_factory=list)
     stage_defaulted: bool = False
+    # Decomposition (Spec 004 R2): a headline claim requires five
+    # linked sub-claims, one per role in DECOMPOSITION_ROLES; a
+    # sub-claim declares its role here. Structural only (R2.4) - the
+    # engine checks that the roles exist and are linked via
+    # `depends_on`, never that the text discharges the role.
+    headline: bool = False
+    role: str | None = None
 
     def __post_init__(self) -> None:
         if not self.id.strip():
@@ -993,6 +1035,8 @@ class Claim:
             "dispositions": [disposition.to_dict() for disposition in self.dispositions],
             "stage": self.stage.value,
             "stage_events": [event.to_dict() for event in self.stage_events],
+            "headline": self.headline,
+            "role": self.role,
         }
 
     # 'confidence_band' is emitted by to_dict as derived output; it is a
@@ -1021,6 +1065,8 @@ class Claim:
             "dispositions",
             "stage",
             "stage_events",
+            "headline",
+            "role",
         }
     )
 
@@ -1086,6 +1132,8 @@ class Claim:
                     for item in value.get("stage_events", [])
                 ],
                 stage_defaulted="stage" not in value,
+                headline=bool(value.get("headline", False)),
+                role=(str(value["role"]) if value.get("role") is not None else None),
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -1224,6 +1272,8 @@ class Claim:
                     StageEvent.from_dict(item, context=f"{ctx} stage_events[{index}]")
                     for index, item in enumerate(stage_events_raw)
                 ],
+                headline=_bool_field(value, "headline", context=ctx),
+                role=_role_field(value, ctx),
             )
         except BundleValidationError:
             raise

@@ -468,6 +468,19 @@
             "$ref": "#/$defs/disposition"
           }
         },
+        "headline": {
+          "type": "boolean"
+        },
+        "role": {
+          "enum": [
+            "statement-fidelity",
+            "evidence-verification",
+            "novelty",
+            "attribution",
+            "significance",
+            null
+          ]
+        },
         "stage": {
           "enum": [
             "created",

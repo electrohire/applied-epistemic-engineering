@@ -144,6 +144,19 @@
             "insufficient_evidence"
           ]
         },
+        "headline": {
+          "type": "boolean"
+        },
+        "role": {
+          "enum": [
+            "statement-fidelity",
+            "evidence-verification",
+            "novelty",
+            "attribution",
+            "significance",
+            null
+          ]
+        },
         "stage": {
           "enum": [
             "created",

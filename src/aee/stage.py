@@ -144,7 +144,12 @@ class StageCap:
         }
 
 
-def stage_cap_for(claim: Claim) -> StageCap | None:
+def stage_cap_for(
+    claim: Claim,
+    *,
+    effective_stage: ClaimStage | None = None,
+    reason: str = "",
+) -> StageCap | None:
     """The cap binding this claim, or None when no cap binds.
 
     A cap binds when (a) the author-declared status is not reportable
@@ -156,14 +161,25 @@ def stage_cap_for(claim: Claim) -> StageCap | None:
     ``created``/``checked``/``explained`` is enforced in the policy
     layer (aee.policy) whenever a verdict would exceed it; the cap
     record here names it in every case.
+
+    ``effective_stage`` (Spec 004 P1: decomposition/attribution caps)
+    replaces the stored stage for cap purposes when another rule
+    caps the stage further - an incomplete headline is treated as
+    ``created`` (R2.3), a contested attribution caps at ``checked``
+    (R4.3). A cap also binds when the effective stage is below the
+    stored one even if the status remains reportable, because the
+    verdict ceiling dropped; ``reason`` names the imposing rule and
+    is appended to the note.
     """
-    reported = reported_status_for(claim.status, claim.stage)
-    qualified = claim.status == ClaimStatus.SUPPORTED and claim.stage == ClaimStage.EXPLAINED
-    if reported == claim.status and not qualified:
+    stage = effective_stage if effective_stage is not None else claim.stage
+    reported = reported_status_for(claim.status, stage)
+    qualified = claim.status == ClaimStatus.SUPPORTED and stage == ClaimStage.EXPLAINED
+    stage_lowered = stage != claim.stage
+    if reported == claim.status and not qualified and not stage_lowered:
         return None
-    ceiling = VERDICT_CEILING[claim.stage]
-    lifting = LIFTING_EVENT[claim.stage]
-    if qualified:
+    ceiling = VERDICT_CEILING[stage]
+    lifting = LIFTING_EVENT[stage]
+    if qualified and not stage_lowered:
         note = (
             "Stage cap (Spec 004 R1.3): claim at stage 'explained' reports "
             "'supported' in qualified form only - the policy verdict ceiling "
@@ -171,13 +187,17 @@ def stage_cap_for(claim: Claim) -> StageCap | None:
         )
     else:
         note = (
-            f"Stage cap (Spec 004 R1.3): claim at stage '{claim.stage.value}' "
+            f"Stage cap (Spec 004 R1.3): claim at stage '{stage.value}' "
             f"may not report status '{claim.status.value}'; reported as "
             f"'{reported.value}' (policy verdict ceiling: {ceiling})"
         )
+        if stage_lowered:
+            note += f"; stored stage '{claim.stage.value}' is capped to '{stage.value}'"
+    if reason:
+        note += f" [{reason}]"
     return StageCap(
         claim_id=claim.id,
-        stage=claim.stage.value,
+        stage=stage.value,
         author_status=claim.status.value,
         reported_status=reported.value,
         verdict_ceiling=ceiling,
@@ -187,25 +207,48 @@ def stage_cap_for(claim: Claim) -> StageCap | None:
     )
 
 
-def reported_statuses(claims: list[Claim]) -> dict[str, str]:
+def _effective(claim: Claim, overrides: dict[str, ClaimStage] | None) -> ClaimStage:
+    if overrides and claim.id in overrides:
+        return overrides[claim.id]
+    return claim.stage
+
+
+def reported_statuses(
+    claims: list[Claim], overrides: dict[str, ClaimStage] | None = None
+) -> dict[str, str]:
     """Per-claim reported (capped) status for an assessment."""
-    return {claim.id: reported_status_for(claim.status, claim.stage).value for claim in claims}
+    return {
+        claim.id: reported_status_for(claim.status, _effective(claim, overrides)).value
+        for claim in claims
+    }
 
 
-def stage_caps(claims: list[Claim]) -> list[StageCap]:
+def stage_caps(
+    claims: list[Claim],
+    overrides: dict[str, ClaimStage] | None = None,
+    reasons: dict[str, str] | None = None,
+) -> list[StageCap]:
     """All binding caps in a bundle, in claim order."""
     caps: list[StageCap] = []
     for claim in claims:
-        cap = stage_cap_for(claim)
+        cap = stage_cap_for(
+            claim,
+            effective_stage=_effective(claim, overrides),
+            reason=(reasons or {}).get(claim.id, ""),
+        )
         if cap is not None:
             caps.append(cap)
     return caps
 
 
-def below_explained(claims: list[Claim]) -> list[Claim]:
+def below_explained(
+    claims: list[Claim], overrides: dict[str, ClaimStage] | None = None
+) -> list[Claim]:
     """Claims whose stage blocks a settlement-worded outcome (R1.4)."""
     return [
-        claim for claim in claims if STAGE_ORDER[claim.stage] < STAGE_ORDER[ClaimStage.EXPLAINED]
+        claim
+        for claim in claims
+        if STAGE_ORDER[_effective(claim, overrides)] < STAGE_ORDER[ClaimStage.EXPLAINED]
     ]
 
 

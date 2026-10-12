@@ -207,6 +207,17 @@ def build_parser() -> argparse.ArgumentParser:
         help="Pin the scoring clock (Spec 003 FR-5.8), as for assess.",
     )
 
+    priority = sub.add_parser(
+        "priority",
+        help="Report claim priority records from a ledger (Spec 004 R7.1)",
+    )
+    priority.add_argument("--ledger", type=Path, required=True)
+    priority.add_argument(
+        "--claim",
+        default=None,
+        help="Only this claim id (exit 2 when it was never registered)",
+    )
+
     verify = sub.add_parser("verify-ledger", help="Verify every hash-chain link")
     verify.add_argument("--ledger", type=Path, required=True)
     verify.add_argument(
@@ -292,6 +303,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _challenge(args)
         if args.command == "verify-ledger":
             return _verify_ledger(args)
+        if args.command == "priority":
+            return _priority(args)
         if args.command == "gate":
             return _gate(args)
         if args.command == "graph":
@@ -565,6 +578,28 @@ def _challenge(args: argparse.Namespace) -> int:
     }
     _write_or_print(value, args.output)
     return _exit_code(assessment.outcome)
+
+
+def _priority(args: argparse.Namespace) -> int:
+    """Spec 004 R7.1: a claim's registration (priority) record is a
+    read over the ledger - earliest entry whose assessment contains
+    the claim id, with its timestamp and entry hash."""
+    from aee.priority import claim_priority, priority_index
+
+    ledger = HashChainLedger(args.ledger)
+    if args.claim is not None:
+        record = claim_priority(ledger, args.claim)
+        if record is None:
+            print(
+                f"Error: claim {args.claim!r} was never registered in "
+                f"{args.ledger.as_posix()}",
+                file=sys.stderr,
+            )
+            return 2
+        print(_dumps(record, indent=2))
+        return 0
+    print(_dumps(priority_index(ledger), indent=2))
+    return 0
 
 
 def _verify_ledger(args: argparse.Namespace) -> int:

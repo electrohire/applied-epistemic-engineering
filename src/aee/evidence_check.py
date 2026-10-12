@@ -52,6 +52,9 @@ CONTENT_HASH_UNSUPPORTED = "content_hash_unsupported"
 UNPARSEABLE_OBSERVED_AT = "unparseable_observed_at"
 QUALITY_MISMATCH = "quality_mismatch"
 EMPTY_REF = "empty_ref"
+LEDGER_REF_INVALID = "ledger_ref_invalid"
+LEDGER_ENTRY_MISSING = "ledger_entry_missing"
+LEDGER_CHAIN_INVALID = "ledger_chain_invalid"
 
 _SEVERITY: dict[str, Severity] = {
     MISSING_REF: Severity.HIGH,
@@ -61,6 +64,9 @@ _SEVERITY: dict[str, Severity] = {
     UNPARSEABLE_OBSERVED_AT: Severity.MEDIUM,
     QUALITY_MISMATCH: Severity.MEDIUM,
     EMPTY_REF: Severity.HIGH,
+    LEDGER_REF_INVALID: Severity.HIGH,
+    LEDGER_ENTRY_MISSING: Severity.HIGH,
+    LEDGER_CHAIN_INVALID: Severity.HIGH,
 }
 
 _TEST_COMPONENTS = {"tests", "test"}
@@ -271,6 +277,15 @@ def _check_item(claim_id: str, index: int, evidence: Evidence, root: Path) -> Ev
         _check_observed_at(evidence, add)
         return _finish(result)
 
+    if ref.startswith("ledger:"):
+        # Spec 004 R7.2: a priority-evidence citation - the ref names
+        # a ledger entry (`ledger:<path>#<sequence>`), and resolution
+        # recomputes that entry's hash from the ledger itself, so the
+        # citation is inspectable rather than asserted.
+        _check_ledger_ref(ref, evidence, root, result, add)
+        _check_observed_at(evidence, add)
+        return _finish(result)
+
     derived = derive_source_quality(ref)
     result.derived_quality = derived.value if derived is not None else None
 
@@ -297,6 +312,69 @@ def _check_item(claim_id: str, index: int, evidence: Evidence, root: Path) -> Ev
             f"derived from the ref type ('{derived.value}'): {ref}",
         )
     return _finish(result)
+
+
+def _check_ledger_ref(ref: str, evidence: Evidence, root: Path, result: Any, add: Any) -> None:
+    """Resolve a `ledger:<path>#<sequence>` priority citation (R7.2).
+
+    The cited entry must exist in a ledger whose chain verifies; the
+    entry hash is recomputed by the ledger's own verification path.
+    A declared ``content_hash`` on the evidence item must equal the
+    entry hash - that is what makes the citation an anchor rather
+    than a pointer to mutable bookkeeping.
+    """
+    from aee.ledger import HashChainLedger
+
+    body = ref[len("ledger:"):]
+    path_part, sep, seq_part = body.partition("#")
+    sequence: int | None = None
+    if sep and seq_part.isdigit():
+        sequence = int(seq_part)
+    if not path_part.strip() or sequence is None:
+        add(
+            LEDGER_REF_INVALID,
+            f"priority citation {ref!r} is not of the form "
+            "'ledger:<ledger-path>#<sequence>' (Spec 004 R7.2)",
+        )
+        return
+    resolved = _resolve_local(path_part, root, add)
+    if resolved is None:
+        return
+    result.resolved_path = resolved.relative_to(root).as_posix()
+    try:
+        ledger = HashChainLedger(resolved)
+        verification = ledger.verify()
+    except Exception as exc:  # a ledger that cannot be read cannot anchor
+        add(LEDGER_CHAIN_INVALID, f"priority ledger {path_part!r} cannot be verified: {exc}")
+        return
+    if not verification.valid:
+        add(
+            LEDGER_CHAIN_INVALID,
+            f"priority ledger {path_part!r} fails verification: "
+            f"{'; '.join(verification.errors) or 'chain invalid'}",
+        )
+        return
+    entry = next(
+        (item for item in ledger.entries() if item.get("sequence") == sequence),
+        None,
+    )
+    if entry is None:
+        add(
+            LEDGER_ENTRY_MISSING,
+            f"priority ledger {path_part!r} has no entry at sequence {sequence}",
+        )
+        return
+    entry_hash = entry.get("entry_hash")
+    if evidence.content_hash is not None:
+        if evidence.content_hash == entry_hash:
+            evidence.content_hash_status = "verified"
+        else:
+            add(
+                CONTENT_HASH_MISMATCH,
+                f"declared content_hash does not match the hash of ledger entry "
+                f"{sequence} in {path_part!r} (Spec 004 R7.2)",
+            )
+    result.derived_quality = None
 
 
 def _finish(result: EvidenceItemResult) -> EvidenceItemResult:
