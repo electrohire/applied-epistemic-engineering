@@ -5,9 +5,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
-from collections.abc import Sequence
+import tempfile
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -267,6 +269,8 @@ def _verify_evidence(args: argparse.Namespace) -> int:
     claims = load_claims(args.bundle)
     root = args.project_root if args.project_root is not None else Path.cwd()
     report = check_evidence(claims, root)
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.bundle, "the input bundle")])
     _write_or_print(report.to_dict(), args.output)
     if report.findings:
         for finding in report.findings:
@@ -285,6 +289,8 @@ def _verify_evidence(args: argparse.Namespace) -> int:
 
 
 def _migrate(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.bundle, "the input bundle")])
     value = json.loads(args.bundle.read_text(encoding="utf-8"))
     migrated, report = migrate_bundle(value)
     for line in report:
@@ -312,10 +318,12 @@ def _assess(args: argparse.Namespace) -> int:
     # opt-out. Whichever happened is echoed into the assessment
     # metadata (the FR-1.3 lenient-echo pattern): ledgering is never
     # silent in either direction.
-    # Seam for Spec 003 FR-5 (path-collision guards: output == ledger,
-    # output == input, symlink targets) — deliberately NOT built here;
-    # this resolution is the single place those guards will hook in,
-    # because the final ledger path is decided exactly once, below.
+    # Spec 003 FR-5.1 path-collision guards hook in here, where the
+    # final ledger path is decided exactly once: no output of this run
+    # may resolve (symlinks followed) onto the input bundle, the
+    # reliability file, the ledger, or its anchor sidecar — the
+    # artifacts the trust story rests on (RT2-H4). The refusal happens
+    # before anything is written or appended.
     ledger_path: Path | None
     if args.no_ledger:
         ledger_path = None
@@ -327,6 +335,24 @@ def _assess(args: argparse.Namespace) -> int:
         root = args.project_root if args.project_root is not None else Path.cwd()
         ledger_path = root / DEFAULT_LEDGER_PATH
         ledger_meta = {"mode": "default", "path": ledger_path.as_posix()}
+    protected: list[tuple[Path, str]] = [(args.input, "the --input bundle")]
+    if args.reliability is not None:
+        protected.append((args.reliability, "the --reliability file"))
+    if ledger_path is not None:
+        protected.append((ledger_path, "the ledger"))
+        protected.append(
+            (
+                ledger_path.with_name(ledger_path.name + ".anchor.json"),
+                "the ledger anchor sidecar",
+            )
+        )
+    if args.output is not None:
+        _guard_output_path(args.output, protected)
+    if args.evaluator_output is not None:
+        evaluator_protected = list(protected)
+        if args.output is not None:
+            evaluator_protected.append((args.output, "the --output assessment"))
+        _guard_output_path(args.evaluator_output, evaluator_protected, flag="--evaluator-output")
     claims = load_claims(args.input, strict=not args.lenient)
     if not claims:
         # Spec 003 FR-1.1 (OD-2, CLI half): an explicitly empty bundle
@@ -395,9 +421,11 @@ def _assess(args: argparse.Namespace) -> int:
         metadata=metadata,
         additional_failures=evidence_failures,
     )
-    if ledger_path is not None:
-        HashChainLedger(ledger_path).append_assessment(assessment, actor=args.actor)
     value = assessment.to_dict()
+    # Spec 003 FR-5.2 (RT2-M3): the artifacts are written BEFORE the
+    # ledger append, so a failed write can never leave a ledger entry
+    # attesting to an assessment file that was never produced. Writes
+    # themselves are atomic (temp file + rename, see _write_json).
     _write_or_print(value, args.output)
     if args.evaluator_output:
         evaluator = EvaluatorAdapter().to_evaluator_result(
@@ -407,10 +435,14 @@ def _assess(args: argparse.Namespace) -> int:
             deterministic=args.model is None,
         )
         _write_json(evaluator, args.evaluator_output)
+    if ledger_path is not None:
+        HashChainLedger(ledger_path).append_assessment(assessment, actor=args.actor)
     return _exit_code(assessment.outcome)
 
 
 def _challenge(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.input, "the --input bundle")])
     claims = load_claims(args.input)
     if not claims:
         print(
@@ -443,6 +475,18 @@ def _challenge(args: argparse.Namespace) -> int:
 
 def _verify_ledger(args: argparse.Namespace) -> int:
     ledger = HashChainLedger(args.ledger)
+    if args.write_anchor:
+        # FR-5.1: an anchor write aimed at the ledger itself would
+        # destroy the chain it is meant to anchor (RT2-H4 class).
+        anchor_path = args.anchor if args.anchor is not None else ledger.anchor_path
+        if anchor_path.resolve() == args.ledger.resolve():
+            print(
+                f"Error: --anchor {anchor_path.as_posix()} resolves to the ledger "
+                f"{args.ledger.as_posix()} itself; refusing to overwrite the ledger "
+                "with an anchor",
+                file=sys.stderr,
+            )
+            return 2
     written_anchor = None
     if args.write_anchor:
         written_anchor = ledger.write_anchor(args.anchor)
@@ -684,10 +728,11 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
 
 
 def _graph(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(args.output, [(args.input, "the --input bundle")])
     rendered = ClaimGraph(load_claims(args.input)).to_mermaid()
     if args.output:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(rendered, encoding="utf-8")
+        _atomic_write_text(args.output, rendered)
     else:
         print(rendered, end="")
     return 0
@@ -717,7 +762,16 @@ def _gaps(args: argparse.Namespace) -> int:
         print(f"Closed {args.close}")
         return 0
 
-    # Generate mode
+    # Generate mode. FR-5.1: the register output must not resolve onto
+    # the matrix it is generated from or the existing register it
+    # preserves closures from. (--close above is the deliberate
+    # exception: it updates the register artifact in place, read fully
+    # before the atomic write replaces it.)
+    if args.output is not None:
+        gaps_protected: list[tuple[Path, str]] = [(args.matrix, "the --matrix file")]
+        if args.existing is not None:
+            gaps_protected.append((args.existing, "the --existing register"))
+        _guard_output_path(args.output, gaps_protected)
     try:
         register = engine.generate(
             matrix_path=args.matrix,
@@ -739,8 +793,7 @@ def _gaps(args: argparse.Namespace) -> int:
 
 
 def _write_gaps(register: GapRegister, output: Path) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(register.to_markdown(), encoding="utf-8")
+    _atomic_write_text(output, register.to_markdown())
 
 
 def _demo() -> int:
@@ -807,6 +860,14 @@ def _assessment_view(path: Path) -> _AssessmentView:
 
 
 def _review(args: argparse.Namespace) -> int:
+    if args.output is not None:
+        _guard_output_path(
+            args.output,
+            [
+                (args.previous, "the --previous assessment"),
+                (args.current, "the --current assessment"),
+            ],
+        )
     queue = build_review_queue(
         _assessment_view(args.previous),
         _assessment_view(args.current),
@@ -817,6 +878,58 @@ def _review(args: argparse.Namespace) -> int:
     return 0
 
 
+def _guard_output_path(
+    output: Path,
+    protected: Iterable[tuple[Path, str]],
+    *,
+    flag: str = "--output",
+) -> None:
+    """Spec 003 FR-5.1 (RT2-H4): refuse, before anything is written,
+    when an output path resolves onto a path the run reads.
+
+    Resolution is symlink-aware (``Path.resolve``), so an output aimed
+    through a symlink at the input bundle, the ledger, or its anchor
+    sidecar is refused under its real target's name. When the output
+    path itself passes through a symlink to somewhere unprotected, the
+    resolved target is reported on stderr before writing — a scripted
+    run never silently writes somewhere other than the path it named.
+    Raises ValueError (main reports it as a clean exit-2 error).
+    """
+    resolved_output = output.resolve()
+    for path, description in protected:
+        if resolved_output == path.resolve():
+            raise ValueError(
+                f"{flag} {output.as_posix()} resolves to {resolved_output.as_posix()}, "
+                f"which is {description}; refusing to overwrite it (Spec 003 FR-5.1)"
+            )
+    if Path(os.path.abspath(output)) != resolved_output:
+        print(
+            f"note: {flag} {output.as_posix()} resolves through a symlink "
+            f"to {resolved_output.as_posix()}",
+            file=sys.stderr,
+        )
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    """Spec 003 FR-5.2 (RT2-M3): write via a temp file in the same
+    directory + rename, so a failed or interrupted write never leaves
+    a truncated artifact behind. The rename does not follow a symlink
+    at the final path component: it replaces the link itself, so a
+    symlinked output can never truncate its target (RT2-H4)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent, prefix=path.name + ".", suffix=".tmp"
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(text)
+        os.replace(temporary, path)
+    except BaseException:
+        temporary.unlink(missing_ok=True)
+        raise
+
+
 def _write_or_print(value: dict[str, object], output: Path | None) -> None:
     if output:
         _write_json(value, output)
@@ -825,8 +938,7 @@ def _write_or_print(value: dict[str, object], output: Path | None) -> None:
 
 
 def _write_json(value: dict[str, object], output: Path) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+    _atomic_write_text(output, json.dumps(value, indent=2) + "\n")
 
 
 def _exit_code(outcome: str) -> int:
