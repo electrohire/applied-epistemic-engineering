@@ -11,6 +11,7 @@ from aee.model import (
     Claim,
     ClaimKind,
     ClaimStatus,
+    DispositionKind,
     EvidenceDirection,
     EvidenceKind,
     FailureMode,
@@ -24,6 +25,17 @@ _VAGUE = re.compile(
     re.IGNORECASE,
 )
 _COMPOUND = re.compile(r"[,;]|\b(and|or|while|unless|except)\b", re.IGNORECASE)
+# FR-5.5 recalibration: the two signal classes inside _COMPOUND are not
+# equally strong. A connective word (and/or/while/unless/except) joins
+# propositions; punctuation (, ;) merely separates phrases inside one —
+# ordinary prose claims carry commas without being compound (the
+# original heuristic fired on 28/28 prose claims). Punctuation alone
+# therefore no longer draws the challenge when the claim carries
+# exactly one falsification test, the observable signature of a single
+# proposition. The deeper lexicon work (connective recall, noun-phrase
+# disjunctions) is Spec 003 FR-8.15/FR-8.8 territory, not this phase.
+_COMPOUND_CONNECTIVE = re.compile(r"\b(and|or|while|unless|except)\b", re.IGNORECASE)
+_COMPOUND_PUNCTUATION = re.compile(r"[,;]")
 _ABSOLUTE = re.compile(r"\b(always|never|all|none|guarantee[sd]?|impossible)\b", re.IGNORECASE)
 
 
@@ -39,6 +51,15 @@ class StressTester:
         loaded from a file or produced by an earlier run — are not
         merged or preserved. Snapshot ``claim.failures`` before
         calling if you need them.
+
+        Dispositions (FR-5.2): after regeneration, a failure whose
+        ``category`` matches a stored disposition on its claim is
+        marked ``resolved`` with the disposition attached — the
+        challenge stays on the record (it was raised), answered rather
+        than erased. A ``split`` disposition naming successor claims
+        that do not exist in the bundle (or naming none) draws a
+        warning failure, generated after disposition matching so it
+        cannot itself be dispositioned away in the same run.
         """
         items = list(claims)
         graph = ClaimGraph()
@@ -115,6 +136,48 @@ class StressTester:
             by_claim.setdefault(failure.claim_id, []).append(failure)
         for claim in items:
             claim.failures = by_claim.get(claim.id, [])
+
+        # FR-5.2: honor stored dispositions. Matching keys on
+        # (claim, failure.category == disposition.challenge_category).
+        for claim in items:
+            for failure in claim.failures:
+                disposition = claim.disposition_for(failure.category)
+                if disposition is not None:
+                    failure.resolved = True
+                    failure.disposition = disposition
+
+        # FR-5.3: a split disposition must name successor claims that
+        # exist in this bundle. One aggregated warning per claim,
+        # appended after matching (see the run() contract).
+        known_ids = {claim.id for claim in items}
+        for claim in items:
+            problems: list[str] = []
+            for disposition in claim.dispositions:
+                if disposition.kind != DispositionKind.SPLIT:
+                    continue
+                if not disposition.successors:
+                    problems.append(
+                        f"split disposition for '{disposition.challenge_category}' "
+                        "names no successor claims"
+                    )
+                else:
+                    missing = [s for s in disposition.successors if s not in known_ids]
+                    if missing:
+                        problems.append(
+                            f"split disposition for '{disposition.challenge_category}' "
+                            f"names successor(s) not in this bundle: {', '.join(missing)}"
+                        )
+            if problems:
+                warning = self._failure(
+                    claim.id,
+                    "Disposition successor challenge",
+                    "; ".join(problems),
+                    Severity.MEDIUM,
+                    "provenance_gap",
+                    "Name the claims the split produced, or correct the disposition.",
+                )
+                claim.failures.append(warning)
+                failures.append(warning)
         return failures
 
     def _test_claim(self, claim: Claim) -> list[FailureMode]:
@@ -153,7 +216,7 @@ class StressTester:
                     "Replace vague language with a threshold, observable, or decision rule.",
                 )
             )
-        if _COMPOUND.search(claim.text):
+        if self._compound_signal(claim):
             failures.append(
                 self._failure(
                     claim.id,
@@ -242,6 +305,23 @@ class StressTester:
                 )
             )
         return failures
+
+    @staticmethod
+    def _compound_signal(claim: Claim) -> bool:
+        """Whether the claim text signals multiple propositions (FR-5.5).
+
+        A connective word always signals compound structure.
+        Punctuation alone signals it only when the claim does not carry
+        exactly one falsification test — one test is the observable
+        signature of a single proposition, so comma-bearing atomic
+        prose ("The valve opens at 4 bar, measured at the inlet") no
+        longer draws a MEDIUM irreducibility challenge.
+        """
+        if _COMPOUND_CONNECTIVE.search(claim.text):
+            return True
+        if _COMPOUND_PUNCTUATION.search(claim.text):
+            return len(claim.falsification_tests) != 1
+        return False
 
     def _implicit_negation_conflicts(self, claims: list[Claim]) -> list[FailureMode]:
         failures: list[FailureMode] = []

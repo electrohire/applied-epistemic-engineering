@@ -53,6 +53,12 @@ class SourceQuality(StrEnum):
     UNKNOWN = "unknown"
 
 
+class DispositionKind(StrEnum):
+    SPLIT = "split"
+    ACCEPTED_ATOMIC = "accepted-atomic"
+    WAIVED = "waived"
+
+
 class Uncertainty(StrEnum):
     NONE = "none"
     LOW = "low"
@@ -142,7 +148,8 @@ def _enum_field(
     | type[EvidenceDirection]
     | type[SourceQuality]
     | type[Uncertainty]
-    | type[Severity],
+    | type[Severity]
+    | type[DispositionKind],
     raw: Any,
     *,
     context: str,
@@ -328,6 +335,88 @@ class Evidence:
 
 
 @dataclass(slots=True)
+class Disposition:
+    """A recorded human judgment answering a regenerated challenge
+    (Spec 002 FR-5.1).
+
+    A disposition lives on a claim in the bundle, so it persists across
+    assessment runs — unlike ``FailureMode.resolved``, which is
+    regenerated output state. On assessment, a challenge regenerated
+    with the same ``challenge_category`` (the FailureMode ``category``
+    value) as a stored disposition is reported resolved, with this
+    record attached so the reason stays inspectable (FR-5.2).
+
+    ``kind`` semantics: ``split`` — the claim was split; ``successors``
+    names the resulting claim ids (FR-5.3). ``accepted-atomic`` — a
+    reviewer judged the claim atomic despite the challenge.
+    ``waived`` — the challenge is knowingly set aside. Every kind
+    requires a non-empty ``reason``: a judgment without a stated reason
+    is not auditable and never loads.
+    """
+
+    challenge_category: str
+    kind: DispositionKind
+    reason: str
+    author: str = ""
+    date: str = ""
+    successors: list[str] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        if not self.challenge_category.strip():
+            raise ValueError("disposition challenge_category must not be empty")
+        if not self.reason.strip():
+            raise ValueError("disposition reason must not be empty")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "challenge_category": self.challenge_category,
+            "kind": self.kind.value,
+            "reason": self.reason,
+            "author": self.author,
+            "date": self.date,
+            "successors": list(self.successors),
+        }
+
+    _FIELDS = frozenset({"challenge_category", "kind", "reason", "author", "date", "successors"})
+
+    @classmethod
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str = "disposition"
+    ) -> Disposition:
+        if not strict:
+            return cls(
+                challenge_category=str(value.get("challenge_category", "")),
+                kind=DispositionKind(value.get("kind", DispositionKind.WAIVED.value)),
+                reason=str(value.get("reason", "")),
+                author=str(value.get("author", "")),
+                date=str(value.get("date", "")),
+                successors=[str(item) for item in value.get("successors", [])],
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context}: disposition must be an object, got {type(value).__name__}"
+            )
+        _check_unknown_fields(value, set(cls._FIELDS), context)
+        return cls(
+            challenge_category=_str_field(
+                value, "challenge_category", context=context, required=True, non_empty=True
+            ),
+            kind=_enum_field(
+                DispositionKind,
+                value.get("kind", DispositionKind.WAIVED.value),
+                context=context,
+                field="kind",
+            ),
+            # FR-5.1: a disposition without a non-empty reason is invalid
+            # under strict loading — the reason IS the audit record.
+            reason=_str_field(value, "reason", context=context, required=True, non_empty=True),
+            author=_str_field(value, "author", context=context),
+            date=_str_field(value, "date", context=context),
+            successors=_str_list_field(value, "successors", context=context),
+        )
+
+
+@dataclass(slots=True)
 class FailureMode:
     """A reproducible challenge and the breakpoint it exposes."""
 
@@ -339,6 +428,12 @@ class FailureMode:
     category: str = "other"
     recovery_hint: str = ""
     resolved: bool = False
+    # Set when this failure was resolved by a stored claim disposition
+    # (FR-5.2): the disposition travels with the failure so the reason
+    # is inspectable in assessment output. History is not erased — the
+    # challenge still shows it was raised, and this shows how it was
+    # answered.
+    disposition: Disposition | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -350,6 +445,7 @@ class FailureMode:
             "category": self.category,
             "recovery_hint": self.recovery_hint,
             "resolved": self.resolved,
+            "disposition": self.disposition.to_dict() if self.disposition else None,
         }
 
     _FIELDS = frozenset(
@@ -362,6 +458,7 @@ class FailureMode:
             "category",
             "recovery_hint",
             "resolved",
+            "disposition",
         }
     )
 
@@ -370,6 +467,7 @@ class FailureMode:
         cls, value: dict[str, Any], *, strict: bool = True, context: str = "failure mode"
     ) -> FailureMode:
         if not strict:
+            raw_disposition = value.get("disposition")
             return cls(
                 id=str(value.get("id", "")),
                 claim_id=str(value.get("claim_id", "")),
@@ -379,6 +477,11 @@ class FailureMode:
                 category=str(value.get("category", "other")),
                 recovery_hint=str(value.get("recovery_hint", "")),
                 resolved=bool(value.get("resolved", False)),
+                disposition=(
+                    Disposition.from_dict(raw_disposition, strict=False)
+                    if isinstance(raw_disposition, dict)
+                    else None
+                ),
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -389,6 +492,12 @@ class FailureMode:
         if not isinstance(resolved, bool):
             raise BundleValidationError(
                 f"{context}: field 'resolved' must be a boolean, got {type(resolved).__name__}"
+            )
+        raw_disposition = value.get("disposition")
+        if raw_disposition is not None and not isinstance(raw_disposition, dict):
+            raise BundleValidationError(
+                f"{context}: field 'disposition' must be an object or null, "
+                f"got {type(raw_disposition).__name__}"
             )
         return cls(
             id=_str_field(value, "id", context=context, required=True, non_empty=True),
@@ -406,6 +515,11 @@ class FailureMode:
             category=_str_field(value, "category", context=context, default="other"),
             recovery_hint=_str_field(value, "recovery_hint", context=context),
             resolved=resolved,
+            disposition=(
+                Disposition.from_dict(raw_disposition, context=f"{context} disposition")
+                if isinstance(raw_disposition, dict)
+                else None
+            ),
         )
 
 
@@ -431,6 +545,10 @@ class Claim:
     confidence: float | None = None
     failures: list[FailureMode] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
+    # Stored challenge dispositions (FR-5.1): bundle input, persisted
+    # across runs — distinct from `failures`, which are regenerated
+    # output state. See Disposition.
+    dispositions: list[Disposition] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         if not self.id.strip():
@@ -441,6 +559,18 @@ class Claim:
     @property
     def unresolved_failures(self) -> list[FailureMode]:
         return [failure for failure in self.failures if not failure.resolved]
+
+    def disposition_for(self, challenge_category: str) -> Disposition | None:
+        """The stored disposition answering a challenge category, if any.
+
+        Disposition matching keys on (claim, challenge_category): the
+        disposition lives on the claim, and ``challenge_category`` is the
+        regenerated failure's ``category`` value. First match wins.
+        """
+        for disposition in self.dispositions:
+            if disposition.challenge_category == challenge_category:
+                return disposition
+        return None
 
     @property
     def confidence_band(self) -> ConfidenceBand:
@@ -471,6 +601,7 @@ class Claim:
             "confidence_band": self.confidence_band.value,
             "failures": [failure.to_dict() for failure in self.failures],
             "metadata": dict(self.metadata),
+            "dispositions": [disposition.to_dict() for disposition in self.dispositions],
         }
 
     # 'confidence_band' is emitted by to_dict as derived output; it is a
@@ -496,6 +627,7 @@ class Claim:
             "confidence_band",
             "failures",
             "metadata",
+            "dispositions",
         }
     )
 
@@ -537,6 +669,10 @@ class Claim:
                     FailureMode.from_dict(item, strict=False) for item in value.get("failures", [])
                 ],
                 metadata=dict(value.get("metadata", {})),
+                dispositions=[
+                    Disposition.from_dict(item, strict=False)
+                    for item in value.get("dispositions", [])
+                ],
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -557,6 +693,11 @@ class Claim:
         if not isinstance(failures_raw, list):
             raise BundleValidationError(
                 f"{ctx}: field 'failures' must be a list, got {type(failures_raw).__name__}"
+            )
+        dispositions_raw = value.get("dispositions", [])
+        if not isinstance(dispositions_raw, list):
+            raise BundleValidationError(
+                f"{ctx}: field 'dispositions' must be a list, got {type(dispositions_raw).__name__}"
             )
         metadata = value.get("metadata", {})
         if not isinstance(metadata, dict):
@@ -617,6 +758,10 @@ class Claim:
                     for index, item in enumerate(failures_raw)
                 ],
                 metadata=dict(metadata),
+                dispositions=[
+                    Disposition.from_dict(item, context=f"{ctx} dispositions[{index}]")
+                    for index, item in enumerate(dispositions_raw)
+                ],
             )
         except BundleValidationError:
             raise

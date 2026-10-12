@@ -59,6 +59,19 @@
       },
       "additionalProperties": false
     },
+    "disposition": {
+      "type": "object",
+      "required": ["challenge_category", "kind", "reason"],
+      "properties": {
+        "challenge_category": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["split", "accepted-atomic", "waived"]},
+        "reason": {"type": "string", "minLength": 1},
+        "author": {"type": "string"},
+        "date": {"type": "string"},
+        "successors": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
     "failure": {
       "type": "object",
       "required": ["id", "claim_id", "challenge", "breakpoint", "severity", "category"],
@@ -70,7 +83,8 @@
         "severity": {"enum": ["critical", "high", "medium", "low", "info"]},
         "category": {"type": "string"},
         "recovery_hint": {"type": "string"},
-        "resolved": {"type": "boolean"}
+        "resolved": {"type": "boolean"},
+        "disposition": {"anyOf": [{"$ref": "#/$defs/disposition"}, {"type": "null"}]}
       },
       "additionalProperties": false
     },
@@ -100,7 +114,8 @@
         "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
         "confidence_band": {"enum": ["unknown", "low", "medium", "high"]},
         "failures": {"type": "array", "items": {"$ref": "#/$defs/failure"}},
-        "metadata": {"type": "object"}
+        "metadata": {"type": "object"},
+        "dispositions": {"type": "array", "items": {"$ref": "#/$defs/disposition"}}
       }
     },
     "score": {

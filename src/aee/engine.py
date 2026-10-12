@@ -9,7 +9,7 @@ from typing import Any
 
 from aee._version import __version__ as _ENGINE_VERSION
 from aee.challenge import StressTester
-from aee.model import Claim, FailureMode, Severity
+from aee.model import Claim, EvidenceDirection, FailureMode, Severity
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, evaluate_policy
 from aee.recovery import RecoveryOperator, RecoveryProposal
 from aee.reliability import ReliabilityTable
@@ -96,7 +96,13 @@ class AEEEngine:
     ) -> Assessment:
         items = list(claims)
         failures = self.stress_tester.run(items)
+        # FR-6.2: the shared-evidence warning is an engine-level check
+        # (it needs the whole bundle, like the stress tester's graph
+        # checks) and folds in with caller-supplied failures below.
+        extra_failures: list[FailureMode] = [*_shared_evidence_failures(items)]
         if additional_failures:
+            extra_failures.extend(additional_failures)
+        if extra_failures:
             # Caller-supplied failure modes (e.g. evidence verification,
             # Spec 002 FR-3.5) fold in AFTER the stress tester — which
             # replaces claim.failures wholesale — and BEFORE recovery,
@@ -104,7 +110,7 @@ class AEEEngine:
             # regenerated challenges count. A failure naming a claim
             # outside this assessment is a caller error, not a verdict.
             by_id = {claim.id: claim for claim in items}
-            for failure in additional_failures:
+            for failure in extra_failures:
                 target = by_id.get(failure.claim_id)
                 if target is None:
                     raise ValueError(
@@ -139,6 +145,23 @@ class AEEEngine:
             f"Assessed {len(items)} claim(s); found {len(failures)} failure mode(s); "
             f"{below} claim(s) below the {self.threshold:.2f} confidence threshold."
         )
+        # FR-5.4: disposition coverage — how many of the challenges
+        # raised were answered by a stored disposition, and how many
+        # remain open. Reported whenever dispositions are in play (a
+        # failure resolved by one, or any claim carrying them).
+        dispositioned = sum(
+            1
+            for claim in items
+            for failure in claim.failures
+            if failure.resolved and failure.disposition is not None
+        )
+        if dispositioned or any(claim.dispositions for claim in items):
+            raised = sum(len(claim.failures) for claim in items)
+            open_count = sum(len(claim.unresolved_failures) for claim in items)
+            summary += (
+                f" Dispositions: {raised} challenge(s) raised, "
+                f"{dispositioned} dispositioned, {open_count} open."
+            )
         if verdicts:
             counts = {
                 verdict: sum(1 for item in verdicts.values() if item.verdict == verdict)
@@ -190,6 +213,60 @@ class AEEEngine:
         if failures or any(score.propagated_score < self.threshold for score in scores.values()):
             return "iterate"
         return "pass"
+
+
+def _shared_evidence_failures(items: list[Claim]) -> list[FailureMode]:
+    """FR-6.2 shared-evidence warning (category ``independence_unmodeled``).
+
+    When two claims' SUPPORTING evidence overlaps on the same ref or
+    source_id, the same item can be counted as corroboration in both
+    claims. If none of the overlapping items (in either claim) carries
+    an ``independent_of`` declaration, the independence behind those
+    scores is unmodeled and each affected claim is warned. Overlap
+    keys are the same keys scoring uses for source identity:
+    ``source_id or ref``.
+    """
+    by_key: dict[str, dict[str, list[tuple[str, bool]]]] = {}
+    for claim in items:
+        for item in claim.evidence:
+            if item.direction != EvidenceDirection.SUPPORTS or not item.ref:
+                continue
+            key = item.source_id or item.ref
+            by_key.setdefault(key, {}).setdefault(claim.id, []).append(
+                (item.ref, bool(item.independent_of))
+            )
+    failures: list[FailureMode] = []
+    id_counts: dict[str, int] = {}
+    for key, per_claim in sorted(by_key.items()):
+        if len(per_claim) < 2:
+            continue
+        if any(declared for entries in per_claim.values() for _, declared in entries):
+            continue  # independence is declared for this shared item
+        refs = sorted({ref for entries in per_claim.values() for ref, _ in entries})
+        for claim_id in sorted(per_claim):
+            others = ", ".join(sorted(c for c in per_claim if c != claim_id))
+            id_counts[claim_id] = id_counts.get(claim_id, 0) + 1
+            suffix = f"-{id_counts[claim_id]}" if id_counts[claim_id] > 1 else ""
+            failures.append(
+                FailureMode(
+                    id=f"AEE-{claim_id}-INDEPENDENCE-UNMODELED{suffix}",
+                    claim_id=claim_id,
+                    challenge="Shared-evidence independence challenge",
+                    breakpoint=(
+                        f"Supporting evidence '{key}' (ref(s): {', '.join(refs)}) "
+                        f"is shared with claim(s) {others} and no independence "
+                        "is declared for it; the same evidence may be counted "
+                        "as independent corroboration in each claim"
+                    ),
+                    severity=Severity.MEDIUM,
+                    category="independence_unmodeled",
+                    recovery_hint=(
+                        "Declare independent_of between the evidence items, or "
+                        "record that the corroboration is shared."
+                    ),
+                )
+            )
+    return failures
 
 
 def highest_severity(claims: Iterable[Claim]) -> Severity:
