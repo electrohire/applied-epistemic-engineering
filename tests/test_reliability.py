@@ -25,7 +25,7 @@ from aee import (
 def table_with(source: str, outcomes: list[bool], predicted: float = 0.9):
     table = ReliabilityTable()
     for outcome in outcomes:
-        table.record(source, predicted, outcome)
+        table.record(source, predicted, outcome, provenance="test-resolver")
     return table
 
 

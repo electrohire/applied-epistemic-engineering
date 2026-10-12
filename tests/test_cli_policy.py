@@ -95,7 +95,7 @@ def test_assess_policy_threshold_overrides(tmp_path) -> None:
 def test_assess_reliability_blends_scores(tmp_path) -> None:
     table = ReliabilityTable()
     for _ in range(5):
-        table.record("M", 1.0, True)
+        table.record("M", 1.0, True, provenance="test-resolver")
     table_path = tmp_path / "reliability.json"
     table_path.write_text(json.dumps(table.to_dict()), encoding="utf-8")
     model_claim = {
