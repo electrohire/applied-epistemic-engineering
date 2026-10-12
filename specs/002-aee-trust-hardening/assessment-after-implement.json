@@ -1,0 +1,3230 @@
+{
+  "schema_version": "1.0",
+  "methodology_version": "1.0",
+  "project": "applied-epistemic-engineering",
+  "phase": "after_implement",
+  "outcome": "iterate",
+  "summary": "Assessed 21 claim(s); found 90 failure mode(s); 2 claim(s) below the 0.70 confidence threshold. Shared evidence: 5 supporting source(s) shared across 21 of 21 claim(s); the same evidence set supports multiple claims (FR-2.8, reporting only, no outcome effect in this phase). Draft cap: 3 draft claim(s) capped at gather_evidence/iterate (FR-2.3).",
+  "created_at": "2026-10-12T15:57:29.874347Z",
+  "claims": [
+    {
+      "id": "TH-002-01",
+      "text": "Claim, Evidence, and FailureMode loading silently defaults missing or renamed fields and ignores unknown fields entirely, so a claims bundle that writes `statement` instead of `text` loads successfully with empty claim text.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "applied-epistemic-engineering engine at 1.4.0 (src/aee/model.py, src/aee/extract.py)",
+        "JSON bundle loading path (load_claims -> Claim.from_dict)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py Claim.from_dict (lines 243-266)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Every field is read with value.get(field, default); unknown keys are never inspected; only an empty claim id raises (Claim.__post_init__).",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "Tekmerion catch-up session, 2026-10-11/12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "human",
+          "description": "The first Spec 002 claims bundle used `statement`; the assessor ran and reported 'Claim has no inspectable proposition' from the silently emptied text instead of failing at load.",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Load a bundle whose claims use `statement` in place of `text` and show a load error naming the problem (current behavior: loads with text == '')."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "domain": "",
+      "confidence": 0.9835,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-01-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-01",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-01-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-01",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-01 may contradict TH-002-05",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-01-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-01",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-01 may contradict TH-002-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-01-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-01-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'tekmerion-catchup-2026-10-12' (ref(s): Tekmerion + Axiomere assessments, 2026-10-12, Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design), Tekmerion catch-up session, 2026-10-11/12, Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12) is shared with claim(s) TH-002-02, TH-002-04, TH-002-07 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-02",
+      "text": "Enum load failures name only the offending value; the error does not list the valid values, forcing the author to find the vocabulary elsewhere.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "Enum-typed fields on Claim, Evidence, and FailureMode (kind, status, uncertainty, severity, direction, source_quality)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Enums are constructed directly from raw values; Python's enum ValueError carries no valid-values list, and cli.py prints it verbatim (exit 2).",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "human",
+          "description": "A real legacy bundle that fails to load with exactly this unhelpful error.",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Load a bundle with kind='design' and show an error message containing the full valid ClaimKind value list (current message: \"'design' is not a valid ClaimKind\")."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "domain": "",
+      "confidence": 0.9835,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-02-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-02",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-02-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-02",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'tekmerion-catchup-2026-10-12' (ref(s): Tekmerion + Axiomere assessments, 2026-10-12, Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design), Tekmerion catch-up session, 2026-10-11/12, Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12) is shared with claim(s) TH-002-01, TH-002-04, TH-002-07 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-03",
+      "text": "The CLI offers no validate-only command and no migration path for pre-engine legacy bundles; the only loud load failure today is a missing top-level 'claims' key.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/cli.py subcommand set: assess, challenge, verify-ledger, gate, graph, gaps, review, demo",
+        "src/aee/extract.py load_claims"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/cli.py build_parser (lines 50-132)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "No validate or migrate subparser exists.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/extract.py load_claims (lines 22-29)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The one existing loud failure: a JSON object without a 'claims' list raises; per-claim field problems do not.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Run `aee validate` or `aee migrate` on the current CLI and show it exists (current: argparse rejects the subcommand)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "domain": "",
+      "confidence": 0.8945,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-03-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-03",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-03-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-03 may contradict TH-002-04",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-03-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-03 may contradict TH-002-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-03-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-03",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-04",
+      "text": "Neither the engine nor the spec-kit-aee extension provides a claims-drafting capability; claims are hand-authored, copied from a static template, or extracted only where a Markdown author already marked them as claims.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "spec-kit-aee extension 1.2.0 command set and templates",
+        "engine markdown extraction (src/aee/extract.py extract_markdown_claims)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Commands are assess/challenge/gaps/gate/report-savings/review/route-evidence/trace/verify; the claims template is a static file, not a generator.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/extract.py extract_markdown_claims",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Extraction only surfaces claims a Markdown author explicitly identified with REQ/CLM/HYP/DEC/ASM/COMP ids; it does not draft claims from requirements prose.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "human",
+          "description": "28 claims hand-written in one evening across three repositories; identified by the operator as the adoption tax.",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Invoke any shipped engine or extension command that proposes draft claims from an unmarked spec's requirements (current: none exists)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+      "domain": "",
+      "confidence": 0.999175,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-04-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-04",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-04 may contradict TH-002-06",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-04 may contradict TH-002-11",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TH-002-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-04 may contradict TH-002-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "TH-002-04",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-04 may contradict TH-002-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-04-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'tekmerion-catchup-2026-10-12' (ref(s): Tekmerion + Axiomere assessments, 2026-10-12, Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design), Tekmerion catch-up session, 2026-10-11/12, Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12) is shared with claim(s) TH-002-01, TH-002-02, TH-002-07 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-05",
+      "text": "Evidence is never verified: refs are free text that nothing resolves, the content_hash field is never consumed outside the model and its JSON schema, and scoring weights evidence by exactly the source_quality the author declared.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py (_SOURCE_WEIGHTS consumption)",
+        "src/aee/model.py Evidence fields (content_hash, observed_at, source_quality)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/scoring.py lines 148 and 174",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Scoring reads _SOURCE_WEIGHTS[item.source_quality] \u2014 the declared value is the weight, with no corroboration step.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "grep of src/aee for content_hash (2026-10-12)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "content_hash appears only in model.py (declaration/serialization) and schemas/aee-assessment.schema.json; no code validates it.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Point an evidence ref at a nonexistent file, or corrupt a content_hash, and show any engine command reporting it (current: none does)."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+      "domain": "",
+      "confidence": 0.8945,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-05-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-05",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-05-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-05",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-05 may contradict TH-002-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-05-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-05",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-06",
+      "text": "Assessment records do not identify the producing engine: assessment metadata carries only the threshold and the input path, and methodology_version is a constant '1.0' unrelated to the package version, while installed engine versions already diverge across environments.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/engine.py Assessment assembly and src/aee/cli.py _assess metadata",
+        "Installed base observed 2026-10-12 (spec-kit venv engine 1.0.2, glossa venv engine 1.0.4, extension 1.2.0, upstream catalog entry 1.0.1)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Assessment.methodology_version defaults to the literal '1.0'; assess metadata is {'threshold': ..., 'input': ...}. The package __version__ (1.4.0) is never stamped.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "spec-kit-aee extension.yml requires.tools",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "The extension pins the engine floor (>=1.4.0,<2) but passes no extension version to the engine, so an assessment cannot record which extension produced it.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Produce an assessment with the current CLI and show an engine-version field in its metadata (current metadata keys: threshold, input)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+      "domain": "",
+      "confidence": 0.89725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-06-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-06",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-06 may contradict TH-002-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-06 may contradict TH-002-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TH-002-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-06 may contradict TH-002-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-06-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-06",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-07, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-07",
+      "text": "The irreducibility challenge is a regular expression over commas and common conjunctions, so it fires on ordinary prose claims; and no disposition record exists \u2014 failures are regenerated deterministically on every assessment run, so a human judgment about a challenge cannot persist.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/challenge.py (_COMPOUND pattern, Irreducibility challenge)",
+        "src/aee/engine.py assess (stress_tester.run per run); bundle format (no disposition type)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/challenge.py line 26 and lines 157-166",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "_COMPOUND = [,;]|\\b(and|or|while|unless|except)\\b \u2014 any comma or 'and' in claim text triggers the MEDIUM coverage_gap challenge.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "Tekmerion + Axiomere assessments, 2026-10-12",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "human",
+          "description": "The irreducibility challenge fired on all 28 claims assessed across the three repositories that evening.",
+          "source_id": "tekmerion-catchup-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a disposition (kind, author, date, reason) recorded in a claims bundle being honored by a subsequent assessment (current: no such field or code path exists; FailureMode.resolved is regenerated output state, not a stored disposition)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+      "domain": "",
+      "confidence": 0.9835,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-07-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-07",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-07-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-07",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-07 may contradict TH-002-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-07-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-07",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-08, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-07-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-07",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'tekmerion-catchup-2026-10-12' (ref(s): Tekmerion + Axiomere assessments, 2026-10-12, Tekmerion Spec 001 founding aee-claims.json (kind=design, status=asserted-design), Tekmerion catch-up session, 2026-10-11/12, Tekmerion/Axiomere spec-kit + AEE catch-up, 2026-10-11/12) is shared with claim(s) TH-002-01, TH-002-02, TH-002-04 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-08",
+      "text": "Scoring derives evidence independence from distinct source_id/ref strings and never reads Evidence.independent_of, so two items tracing to one origin under different references score as fully independent sources.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py independence computation (line 167-168)",
+        "src/aee/model.py Evidence.independent_of (declared, unconsumed)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/scoring.py lines 167-168",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "source_ids = {item.source_id or item.ref}; independence_score = min(1.0, len(source_ids)/2.0). Distinct strings, not distinct origins.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "grep of src/aee for independent_of (2026-10-12)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "independent_of appears only in model.py and the assessment JSON schema \u2014 write-only in practice. CORRECTION to the original finding as briefed: independence is not a flat silent 1.0 default; it is a string-count heuristic, and a 'Fewer than two independent supporting sources' note exists when the count is under two. The gap is that the heuristic cannot see shared origin and ignores the declared field.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show scoring code reading independent_of, or a bundle where two same-origin items under different refs score independence below 1.0 by default (current: independence = min(1.0, distinct source strings / 2))."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+      "domain": "",
+      "confidence": 0.8945,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-08-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-08",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-08-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-08",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-08 may contradict TH-002-17",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-08-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-08",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-09, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-09",
+      "text": "spec-kit-evaluator ships a result contract, a composition script, and prompt commands, but no registered evaluator and no evaluators.yml, so a stock install's evaluator discovery finds nothing executable to run.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "electrohire/spec-kit-evaluator repository at bc2601e (commands/, schemas/, scripts/python/compose_results.py, examples/demo.py)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "The run command discovers evaluators from .specify/extensions/evaluator/evaluators.yml; the repo ships none, and its only executable Python composes results produced by others.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a shipped evaluators.yml or an executable evaluator implementation in spec-kit-evaluator that speckit.evaluator.run can dispatch to (current: discovery documented in the run command finds only what a user adds)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+      "domain": "",
+      "confidence": 0.8725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-09-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-09",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-09-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-09",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-09 may contradict TH-002-18",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-09-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-09",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-10, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-10",
+      "text": "Ledgering behavior is asymmetric: the spec-kit-aee runner ledgers every assessment by default (with an opt-out flag), while the engine CLI ledgers only when --ledger is explicitly passed, and neither documents the difference.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/cli.py _assess (--ledger opt-in)",
+        "spec-kit-aee scripts/python/run_aee.py (--no-ledger opt-out, default path .specify/extensions/aee/ledger/epistemic-ledger.jsonl)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The engine has a working append-only SHA-256 JSONL ledger; the CLI only uses it on explicit request.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "spec-kit-aee scripts/python/run_aee.py lines 192-199",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "CORRECTION to the finding as first framed: through the extension, ledgering is already the default \u2014 finding 8(a) is a consistency and documentation gap in the CLI, not a missing feature.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Run the bare engine CLI assess with no --ledger flag and show a ledger entry created (current: none is)."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.89725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-10-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-10",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-10 may contradict TH-002-11",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-10 may contradict TH-002-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TH-002-10",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-10 may contradict TH-002-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-10-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-10",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-11 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-11",
+      "text": "No code path in the engine or the extension can deposit an assessment hash into an Axiomere (.axmr) ledger; assessments circulate as mutable JSON files whose only chained record is the engine's own JSONL ledger entry.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "electrohire/applied-epistemic-engineering and electrohire/spec-kit-aee at 2026-10-12"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Zero hits; no export or anchor path exists.",
+          "source_id": "code-read-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show any shipped command producing an Axiomere anchor receipt for an assessment (current: grep for axiomere/axmr across both repos returns no hits)."
+      ],
+      "uncertainty": "low",
+      "severity": "low",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.845,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-11-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-11",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-11",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-11 may contradict TH-002-15",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-11",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-11 may contradict TH-002-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TH-002-11",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-11 may contradict TH-002-19",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "TH-002-11",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-11 may contradict TH-002-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-11-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-11",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-2026-10-12' (ref(s): grep for axiomere|axmr across engine src/ and spec-kit-aee scripts/ + commands/ (2026-10-12), grep of src/aee for content_hash (2026-10-12), grep of src/aee for independent_of (2026-10-12), spec-kit-aee extension.yml provides list (9 commands) and templates/aee-claims.json, spec-kit-aee extension.yml requires.tools, spec-kit-aee scripts/python/run_aee.py lines 192-199, spec-kit-evaluator repository listing and commands/speckit.evaluator.run.md (Discovery section), src/aee/challenge.py line 26 and lines 157-166, src/aee/cli.py _assess (ledger append guarded by args.ledger); src/aee/ledger.py HashChainLedger.append_assessment, src/aee/cli.py build_parser (lines 50-132), src/aee/engine.py line 39 and line 143; src/aee/cli.py _assess, src/aee/extract.py extract_markdown_claims, src/aee/extract.py load_claims (lines 22-29), src/aee/model.py Claim.from_dict (line 248) and Evidence.from_dict / FailureMode.from_dict, src/aee/model.py Claim.from_dict (lines 243-266), src/aee/scoring.py lines 148 and 174, src/aee/scoring.py lines 167-168) is shared with claim(s) TH-002-01, TH-002-02, TH-002-03, TH-002-04, TH-002-05, TH-002-06, TH-002-07, TH-002-08, TH-002-09, TH-002-10 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-12",
+      "text": "With strict loading as the assess default, the renamed-field fixture, the bad-enum fixture, and the legacy Tekmerion Spec 001 bundle each fail or convert with an actionable message instead of silently assessing.",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "Strict mode as default for assess/validate; an explicit non-strict escape hatch may exist but must be named and logged"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Shipped regression suite: the renamed-field fixture, the bad-enum fixture, and the legacy Tekmerion Spec 001 bundle each fail or convert with an actionable message naming the field and (for enums) the valid values. Engine suite green at close-out: 494 passed (with jsonschema installed); the same module is one of three that skip under the literal CI dependency set, which never declares jsonschema.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #23, electrohire/applied-epistemic-engineering (squash ec7a022)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: strict loading as the assess default, aee validate, aee migrate, and an explicit --lenient escape hatch whose use is echoed in assessment metadata.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Any of the three regression fixtures loading silently, assessing empty claims, or erroring without naming the field and (for enums) the valid values."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-12-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-12",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-12-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-12 may contradict TH-002-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-12-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-12 may contradict TH-002-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-12",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-12",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-12",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-13",
+      "text": "A draft-claims command that emits status=draft proposals from a spec's requirements reduces hand-authoring effort for a typical spec, with no tool-generated claim ever entering an assessment as ratified or supported by the tool's own action.",
+      "kind": "prediction",
+      "status": "draft",
+      "boundary": [
+        "spec-kit-aee command speckit.aee.draft-claims plus minimal engine support",
+        "Ratification is a human edit to the bundle; the tool cannot set it"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "The drafting helper and the speckit.aee.draft-claims command emit status=draft proposals only; the ratification guard is test-covered and was verified live in extension PR #18: no code path promotes a draft, ratification is a human edit to the bundle.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Mechanism shipped: engine drafting helper (FR-2) and the extension draft-claims command (T202), with runner support.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T811 close-out note, 2026-10-12)",
+          "kind": "observed",
+          "direction": "context",
+          "source_quality": "artifact",
+          "description": "Held at draft honestly: the claim's effort-reduction predicate has never been measured - no timed authoring trial exists, and the falsifier names exactly that trial. The mechanism half is shipped and test-covered; the prediction half is undischarged.",
+          "source_id": "closeout-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A drafted claim reaching status supported (or being assessed as anything but an unratified draft) without a recorded human ratification edit; or a timed authoring trial showing no effort reduction."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-2",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-13-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-13",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-13 may contradict TH-002-16",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-NEGATION-CONFLICT-CHALLE-2",
+          "claim_id": "TH-002-13",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-13 may contradict TH-002-20",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-13",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-13",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-13",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-13-DRAFT-CAP",
+          "claim_id": "TH-002-13",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-14",
+      "text": "verify-evidence reports dangling evidence refs, content_hash mismatches, and declared-versus-derived source_quality mismatches as challenges, and never upgrades an undeclared source_quality from unknown on its own.",
+      "kind": "prediction",
+      "status": "supported",
+      "boundary": [
+        "Engine command aee verify-evidence; derivation rules are deterministic from ref type and recorded in the report"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_evidence_check.py (engine @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "verify-evidence test suite: dangling evidence refs, content_hash mismatches, and declared-versus-derived source_quality disagreements are each reported by name.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #24, electrohire/applied-epistemic-engineering (squash a617815)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: aee verify-evidence (FR-3) with hash recomputation; probe re-run RT2-L6 confirms assessments now emit content_hash_status and verify-evidence recomputes - mismatch/missing fail, correct hash verifies.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A bundle with a dangling ref or corrupted content_hash passing verify-evidence clean; or any code path raising an undeclared quality above unknown without a recorded derivation."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-3",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-14-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-14",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-14",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-14",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-14",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-15",
+      "text": "Every assessment produced after this work stamps the producing engine version in its metadata, and, when invoked through the extension, the extension version as well.",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "src/aee/cli.py, src/aee/engine.py metadata assembly; spec-kit-aee runner pass-through"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_version_coherence.py (engine @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Version-stamp suite: every assessment carries metadata.engine_version (and extension_version when invoked through the runner), and the version policy refuses incoherent engine/extension pairings.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: engine version stamps (FR-4) and the runner provenance stamp, the latter verified end-to-end - a stamped pass assessment gates 0 and a tampered copy gates 2.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "An assessment produced by the new CLI or runner whose metadata lacks engine_version (or extension_version on the extension path)."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-4",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-15-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-15",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-15",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-15",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-16, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-15",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-16",
+      "text": "A challenge disposition recorded in the bundle (kind, author, date, reason) persists across assessment runs and is reported as resolved with its reason inspectable; a waiver without a reason resolves nothing.",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "Bundle format extension (dispositions) in the engine model; challenge regeneration honors stored dispositions"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_dispositions_independence.py (engine @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Disposition suite: a challenge disposition recorded in the bundle (kind, author, date, reason) persists across assessment runs and binds the named challenge.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #25, electrohire/applied-epistemic-engineering (squash 011340f)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: FR-5 challenge dispositions.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Re-running assess and finding a reasoned disposition lost, or a reasonless waiver reported as resolved."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-5",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-16-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-16",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-16",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-16",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-17, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-16",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-17, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-17",
+      "text": "Independence scoring consumes declared independent_of data and flags claims whose supporting items share an origin, and score notes state the basis on which independence was computed.",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "src/aee/scoring.py independence computation and notes; assess-time shared-evidence warning class"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_dispositions_independence.py (engine @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Independence suite: scoring consumes declared independent_of data and flags claims whose supporting items share an origin; probe re-run confirms same-origin ref variants (./, case, trailing slash/space) now count as one source in both scoring and policy (RT1-14 inverted).",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: FR-6 independence on-ramps, including extension-side depends_on proposal surfacing (T604).",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A bundle with shared-origin supporting evidence and no independent_of declarations scoring independence 1.0 with no assumption note."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-6",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-17-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-17",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-17",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-17",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-18, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-17",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-18, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-18",
+      "text": "A stock install of spec-kit-evaluator can run the shipped reference evaluator end-to-end through speckit.evaluator.run on the fixture spec and produce a schema-valid result that compose accepts.",
+      "kind": "prediction",
+      "status": "supported",
+      "boundary": [
+        "electrohire/spec-kit-evaluator: one deterministic reference evaluator, its evaluators.yml registration, and a fixture spec"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "The shipped spec-structure reference evaluator runs end-to-end through the evaluator layer on passing and failing fixtures; evaluator suite at close-out: 32 tests ran, 31 passed, 1 skipped (PowerShell parity leg, exercised in CI).",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #1, electrohire/spec-kit-evaluator (squash 9a27431)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: deterministic spec-structure reference evaluator registered in evaluators.yml, with fixtures and a README walkthrough; the repo previously had no test suite and its demo crashed.",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "The fixture walkthrough failing at discovery, execution, schema validation, or composition in a clean install."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-7",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-18-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-18",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-18-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TH-002-18",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TH-002-18 may contradict TH-002-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-18",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-18",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-18",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-19, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-19",
+      "text": "Engine CLI and extension runner ledgering behavior agree \u2014 ledger by default with an explicit opt-out in both \u2014 and verify-ledger validates the chain immediately after an assess run in the documented loop.",
+      "kind": "requirement",
+      "status": "supported",
+      "boundary": [
+        "src/aee/cli.py assess defaults; spec-kit-aee runner (already default-on) and command docs"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "tests/test_ledger.py (engine @ 6449975)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Ledger parity suite: the engine CLI ledgers assessments by default with an explicit --no-ledger opt-out echoed into metadata, matching the extension runner's default-with-opt-out behavior.",
+          "source_id": "closeout-suite-run-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Implemented and merged: FR-8a CLI ledger-by-default parity (T801/T803) and runner ledger_verification in the assessment summary (T802).",
+          "source_id": "github-merge-record-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A default CLI assess run that leaves no ledger entry, or an extension run whose ledger fails verify-ledger."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "domain": "",
+      "confidence": 1.0,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TH-002-19-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-19",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-19",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'closeout-suite-run-2026-10-12' (ref(s): tests/test_dispositions_independence.py (engine @ 6449975), tests/test_drafting.py (engine @ 6449975); tests/test_draft_claims.py (electrohire/spec-kit-aee @ 527feae), tests/test_evidence_check.py (engine @ 6449975), tests/test_ledger.py (engine @ 6449975), tests/test_spec_structure_evaluator.py (electrohire/spec-kit-evaluator @ eee9fef), tests/test_strict_loading.py (electrohire/applied-epistemic-engineering @ 6449975), tests/test_version_coherence.py (engine @ 6449975)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TH-002-19",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'github-merge-record-2026-10-12' (ref(s): PR #1, electrohire/spec-kit-evaluator (squash 9a27431), PR #23, electrohire/applied-epistemic-engineering (squash ec7a022), PR #24 (engine, squash a617815); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #24, electrohire/applied-epistemic-engineering (squash a617815), PR #25 (engine, squash 011340f); PR #18 (electrohire/spec-kit-aee, squash 527feae), PR #25, electrohire/applied-epistemic-engineering (squash 011340f), PR #26 (engine, squash 5327915); PR #18 (electrohire/spec-kit-aee, squash 527feae)) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED-3",
+          "claim_id": "TH-002-19",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-20, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-20",
+      "text": "An assessment's SHA-256 can be anchored as an event in an Axiomere (.axmr) ledger through the axiomere Python package, with the anchor receipt recorded back into the assessment metadata.",
+      "kind": "prediction",
+      "status": "draft",
+      "boundary": [
+        "Separate later work package (WP-8b); depends on AXIOVEX/axiomere + axiomere-python as external packages",
+        "Does not block TH-002-19 or any other finding"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T804-T806, still open)",
+          "kind": "observed",
+          "direction": "context",
+          "source_quality": "artifact",
+          "description": "Not built as of 2026-10-12: FR-8b Axiomere anchoring (T804-T806) is an optional, separately-gated work package and remains unimplemented; no code path in the engine or extension deposits an assessment hash into an .axmr ledger. Claim stays draft.",
+          "source_id": "closeout-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "An anchor attempt that requires changing the v1 .axmr format, or a receipt that cannot be matched to the assessment hash in the ledger."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-8",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TH-002-20-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-20",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-20-DRAFT-CAP",
+          "claim_id": "TH-002-20",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TH-002-21",
+      "text": "After strict loading lands, the spec-kit-aee-benchmark diagnostic rate on malformed and legacy-shaped bundles does not regress: bundles that should fail do, bundles that should migrate do, and valid bundles assess as before.",
+      "kind": "prediction",
+      "status": "draft",
+      "boundary": [
+        "electrohire/spec-kit-aee-benchmark harness, run before and after the Finding 1 changes"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 002, which this claim commits to test.",
+          "source_id": "spec-002-aee-trust-hardening",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "specs/002-aee-trust-hardening/tasks.md (T001 deferred; T810 close-out note, 2026-10-12)",
+          "kind": "observed",
+          "direction": "context",
+          "source_quality": "artifact",
+          "description": "Stays draft: the claim's own instrument - a before/after benchmark diagnostic-rate run on malformed and legacy-shaped bundles (T001) - was never captured, because the benchmark harness has no bundle-diagnostic entry point, so the falsifier cannot fire. Adjacent evidence only: the benchmark offline suite is green on current main (321 passed) against the FR-7-captured baseline (320 passed), i.e. no regression in the suite that exists; that does not measure bundle diagnostic rates.",
+          "source_id": "closeout-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A benchmark run showing valid or migratable bundles newly failing, or malformed bundles newly passing silently, relative to the pre-change baseline."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/002-aee-trust-hardening/spec.md#fr-1",
+      "domain": "",
+      "confidence": 0.480625,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TH-002-21-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TH-002-21",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-21-INDEPENDENCE-UNMODELED",
+          "claim_id": "TH-002-21",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-002-aee-trust-hardening' (ref(s): specs/002-aee-trust-hardening/spec.md#fr-1, specs/002-aee-trust-hardening/spec.md#fr-2, specs/002-aee-trust-hardening/spec.md#fr-3, specs/002-aee-trust-hardening/spec.md#fr-4, specs/002-aee-trust-hardening/spec.md#fr-5, specs/002-aee-trust-hardening/spec.md#fr-6, specs/002-aee-trust-hardening/spec.md#fr-7, specs/002-aee-trust-hardening/spec.md#fr-8) is shared with claim(s) TH-002-12, TH-002-13, TH-002-14, TH-002-15, TH-002-16, TH-002-17, TH-002-18, TH-002-19, TH-002-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TH-002-21-DRAFT-CAP",
+          "claim_id": "TH-002-21",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    }
+  ],
+  "scores": {
+    "TH-002-01": {
+      "claim_id": "TH-002-01",
+      "direct_score": 0.9835,
+      "propagated_score": 0.9835,
+      "band": "high",
+      "components": {
+        "evidence": 0.97,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-02": {
+      "claim_id": "TH-002-02",
+      "direct_score": 0.9835,
+      "propagated_score": 0.9835,
+      "band": "high",
+      "components": {
+        "evidence": 0.97,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-03": {
+      "claim_id": "TH-002-03",
+      "direct_score": 0.8945,
+      "propagated_score": 0.8945,
+      "band": "high",
+      "components": {
+        "evidence": 0.99,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-04": {
+      "claim_id": "TH-002-04",
+      "direct_score": 0.999175,
+      "propagated_score": 0.999175,
+      "band": "high",
+      "components": {
+        "evidence": 0.9985,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-05": {
+      "claim_id": "TH-002-05",
+      "direct_score": 0.8945,
+      "propagated_score": 0.8945,
+      "band": "high",
+      "components": {
+        "evidence": 0.99,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-06": {
+      "claim_id": "TH-002-06",
+      "direct_score": 0.89725,
+      "propagated_score": 0.89725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-07": {
+      "claim_id": "TH-002-07",
+      "direct_score": 0.9835,
+      "propagated_score": 0.9835,
+      "band": "high",
+      "components": {
+        "evidence": 0.97,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-08": {
+      "claim_id": "TH-002-08",
+      "direct_score": 0.8945,
+      "propagated_score": 0.8945,
+      "band": "high",
+      "components": {
+        "evidence": 0.99,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-09": {
+      "claim_id": "TH-002-09",
+      "direct_score": 0.8725,
+      "propagated_score": 0.8725,
+      "band": "high",
+      "components": {
+        "evidence": 0.95,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-10": {
+      "claim_id": "TH-002-10",
+      "direct_score": 0.89725,
+      "propagated_score": 0.89725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-11": {
+      "claim_id": "TH-002-11",
+      "direct_score": 0.845,
+      "propagated_score": 0.845,
+      "band": "high",
+      "components": {
+        "evidence": 0.9,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-12": {
+      "claim_id": "TH-002-12",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-13": {
+      "claim_id": "TH-002-13",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-14": {
+      "claim_id": "TH-002-14",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-15": {
+      "claim_id": "TH-002-15",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-16": {
+      "claim_id": "TH-002-16",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-17": {
+      "claim_id": "TH-002-17",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-18": {
+      "claim_id": "TH-002-18",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-19": {
+      "claim_id": "TH-002-19",
+      "direct_score": 1.0,
+      "propagated_score": 1.0,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-20": {
+      "claim_id": "TH-002-20",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TH-002-21": {
+      "claim_id": "TH-002-21",
+      "direct_score": 0.480625,
+      "propagated_score": 0.480625,
+      "band": "medium",
+      "components": {
+        "evidence": 0.2375,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    }
+  },
+  "verdicts": {},
+  "recoveries": [
+    {
+      "failure_id": "AEE-TH-002-01-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-01-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-01-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-01",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-01-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-01",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-01-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-01",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-02-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-02",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-02-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-02",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-03-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-03",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-03-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-03",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-03-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-03-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-04",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TH-002-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-04-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "TH-002-04",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-05-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-05",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-05-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-05",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-05-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-05",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-06-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-06",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-06-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-06",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-06-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TH-002-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-07-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-07",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-07-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-07",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-07-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-07",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-07-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-07",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-08-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-08",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-08-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-08",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-08-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-08",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-09-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-09",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-09-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-09",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-09-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-09",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-10-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-10",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-10-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-10",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-10-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TH-002-10",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-11",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-11",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-11",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-11",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TH-002-11",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-11-NEGATION-CONFLICT-CHALLE-4",
+      "claim_id": "TH-002-11",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-12",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-12",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-12",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-12",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-12-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-13",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-13",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-13",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-13",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-NEGATION-CONFLICT-CHALLE-2",
+      "claim_id": "TH-002-13",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-14",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-14",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-14-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-14",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-14-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-14",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-15",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-15",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-15-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-15",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-15-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-15",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-16",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-16",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-16-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-16",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-16-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-16",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-17",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-17",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-17-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-17",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-17-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-17",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-18",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-18",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-18-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-18",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-18-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-18",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-18-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TH-002-18",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-19",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TH-002-19",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-19-INDEPENDENCE-UNMODELED-3",
+      "claim_id": "TH-002-19",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-19-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-19",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-20-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-20",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-21-INDEPENDENCE-UNMODELED",
+      "claim_id": "TH-002-21",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TH-002-21-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TH-002-21",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TH-002-13-DRAFT-CAP",
+      "claim_id": "TH-002-13",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TH-002-20-DRAFT-CAP",
+      "claim_id": "TH-002-20",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TH-002-21-DRAFT-CAP",
+      "claim_id": "TH-002-21",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    }
+  ],
+  "metadata": {
+    "threshold": 0.7,
+    "input": "specs/002-aee-trust-hardening/claims-after-implement.json",
+    "ledger": {
+      "mode": "disabled",
+      "path": null
+    },
+    "engine_version": "1.4.0"
+  }
+}
