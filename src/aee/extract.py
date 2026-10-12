@@ -21,6 +21,7 @@ from aee.model import (
     FailureMode,
     SourceQuality,
     Uncertainty,
+    normalize_claim_id,
 )
 
 def duplicate_key_hook(source: str) -> Callable[[list[tuple[str, Any]]], dict[str, Any]]:
@@ -387,16 +388,26 @@ def extract_markdown_claims(path: str | Path) -> list[Claim]:
         if not text:
             text = pending_heading.strip()
         kind = _kind_from_id(claim_id)
+        # FR-5.7: the Markdown path applies the same single id rule
+        # as the JSON loader (NFC + strip + upper, via
+        # normalize_claim_id — previously a bare .upper()), and the
+        # source_ref anchor is derived from the NORMALISED id, so
+        # the ref names the claim's actual identity (RT2-L2; p06's
+        # lowercase heading used to leave source_ref in another case
+        # than the claim it pointed at).
+        normalised_id = normalize_claim_id(claim_id)
         claims.append(
             Claim(
-                id=claim_id.upper(),
+                id=normalised_id,
                 text=text,
                 kind=kind,
                 status=ClaimStatus.DRAFT,
                 boundary=list(active.pop("boundary", [])),
-                depends_on=[str(ref).upper() for ref in active.pop("depends_on", [])],
+                depends_on=[
+                    normalize_claim_id(str(ref)) for ref in active.pop("depends_on", [])
+                ],
                 falsification_tests=list(active.pop("falsification_tests", [])),
-                source_ref=f"{source.as_posix()}#{claim_id}",
+                source_ref=f"{source.as_posix()}#{normalised_id}",
                 uncertainty=Uncertainty.INSUFFICIENT_EVIDENCE,
                 metadata=active,
             )

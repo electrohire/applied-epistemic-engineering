@@ -3,9 +3,32 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
+
+
+def normalize_claim_id(value: str) -> str:
+    """The single claim-id identity rule (Spec 003 FR-5.7, RT2-L2).
+
+    A claim id's canonical form is: Unicode NFC, surrounding
+    whitespace stripped, uppercased. Every surface that takes a claim
+    id from authored input applies this one rule — the JSON loader
+    (``Claim.from_dict``, strict and lenient), the Markdown extractor,
+    and the session loader/facade — and every id REFERENCE
+    (``depends_on``, ``conflicts_with``, disposition ``successors``,
+    a failure mode's ``claim_id``) is normalised with it too, so a
+    reference written ``clm-1`` resolves to the claim ``CLM-1``
+    instead of dangling. Ids that differ only by case, surrounding
+    whitespace, or Unicode composition (NFC vs NFD) are therefore
+    THE SAME id everywhere: they cannot silently coexist as distinct
+    claims, and when a bundle carries two spellings they surface as a
+    duplicate id (validate error / assess block), never a silent
+    merge. ``source_ref`` derivation in the Markdown extractor uses
+    this normalised id as well.
+    """
+    return unicodedata.normalize("NFC", value.strip()).upper()
 
 
 class ClaimKind(StrEnum):
@@ -408,7 +431,9 @@ class Disposition:
                 reason=str(value.get("reason", "")),
                 author=str(value.get("author", "")),
                 date=str(value.get("date", "")),
-                successors=[str(item) for item in value.get("successors", [])],
+                successors=[
+                    normalize_claim_id(str(item)) for item in value.get("successors", [])
+                ],
             )
         if not isinstance(value, dict):
             raise BundleValidationError(
@@ -430,7 +455,10 @@ class Disposition:
             reason=_str_field(value, "reason", context=context, required=True, non_empty=True),
             author=_str_field(value, "author", context=context),
             date=_str_field(value, "date", context=context),
-            successors=_str_list_field(value, "successors", context=context),
+            successors=[
+                normalize_claim_id(ref)
+                for ref in _str_list_field(value, "successors", context=context)
+            ],
         )
 
 
@@ -488,7 +516,7 @@ class FailureMode:
             raw_disposition = value.get("disposition")
             return cls(
                 id=str(value.get("id", "")),
-                claim_id=str(value.get("claim_id", "")),
+                claim_id=normalize_claim_id(str(value.get("claim_id", ""))),
                 challenge=str(value.get("challenge", "")),
                 breakpoint=str(value.get("breakpoint", "")),
                 severity=Severity(value.get("severity", Severity.MEDIUM.value)),
@@ -519,7 +547,9 @@ class FailureMode:
             )
         return cls(
             id=_str_field(value, "id", context=context, required=True, non_empty=True),
-            claim_id=_str_field(value, "claim_id", context=context, required=True),
+            claim_id=normalize_claim_id(
+                _str_field(value, "claim_id", context=context, required=True)
+            ),
             challenge=_str_field(
                 value, "challenge", context=context, required=True, non_empty=True
             ),
@@ -663,13 +693,20 @@ class Claim:
         if not strict:
             confidence = value.get("confidence")
             return cls(
-                id=str(value.get("id", "")),
+                # FR-5.7: id identity is normalised on every load path,
+                # lenient included — split identities are a correctness
+                # defect, not a strictness preference.
+                id=normalize_claim_id(str(value.get("id", ""))),
                 text=str(value.get("text", "")),
                 kind=ClaimKind(value.get("kind", ClaimKind.ASSUMPTION.value)),
                 status=ClaimStatus(value.get("status", ClaimStatus.DRAFT.value)),
                 boundary=[str(item) for item in value.get("boundary", [])],
-                depends_on=[str(item) for item in value.get("depends_on", [])],
-                conflicts_with=[str(item) for item in value.get("conflicts_with", [])],
+                depends_on=[
+                    normalize_claim_id(str(item)) for item in value.get("depends_on", [])
+                ],
+                conflicts_with=[
+                    normalize_claim_id(str(item)) for item in value.get("conflicts_with", [])
+                ],
                 evidence=[
                     Evidence.from_dict(item, strict=False) for item in value.get("evidence", [])
                 ],
@@ -760,7 +797,7 @@ class Claim:
                 )
         try:
             return cls(
-                id=claim_id,
+                id=normalize_claim_id(claim_id),
                 text=text,
                 kind=_enum_field(
                     ClaimKind,
@@ -775,8 +812,14 @@ class Claim:
                     field="status",
                 ),
                 boundary=_str_list_field(value, "boundary", context=ctx),
-                depends_on=_str_list_field(value, "depends_on", context=ctx),
-                conflicts_with=_str_list_field(value, "conflicts_with", context=ctx),
+                depends_on=[
+                    normalize_claim_id(ref)
+                    for ref in _str_list_field(value, "depends_on", context=ctx)
+                ],
+                conflicts_with=[
+                    normalize_claim_id(ref)
+                    for ref in _str_list_field(value, "conflicts_with", context=ctx)
+                ],
                 evidence=[
                     Evidence.from_dict(item, context=f"{ctx} evidence[{index}]")
                     for index, item in enumerate(evidence_raw)

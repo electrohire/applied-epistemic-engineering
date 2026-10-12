@@ -31,6 +31,7 @@ from aee.model import (
     Severity,
     SourceQuality,
     Uncertainty,
+    normalize_claim_id,
 )
 from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
@@ -86,6 +87,7 @@ __all__ = [
     "build_review_queue",
     "canonical_evidence_identity",
     "check_evidence",
+    "normalize_claim_id",
     "normalize_source_identity",
     "source_identity",
 ]

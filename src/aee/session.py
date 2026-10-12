@@ -9,7 +9,7 @@ from typing import Any
 from aee.engine import AEEEngine, Assessment
 from aee.extract import duplicate_key_hook
 from aee.ledger import HashChainLedger
-from aee.model import Claim, ClaimKind, Evidence
+from aee.model import Claim, ClaimKind, Evidence, normalize_claim_id
 
 
 class AEESession:
@@ -39,21 +39,26 @@ class AEESession:
         depends_on: list[str] | None = None,
         source_ref: str = "",
     ) -> Claim:
-        if claim_id in self.claims:
-            raise ValueError(f"duplicate claim id: {claim_id}")
+        # FR-5.7: the session facade applies the same single id rule
+        # as the loaders, so a claim added as "clm-1" IS "CLM-1" —
+        # the duplicate check, the stored key, and later lookups all
+        # see the one canonical identity.
+        normalised_id = normalize_claim_id(claim_id)
+        if normalised_id in self.claims:
+            raise ValueError(f"duplicate claim id: {normalised_id}")
         claim = Claim(
-            id=claim_id,
+            id=normalised_id,
             text=text,
             kind=kind,
             boundary=boundary or [],
-            depends_on=depends_on or [],
+            depends_on=[normalize_claim_id(ref) for ref in depends_on or []],
             source_ref=source_ref,
         )
-        self.claims[claim_id] = claim
+        self.claims[normalised_id] = claim
         return claim
 
     def add_evidence(self, claim_id: str, evidence: Evidence) -> None:
-        self.claims[claim_id].add_evidence(evidence)
+        self.claims[normalize_claim_id(claim_id)].add_evidence(evidence)
 
     def assess(self, *, seal: bool = True, metadata: dict[str, Any] | None = None) -> Assessment:
         result = self.engine.assess(
