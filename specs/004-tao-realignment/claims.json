@@ -691,6 +691,46 @@
       "severity": "medium",
       "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
       "domain": "aee-framework"
+    },
+    {
+      "id": "TA-004-21",
+      "text": "OD-T1 is decided in favour of interleaving, refined: Spec 003's remaining orthogonal lane-1 phases (FR-3 reliability, FR-4 ledger, FR-5 CLI/schema, FR-6 evaluator composition, FR-7 benchmark) continue on the current vocabulary, while Spec 003 FR-8 (scoring semantics) is held and implemented jointly with this spec's model work (stage-gating, the anti-gradability gate, lane-separated reporting) as one methodology_version bump with one benchmark before/after — not two consecutive semantics rewrites.",
+      "kind": "decision",
+      "status": "supported",
+      "boundary": [
+        "Spec 003 FR-3 through FR-7 sequencing on the current vocabulary",
+        "Spec 003 FR-8 held for joint implementation with Spec 004 R1/R5/R6",
+        "Owner decision record in Spec 004 section 9, OD-T1, decided 2026-10-12"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "Owner directive in the AEE program chat, 2026-10-12: do the option that you would recommend (OD-T1, Spec 004 spec.md section 9)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Owner directive in the AEE program chat on 2026-10-12: offered the three OD-T1 options (Spec 004 before Spec 003 implementation; Spec 003 implementation first; interleave), the owner directed 'do the option that you would recommend'; the coordinator's recommendation — interleave, refined as recorded in Spec 004 section 9 — is thereby the decided option.",
+          "source_id": "owner-directive-2026-10-12"
+        },
+        {
+          "ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Decision OD-T1 as recorded in Spec 004 section 9: interleave, with the orthogonal-phases refinement and the joint FR-8 + Spec 004 methodology bump.",
+          "source_id": "spec-004-tao-realignment"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A later owner directive replacing the interleave decision, a Spec 003 FR-8 implementation landed separately from Spec 004's model work under its own methodology bump, or a halt to the orthogonal Spec 003 phases (FR-3 to FR-7) attributed to OD-T1."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+      "domain": "aee-framework"
     }
   ]
 }

@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "methodology_version": "1.0",
-  "project": "applied-epistemic-engineering",
+  "project": "project",
   "phase": "after_specify",
   "outcome": "iterate",
-  "summary": "Assessed 20 claim(s); found 79 failure mode(s); 9 claim(s) below the 0.70 confidence threshold.",
-  "created_at": "2026-10-12T12:01:41.535588Z",
+  "summary": "Assessed 21 claim(s); found 85 failure mode(s); 9 claim(s) below the 0.70 confidence threshold.",
+  "created_at": "2026-10-12T12:27:39.398291Z",
   "claims": [
     {
       "id": "TA-004-01",
@@ -1082,6 +1082,17 @@
           "disposition": null
         },
         {
+          "id": "AEE-TA-004-11-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-11",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-11 may contradict TA-004-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
           "id": "AEE-TA-004-11-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-11",
           "challenge": "Shared-evidence independence challenge",
@@ -1176,10 +1187,21 @@
           "disposition": null
         },
         {
+          "id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-4",
+          "claim_id": "TA-004-12",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-12 may contradict TA-004-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
           "id": "AEE-TA-004-12-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-12",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1273,7 +1295,7 @@
           "id": "AEE-TA-004-13-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-13",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1367,7 +1389,7 @@
           "id": "AEE-TA-004-14-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-14",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1439,7 +1461,7 @@
           "id": "AEE-TA-004-15-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-15",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1508,10 +1530,21 @@
           "disposition": null
         },
         {
+          "id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE-3",
+          "claim_id": "TA-004-16",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-16 may contradict TA-004-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
           "id": "AEE-TA-004-16-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-16",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-17, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1583,7 +1616,7 @@
           "id": "AEE-TA-004-17-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-17",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-18, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1644,7 +1677,7 @@
           "id": "AEE-TA-004-18-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-18",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-19, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1705,7 +1738,7 @@
           "id": "AEE-TA-004-19-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-19",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-20, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -1763,10 +1796,95 @@
           "disposition": null
         },
         {
+          "id": "AEE-TA-004-20-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-004-20",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-004-20 may contradict TA-004-21",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
           "id": "AEE-TA-004-20-INDEPENDENCE-UNMODELED",
           "claim_id": "TA-004-20",
           "challenge": "Shared-evidence independence challenge",
-          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-21 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": []
+    },
+    {
+      "id": "TA-004-21",
+      "text": "OD-T1 is decided in favour of interleaving, refined: Spec 003's remaining orthogonal lane-1 phases (FR-3 reliability, FR-4 ledger, FR-5 CLI/schema, FR-6 evaluator composition, FR-7 benchmark) continue on the current vocabulary, while Spec 003 FR-8 (scoring semantics) is held and implemented jointly with this spec's model work (stage-gating, the anti-gradability gate, lane-separated reporting) as one methodology_version bump with one benchmark before/after \u2014 not two consecutive semantics rewrites.",
+      "kind": "decision",
+      "status": "supported",
+      "boundary": [
+        "Spec 003 FR-3 through FR-7 sequencing on the current vocabulary",
+        "Spec 003 FR-8 held for joint implementation with Spec 004 R1/R5/R6",
+        "Owner decision record in Spec 004 section 9, OD-T1, decided 2026-10-12"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "Owner directive in the AEE program chat, 2026-10-12: do the option that you would recommend (OD-T1, Spec 004 spec.md section 9)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Owner directive in the AEE program chat on 2026-10-12: offered the three OD-T1 options (Spec 004 before Spec 003 implementation; Spec 003 implementation first; interleave), the owner directed 'do the option that you would recommend'; the coordinator's recommendation \u2014 interleave, refined as recorded in Spec 004 section 9 \u2014 is thereby the decided option.",
+          "source_id": "owner-directive-2026-10-12",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Decision OD-T1 as recorded in Spec 004 section 9: interleave, with the orthogonal-phases refinement and the joint FR-8 + Spec 004 methodology bump.",
+          "source_id": "spec-004-tao-realignment",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "A later owner directive replacing the interleave decision, a Spec 003 FR-8 implementation landed separately from Spec 004's model work under its own methodology bump, or a halt to the orthogonal Spec 003 phases (FR-3 to FR-7) attributed to OD-T1."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/004-tao-realignment/spec.md#9-owner-decisions",
+      "domain": "aee-framework",
+      "confidence": 0.99725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-004-21-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-004-21",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-004-21-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-004-21",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-004-tao-realignment' (ref(s): specs/004-tao-realignment/spec.md#9-owner-decisions, specs/004-tao-realignment/spec.md#r1, specs/004-tao-realignment/spec.md#r2, specs/004-tao-realignment/spec.md#r3, specs/004-tao-realignment/spec.md#r4, specs/004-tao-realignment/spec.md#r5, specs/004-tao-realignment/spec.md#r6, specs/004-tao-realignment/spec.md#r7) is shared with claim(s) TA-004-12, TA-004-13, TA-004-14, TA-004-15, TA-004-16, TA-004-17, TA-004-18, TA-004-19, TA-004-20 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
           "severity": "medium",
           "category": "independence_unmodeled",
           "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
@@ -2114,6 +2232,22 @@
       "notes": [
         "No observed supporting evidence",
         "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
+      ]
+    },
+    "TA-004-21": {
+      "claim_id": "TA-004-21",
+      "direct_score": 0.99725,
+      "propagated_score": 0.99725,
+      "band": "high",
+      "components": {
+        "evidence": 0.995,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "notes": [
         "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)"
       ]
     }
@@ -2513,6 +2647,14 @@
       "verification": "Every resulting claim contains one independently falsifiable proposition."
     },
     {
+      "failure_id": "AEE-TA-004-11-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-11",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-TA-004-12-INDEPENDENCE-UNMODELED",
       "claim_id": "TA-004-12",
       "strategy": "clarify",
@@ -2546,6 +2688,14 @@
     },
     {
       "failure_id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-12",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-12-NEGATION-CONFLICT-CHALLE-4",
       "claim_id": "TA-004-12",
       "strategy": "resolve_contradiction",
       "action": "Confirm whether the claims share a boundary and preserve both pending review.",
@@ -2681,6 +2831,14 @@
       "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
     },
     {
+      "failure_id": "AEE-TA-004-16-NEGATION-CONFLICT-CHALLE-3",
+      "claim_id": "TA-004-16",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
       "failure_id": "AEE-TA-004-17-INDEPENDENCE-UNMODELED",
       "claim_id": "TA-004-17",
       "strategy": "clarify",
@@ -2747,6 +2905,30 @@
     {
       "failure_id": "AEE-TA-004-20-IRREDUCIBILITY-CHALLENGE",
       "claim_id": "TA-004-20",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-004-20-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-004-20",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-004-21-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-004-21",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-004-21-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-004-21",
       "strategy": "decompose",
       "action": "Split the claim into atomic propositions and link them explicitly.",
       "priority": 3,
