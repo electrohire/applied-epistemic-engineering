@@ -4,7 +4,7 @@ Copyright (c) 2026 ElectroHire Inc.
 """
 
 from aee._version import __version__ as __version__
-from aee.adapters.evaluator import EvaluatorAdapter
+from aee.adapters.evaluator import EvaluatorAdapter, validate_evaluator_result
 from aee.challenge import StressTester
 from aee.engine import AEEEngine, Assessment
 from aee.evidence_check import EvidenceFinding, EvidenceReport, check_evidence
@@ -92,4 +92,5 @@ __all__ = [
     "normalize_claim_id",
     "normalize_source_identity",
     "source_identity",
+    "validate_evaluator_result",
 ]
