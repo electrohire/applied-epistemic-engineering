@@ -15,6 +15,7 @@ from aee.ledger import (
     HashChainLedger,
     LedgerAnchor,
     LedgerVerification,
+    assessment_content_digest,
 )
 from aee.model import (
     BundleValidationError,
@@ -84,6 +85,7 @@ __all__ = [
     "Uncertainty",
     "Verdict",
     "VerdictChange",
+    "assessment_content_digest",
     "build_review_queue",
     "canonical_evidence_identity",
     "check_evidence",
