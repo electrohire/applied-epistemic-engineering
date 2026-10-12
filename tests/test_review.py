@@ -48,13 +48,17 @@ def test_material_move_is_queued_small_move_is_not() -> None:
     after = scored(after_claims)
     queue = build_review_queue(before, after)
     ids = [item.claim_id for item in queue.items]
-    assert "A" in ids  # 0.25 -> 1.0
+    assert "A" in ids  # 0.125 -> 0.775 under methodology 2.0 (FR-8)
     # B moves 0.25 -> ~0.775 direct... verify against the rule, not
     # a guessed number: B's delta is computed from the scores.
     b_delta = abs(after["B"].propagated_score - before["B"].propagated_score)
     assert ("B" in ids) == (b_delta >= 0.05)
     a_item = next(item for item in queue.items if item.claim_id == "A")
-    assert a_item.delta == pytest.approx(0.75)
+    # Methodology 2.0 (FR-8): the bare fixture earns only partial
+    # falsifiability/boundary credit (FR-8.7) and the strong side
+    # pays the unknown-freshness set penalty (FR-8.6): 0.65, not
+    # the pre-FR-8 0.75.
+    assert a_item.delta == pytest.approx(0.65)
     assert a_item.previous_band.value == "low"
     assert a_item.current_band.value == "high"
 
@@ -125,7 +129,10 @@ def test_materiality_boundary_is_inclusive() -> None:
     queue = build_review_queue(before, after, materiality=delta)
     assert [item.claim_id for item in queue.items] == ["A"]
     queue = build_review_queue(before, after, materiality=delta + 0.001)
-    assert queue.items == []
+    # FR-8.11(b): above the materiality delta the score channel is
+    # silent, but the move crosses a confidence band (medium -> low),
+    # and band crossings queue on their own channel.
+    assert [item.kind for item in queue.items] == ["band_crossing"]
 
 
 def test_to_dict_shape() -> None:

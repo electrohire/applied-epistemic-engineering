@@ -77,8 +77,13 @@ def test_duplicate_evidence_contributes_once() -> None:
             [ev("s.pdf", kind=EvidenceKind.ASSERTED, q=SourceQuality.MODEL) for _ in range(20)],
         )
     )
-    # Before the fix: 1x scored 0.3775, 20x scored 0.702833 (past 0.70).
-    assert many.direct_score == one.direct_score == 0.3775
+    # Before the FR-2 fix: 1x scored 0.3775, 20x scored 0.702833 (past
+    # 0.70). Methodology 2.0 (FR-8): both move to 0.2275 - undated
+    # evidence counts unknown/stale for freshness (FR-8.6) and the
+    # label-only boundary earns partial credit (FR-8.7); the dedup
+    # invariant itself (many == one) is unchanged.
+    assert many.direct_score == pytest.approx(one.direct_score)
+    assert one.direct_score == pytest.approx(0.2275)
     assert many.evidence_score == one.evidence_score
     assert any("Duplicate evidence: 19 item(s) collapsed" in note for note in many.notes)
 
@@ -254,7 +259,11 @@ def test_honest_observed_counterevidence_is_not_incoherent() -> None:
 def test_draft_with_perfect_score_cannot_pass() -> None:
     c = claim("DR1", [ev("a"), ev("b")], status=ClaimStatus.DRAFT)
     a = AEEEngine().assess([c])
-    assert a.scores["DR1"].direct_score == 1.0  # the score is NOT silenced
+    # Methodology 2.0 (FR-8): the once-"perfect" fixture scores
+    # 0.85 - its evidence is undated (FR-8.6) and its boundary is a
+    # label (FR-8.7). The score is still NOT silenced by the draft
+    # status; only the outcome is capped.
+    assert a.scores["DR1"].direct_score == pytest.approx(0.85)
     assert a.outcome == "iterate"  # the outcome is capped
     assert a.healthy is False
     assert any(f.category == "draft_cap" for f in a.failures)
@@ -360,10 +369,12 @@ def test_p7_kill_chain_both_statuses() -> None:
         assert a.verdicts["K1"].verdict.value != "accept"
         # Dedup collapses the 20 copies; what remains is one model
         # assertion plus one human assertion from two distinct
-        # sources: evidence 0.21625, independence 1.0, plus the
-        # falsifier/boundary components = 0.568937. Before the fix
-        # both statuses scored 0.837 and the draft passed outright.
-        assert s.direct_score == 0.568937
+        # sources. Under methodology 2.0 (FR-8) the same composition
+        # scores 0.4189375: undated evidence counts unknown/stale
+        # (FR-8.6) and the label-only boundary earns partial credit
+        # (FR-8.7). Before the FR-2 fix both statuses scored 0.837
+        # and the draft passed outright.
+        assert s.direct_score == pytest.approx(0.4189375)
         assert any("collapsed" in note for note in s.notes)
 
 
@@ -384,11 +395,13 @@ def _split_claims(independent: bool = False) -> list[Claim]:
 def test_shared_evidence_reported_in_summary() -> None:
     a = AEEEngine().assess(_split_claims())
     # Scores are NOT capped by FR-2.8 in this phase (reporting only):
-    # every split claim still scores 1.0 on the shared set. The
+    # every split claim still scores identically on the shared set
+    # (0.85 under methodology 2.0: the shared items are undated,
+    # FR-8.6, and the boundary is a label, FR-8.7). The
     # outcome is iterate, driven by the pre-existing per-claim FR-6.2
     # warnings (not by any FR-2.8 outcome effect), and the sharing is
     # on the record at bundle level as well.
-    assert all(a.scores[c.id].direct_score == 1.0 for c in a.claims)
+    assert all(a.scores[c.id].direct_score == pytest.approx(0.85) for c in a.claims)
     assert a.outcome == "iterate"
     assert "Shared evidence:" in a.summary
     assert "2 supporting source(s) shared across 5 of 5 claim(s)" in a.summary
@@ -434,7 +447,9 @@ def test_string_list_fields_never_reach_a_score() -> None:
 
 
 def test_control_bundle_scores_unchanged() -> None:
-    """Values captured from main @ 0c8600a before this phase."""
+    """Values captured from main @ 0c8600a before the FR-2 phase;
+    recaptured under methodology 2.0 (Spec 003 FR-8) below - the
+    deltas are exactly the documented FR-8.6/FR-8.7 effects."""
     ctl1 = claim("CTL-1", [ev("tests/latency.json"), ev("tests/load.json")])
     ctl2 = claim(
         "CTL-2",
@@ -476,17 +491,24 @@ def test_control_bundle_scores_unchanged() -> None:
         ],
     )
     a = AEEEngine(policy=AssessmentPolicy()).assess([ctl1, ctl2, ctl4, ctl5])
+    # Methodology 2.0 (Spec 003 FR-8, joint with Spec 004): the
+    # honest bundle's scores move ONLY by the documented FR-8
+    # deltas, each visible in the score notes - unknown freshness
+    # counts as stale in the set penalty (FR-8.6, -0.10 for these
+    # undated fixtures) and the label-only boundary "load profile L"
+    # / "lab conditions" earns partial credit (FR-8.7, -0.05).
+    # Evidence and independence components are unchanged.
     expected = {
-        "CTL-1": (1.0, 1.0, 1.0),
-        "CTL-2": (0.8725, 0.95, 0.5),
-        "CTL-4": (0.25, 1.0, 0.5),
-        "CTL-5": (0.998625, 0.9975, 1.0),
+        "CTL-1": (0.85, 1.0, 1.0),
+        "CTL-2": (0.7225, 0.95, 0.5),
+        "CTL-4": (0.10, 1.0, 0.5),
+        "CTL-5": (0.848625, 0.9975, 1.0),
     }
     for cid, (direct, evidence_score, independence) in expected.items():
         s = a.scores[cid]
         assert (s.direct_score, s.evidence_score, s.independence_score) == (
-            direct,
-            evidence_score,
-            independence,
+            pytest.approx(direct),
+            pytest.approx(evidence_score),
+            pytest.approx(independence),
         ), cid
     assert a.scores["CTL-4"].contradiction_penalty == 0.65

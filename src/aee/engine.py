@@ -62,7 +62,14 @@ class Assessment:
     summary: str
     created_at: str
     verdicts: dict[str, ClaimVerdict] = field(default_factory=dict)
-    methodology_version: str = "1.0"
+    # Methodology version (Spec 002 FR-4 mechanism; Spec 003 FR-8.2
+    # discipline: score-altering changes bump this, never ride
+    # under an unchanged value). "2.0" is the ONE joint bump for
+    # Spec 003 FR-8 (scoring/challenge/review semantics) implemented
+    # together with Spec 004's model phases P0-P4, recorded in
+    # specs/003-aee-red-team-remediation/implementation-fr8.md and
+    # specs/004-tao-realignment/implementation-p4.md.
+    methodology_version: str = "2.0"
     metadata: dict[str, Any] = field(default_factory=dict)
     # Spec 004 R1.3: the per-claim status as REPORTED (capped by
     # stage) and the cap records that lowered it. The claims' own
@@ -235,6 +242,10 @@ class AEEEngine:
                     scores[claim.id],
                     self.policy,
                     threshold=self.threshold,
+                    # FR-8.4: verdicts are failure-aware - the
+                    # claim's unresolved failure modes ride along so
+                    # a HIGH/CRITICAL failure caps the verdict.
+                    failures=claim.unresolved_failures,
                 )
                 for claim in items
             }
@@ -436,6 +447,13 @@ class AEEEngine:
         scores: dict[str, ClaimScore],
         overrides: dict | None = None,
     ) -> str:
+        # Threshold rule (Spec 003 FR-8.13(b)): the threshold is
+        # INCLUSIVE - a propagated score of exactly the threshold
+        # passes - and the comparison is performed on the UNROUNDED
+        # score. Scores are stored unrounded (see ClaimScore);
+        # rounding is a display/serialisation concern only and can
+        # never move a claim across the threshold (RT1-24: 0.6999996
+        # used to round up to 0.70 and pass; it no longer does).
         # stage_cap records are EXPLANATORY (R1.3): they name why a
         # report was lowered. They never route the outcome - the
         # R1.4 stage rule below does that work - so an explained

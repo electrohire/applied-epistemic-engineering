@@ -23,6 +23,85 @@ propagated(claim) = min(direct(claim), propagated(each required dependency))
 Scores communicate the state of the recorded evidence. They do not measure metaphysical truth,
 legal sufficiency, or safety certification.
 
+## Methodology 2.0 (Spec 003 FR-8, joint with Spec 004)
+
+The semantics below are methodology version **2.0** (the
+`methodology_version` field on every assessment; lexicon data
+version 1.0, `src/aee/lexicons.py`). Score-altering changes never
+land under an unchanged methodology version (FR-8.2).
+
+**Threshold.** The confidence threshold is *inclusive* — a
+propagated score of exactly the threshold passes — and the
+comparison is performed on the **unrounded** score. Rounding is a
+display concern only and can never move a claim across the
+threshold (FR-8.13).
+
+**Declared state.** Every score record carries the author's
+declared `status`, `uncertainty`, `severity`, and `conflicts_with`
+verbatim (`declared_state`), whether or not they move the number,
+so a score-only consumer can distinguish a claim its author marked
+`contradicted` from a settled claim with the same evidence
+(FR-8.13).
+
+**Freshness (FR-8.6).** The freshness basis is the whole supporting
+set, never its newest member. Each supporting item is classified
+*fresh* (observed ≤ 90 days before the assessment), *recent*
+(91–365 days), *stale* (> 365 days), or *unknown* — no date, an
+unparseable date (a finding in its own right), or a future date
+(invalid input; a future date can never make a claim fresher than
+present evidence). The penalty is the mean of the tier penalties
+(0 / 0.05 / 0.10) across the set, with **unknown counting as
+stale**: unknown freshness is reported as unknown in the score
+notes, and is never treated as fresh. One fresh item therefore no
+longer erases the staleness of the rest of the set, and omitting
+dates no longer scores better than honestly dating old evidence.
+The set composition behind every penalty is named in the score
+notes.
+
+**Falsifiability and boundary: substance over presence (FR-8.7).**
+Presence alone earns no full credit. A falsification test earns
+full credit only if it (i) is at least four words, (ii) is not a
+placeholder (single token, repeated character, or a placeholder
+token), and (iii) states a checkable condition — a numeric bound
+or unit, a comparator, or an observation/action term from the
+falsifiability lexicon. A boundary entry earns full credit only if
+it is not a placeholder and names a scope or limit — a term from
+the boundary scope lexicon or a numeric bound. Below-bar entries
+earn partial credit (0.5), the component is the mean over entries,
+and the score notes name the criterion each below-bar entry
+failed. The lexicons are versioned data, not code (FR-8.8).
+
+**Propagation is cycle-local (FR-8.3).** A dependency cycle
+suppresses propagation only inside its strongly connected
+component: members keep their direct score as their propagated
+score, marked `suppressed_cycle` with the component named on
+their score records. Every other claim propagates normally —
+including claims that depend on a cycle component, whose weakest
+link is the members' direct scores. The bundle-level cycle failure
+still fires.
+
+**Verdicts are failure-aware (FR-8.4) and contested shares one
+basis (FR-8.5).** A claim carrying an unresolved HIGH or CRITICAL
+failure mode cannot receive an ACCEPT verdict; the verdict's
+reasons name the failures that demoted it. "Contested" means the
+claim's record carries counterevidence — any item directed
+against it, whatever its kind weight, or a contradicted-kind item
+routed in any other direction — the same basis on which the
+challenge layer routes a claim to `clarify`, so the standalone
+policy gate and the engine agree.
+
+**Challenge lexicons and their limits (FR-8.8, FR-8.9, FR-8.15).**
+The compound-connective and vague-term lexicons are versioned
+data (`src/aee/lexicons.py`). Noun-phrase-internal lists and
+alternatives (version lists, unit alternatives such as "Celsius or
+Fahrenheit", range idioms such as "65 and older") and vague words
+inside proper nouns do not draw challenges. The negation-conflict
+detector requires a shared *subject* plus shared content tokens;
+it is a heuristic, not a semantic contradiction proof — a
+paraphrase that changes both the subject's surface form and the
+vocabulary remains undetectable, and that residual limit is
+accepted and recorded rather than papered over.
+
 
 ## The two lanes (Spec 004 R6/R8)
 

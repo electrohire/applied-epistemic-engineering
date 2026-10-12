@@ -19,9 +19,15 @@ are stated as policy here, because each was measured, not intuited:
    "unknown means ABSTAIN" rule. A low numeric score invites
    downstream tooling to treat the claim as measured-and-weak; an
    abstention says it was never measured at all.
-3. **Contested gate.** A claim whose contradiction penalty meets
-   ``contested_penalty_threshold`` is CHALLENGEd at best: live
-   contradiction must be resolved, not averaged away.
+3. **Contested gate.** A claim carrying counterevidence is
+   CHALLENGEd at best: live contradiction must be resolved, not
+   averaged away. Since Spec 003 FR-8.5 the gate reads the shared
+   contested basis (``counterevidence_present``: any item directed
+   against the claim, or a contradicted-kind item routed
+   otherwise), with the ``contested_penalty_threshold`` magnitude
+   route retained alongside it — the kind-weighted penalty alone
+   used to let weak-kind contradictions ACCEPT standalone while
+   the engine clarified.
 
 Policies are opt-in. ``AEEEngine()`` without a policy preserves the
 historical behavior exactly; supplying one adds a per-claim verdict
@@ -37,6 +43,7 @@ produce the same verdicts.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import TYPE_CHECKING
@@ -48,6 +55,8 @@ from aee.model import (
     ClaimStatus,
     EvidenceDirection,
     EvidenceKind,
+    FailureMode,
+    Severity,
 )
 from aee.sources import source_identity
 from aee.stage import LIFTING_EVENT
@@ -141,12 +150,38 @@ def corroboration_sources(claim: Claim) -> set[str]:
     } - {""}
 
 
+def counterevidence_present(claim: Claim) -> int:
+    """The shared contested basis (Spec 003 FR-8.5, RT1-25).
+
+    Scoring and policy used to disagree about what "contested"
+    means: the challenge layer routes a claim to `clarify` on ANY
+    recorded counterevidence, while the policy gate read only the
+    kind-weighted contradiction penalty, so a weak-kind
+    contradiction (penalty 0.05) ACCEPTed standalone while the
+    engine clarified. The shared basis, documented here and used
+    by the gate below: a claim is contested when its record carries
+    counterevidence — any evidence item directed `contradicts`
+    (whatever its kind or source weight), or a contradicted-kind
+    item routed in any other direction (the FR-2.2 polarity
+    incoherence, which the challenge layer also fires on). Returns
+    the number of counterevidence items.
+    """
+    count = 0
+    for item in claim.evidence:
+        if item.direction == EvidenceDirection.CONTRADICTS:
+            count += 1
+        elif item.kind == EvidenceKind.CONTRADICTED:
+            count += 1
+    return count
+
+
 def evaluate_policy(
     claim: Claim,
     score: ClaimScore,
     policy: AssessmentPolicy,
     *,
     threshold: float,
+    failures: Iterable[FailureMode] | None = None,
 ) -> ClaimVerdict:
     """Judge one scored claim against the policy gates.
 
@@ -154,6 +189,17 @@ def evaluate_policy(
     judged) is decided before challenge (the claim is judged and
     wanting), so a claim with no usable support abstains even if it
     is also contradicted.
+
+    ``failures`` (Spec 003 FR-8.4, RT1-09): the claim's failure
+    modes, when the caller has them (the engine always passes
+    them). A claim carrying an unresolved HIGH or CRITICAL failure
+    cannot receive ACCEPT; the demotion mirrors the engine's
+    outcome demotion and the verdict's reasons name the failures
+    that demoted it, so a verdict and an outcome for the same claim
+    can no longer read ACCEPT alongside `clarify`. Standalone
+    callers without failure records get the evidence-based gates
+    only — the contested gate below is evidence-based for exactly
+    that reason (FR-8.5).
     """
     if claim.stage == ClaimStage.CREATED:
         # R1.3 stage ceiling, first in rule order: a created claim
@@ -173,11 +219,33 @@ def evaluate_policy(
     if policy.abstain_on_model_only and all(item.is_model_self_attestation for item in supporting):
         return ClaimVerdict(claim.id, Verdict.ABSTAIN, ["support is model self-attestation only"])
     reasons: list[str] = []
+    counterevidence = counterevidence_present(claim)
+    if counterevidence:
+        # FR-8.5: the contested gate trips on the shared basis -
+        # counterevidence present - regardless of the contradicting
+        # items' kind weights. The penalty threshold remains as a
+        # second, magnitude-based route to the same gate.
+        reasons.append(
+            f"contested: {counterevidence} counterevidence item(s) on record "
+            "(shared contested basis, FR-8.5)"
+        )
     if score.contradiction_penalty >= policy.contested_penalty_threshold:
         reasons.append(
             f"contested: contradiction penalty "
             f"{score.contradiction_penalty:.3f} >= "
             f"{policy.contested_penalty_threshold:.3f}"
+        )
+    demoting = [
+        failure
+        for failure in (failures or [])
+        if not failure.resolved
+        and failure.severity in {Severity.HIGH, Severity.CRITICAL}
+    ]
+    for failure in demoting:
+        reasons.append(
+            f"failure-aware demotion (FR-8.4): unresolved "
+            f"{failure.severity.value} failure {failure.id} "
+            f"({failure.category}) caps the verdict below accept"
         )
     sources = corroboration_sources(claim)
     if len(sources) < policy.min_independent_sources:

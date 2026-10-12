@@ -12,6 +12,7 @@ import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from pathlib import Path
 from typing import Any, cast
 
@@ -39,6 +40,7 @@ from aee.model import (
     EvidenceKind,
     FailureMode,
     IdentityRegistry,
+    Severity,
     SourceQuality,
     StageEvent,
     StageEventKind,
@@ -278,6 +280,11 @@ def build_parser() -> argparse.ArgumentParser:
     review.add_argument("--current", type=Path, required=True)
     review.add_argument("--materiality", type=float, default=0.05)
     review.add_argument("--limit", type=int)
+    review.add_argument(
+        "--baseline",
+        type=Path,
+        help="Last reviewed assessment: cumulative drift is measured from it (FR-8.11)",
+    )
     review.add_argument("--output", type=Path)
 
     sub.add_parser("demo", help="Run a self-contained AEE demonstration")
@@ -1145,6 +1152,20 @@ def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimS
         boundary_score=_number(components, "boundary"),
         contradiction_penalty=_number(components, "contradiction_penalty"),
         notes=[str(note) for note in notes],
+        declared_state=(
+            dict(value["declared_state"])
+            if isinstance(value.get("declared_state"), dict)
+            else {}
+        ),
+        propagation_status=str(value.get("propagation", {}).get("status", "propagated"))
+        if isinstance(value.get("propagation"), dict)
+        else "propagated",
+        cycle_component=[
+            str(member)
+            for member in value.get("propagation", {}).get("cycle_component", [])
+        ]
+        if isinstance(value.get("propagation"), dict)
+        else [],
     )
 
 
@@ -1152,6 +1173,10 @@ def _score_view(value: dict[str, Any], *, source: Path, claim_id: str) -> ClaimS
 class _AssessmentView:
     scores: dict[str, ClaimScore]
     verdicts: dict[str, ClaimVerdict]
+    # FR-8.11(a): the failure channel - rebuilt from the serialised
+    # claims' failure records so `aee review` sees failure movement,
+    # not only score movement.
+    failures: tuple[Any, ...] = ()
 
 
 def _assessment_view(path: Path) -> _AssessmentView:
@@ -1206,7 +1231,29 @@ def _assessment_view(path: Path) -> _AssessmentView:
         verdicts[claim_id] = ClaimVerdict(
             claim_id, parsed_verdict, [str(reason) for reason in reasons]
         )
-    return _AssessmentView(scores=scores, verdicts=verdicts)
+    failures: list[Any] = []
+    raw_claims = data.get("claims", [])
+    if isinstance(raw_claims, list):
+        for raw_claim in raw_claims:
+            if not isinstance(raw_claim, dict):
+                continue
+            for raw_failure in raw_claim.get("failures", []):
+                if not isinstance(raw_failure, dict):
+                    continue
+                try:
+                    severity = Severity(str(raw_failure.get("severity", "low")))
+                except ValueError:
+                    continue
+                failures.append(
+                    SimpleNamespace(
+                        claim_id=str(raw_failure.get("claim_id", raw_claim.get("id", ""))),
+                        id=str(raw_failure.get("id", "")),
+                        severity=severity,
+                        category=str(raw_failure.get("category", "")),
+                        resolved=bool(raw_failure.get("resolved", False)),
+                    )
+                )
+    return _AssessmentView(scores=scores, verdicts=verdicts, failures=tuple(failures))
 
 
 def _review(args: argparse.Namespace) -> int:
@@ -1218,11 +1265,16 @@ def _review(args: argparse.Namespace) -> int:
                 (args.current, "the --current assessment"),
             ],
         )
+    current_data = _load_json_strict(args.current, what="assessment")
+    current_metadata = current_data.get("metadata", {}) if isinstance(current_data, dict) else {}
+    threshold = current_metadata.get("threshold")
     queue = build_review_queue(
         _assessment_view(args.previous),
         _assessment_view(args.current),
         materiality=args.materiality,
         limit=args.limit,
+        baseline=_assessment_view(args.baseline) if args.baseline else None,
+        threshold=float(threshold) if isinstance(threshold, (int, float)) else None,
     )
     _write_or_print(queue.to_dict(), args.output)
     return 0

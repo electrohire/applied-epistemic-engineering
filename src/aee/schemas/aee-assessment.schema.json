@@ -577,6 +577,26 @@
           },
           "additionalProperties": false
         },
+        "declared_state": {
+          "type": "object"
+        },
+        "propagation": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "propagated",
+                "suppressed_cycle"
+              ]
+            },
+            "cycle_component": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "notes": {
           "type": "array",
           "items": {
