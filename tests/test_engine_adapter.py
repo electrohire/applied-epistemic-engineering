@@ -63,3 +63,28 @@ def test_evaluator_adapter_contract() -> None:
     assert result["findings"]
     assert result["state"]["aee"]["claims"]
     json.dumps(result)
+
+
+def test_evaluator_result_carries_lanes_and_not_understood() -> None:
+    # Spec 004 P5: the Evaluator Contract result carries the lane
+    # pair and the residual-unknowns statement in metadata, so the
+    # composition layer can present the lanes side by side.
+    from test_scoring import strong_evidence
+
+    claim = Claim(
+        id="A",
+        text="Latency is below 100 ms",
+        status=ClaimStatus.SUPPORTED,
+        boundary=["p95 in production"],
+        falsification_tests=["Observe p95 at or above 100 ms"],
+        evidence=[strong_evidence("one", "S1"), strong_evidence("two", "S2")],
+        stage=ClaimStage.ACCEPTED,
+    )
+    assessment = AEEEngine().assess([claim])
+    result = EvaluatorAdapter().to_evaluator_result(assessment)
+    metadata = result["metadata"]
+    assert metadata["lanes"]["lane_1"]["label"] == "machine verification"
+    assert metadata["lanes"]["lane_2"]["label"] == "human acceptance"
+    assert "score" not in str(metadata["lanes"]["lane_2"].keys())
+    assert metadata["not_understood"] == assessment.not_understood
+    assert metadata["reported_statuses"] == assessment.reported_statuses
