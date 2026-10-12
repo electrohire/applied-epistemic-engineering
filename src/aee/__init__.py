@@ -31,8 +31,9 @@ from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
 from aee.reliability import ReliabilityTable, SourceRecord
 from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queue
-from aee.scoring import ClaimScore, ScoringEngine
+from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
 from aee.session import AEESession
+from aee.sources import normalize_source_identity, source_identity
 
 __all__ = [
     "DEFAULT_LEDGER_PATH",
@@ -77,5 +78,8 @@ __all__ = [
     "Verdict",
     "VerdictChange",
     "build_review_queue",
+    "canonical_evidence_identity",
     "check_evidence",
+    "normalize_source_identity",
+    "source_identity",
 ]
