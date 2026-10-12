@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import Any
@@ -712,6 +713,20 @@ class Claim:
                 f"{ctx}: field 'confidence' must be a number or null, "
                 f"got {type(confidence).__name__}"
             )
+        falsification_tests = _str_list_field(value, "falsification_tests", context=ctx)
+        # FR-2.3: a falsification test still carrying the drafting
+        # TODO marker is an unfinished draft, not a claim. Strict
+        # loading rejects it so a draft cannot sneak past FR-1 with a
+        # placeholder where its falsifier belongs; a human completing
+        # the test is the ratification step. The lenient path is
+        # exempt (it is the historical silent behaviour, by name).
+        for test in falsification_tests:
+            if re.match(r"TODO\b", test.strip()):
+                raise BundleValidationError(
+                    f"{ctx}: field 'falsification_tests' contains a TODO "
+                    f"placeholder ({test!r}); a human must write a real "
+                    "falsification test before this claim can load strictly"
+                )
         try:
             return cls(
                 id=claim_id,
@@ -737,7 +752,7 @@ class Claim:
                 ],
                 assumptions=_str_list_field(value, "assumptions", context=ctx),
                 alternatives=_str_list_field(value, "alternatives", context=ctx),
-                falsification_tests=_str_list_field(value, "falsification_tests", context=ctx),
+                falsification_tests=falsification_tests,
                 uncertainty=_enum_field(
                     Uncertainty,
                     value.get("uncertainty", Uncertainty.INSUFFICIENT_EVIDENCE.value),

@@ -15,8 +15,10 @@ from aee.model import (
     ClaimStatus,
     DispositionKind,
     Evidence,
+    EvidenceDirection,
     EvidenceKind,
     FailureMode,
+    SourceQuality,
     Uncertainty,
 )
 
@@ -354,6 +356,196 @@ def extract_markdown_claims(path: str | Path) -> list[Claim]:
             active[key.replace(" ", "_")] = value
     finish()
     return claims
+
+
+# --- Claims drafting (Spec 002 FR-2, engine helper for T201) -------------------
+# The helper proposes draft claims from a spec's stated requirements.
+# Invariants (FR-2.2/FR-2.4), enforced by construction — there is no
+# parameter, flag, or code path here that can change them:
+#   * every drafted claim is born ``status: draft``;
+#   * its single evidence item is the requirement text itself, modelled
+#     by this helper: kind ``asserted``, source_quality ``model`` (the
+#     FR-2.2 cap — never anything stronger);
+#   * ratification is a recorded human edit performed elsewhere; this
+#     module holds no opinion about it and never upgrades a claim.
+# A draft whose requirement text carries no testable cue gets the
+# TODO falsifier below instead of an invented test (FR-2.3); strict
+# loading (Claim.from_dict) rejects TODO falsifiers, so such a draft
+# cannot be assessed until a human writes a real one.
+
+TODO_FALSIFIER = (
+    "TODO: no falsification test could be proposed from the requirement "
+    "text; a human must write one before this draft can be completed"
+)
+
+_REQ_REF = r"FR-\d+(?:\.\d+)*|US-\d+"
+_FR_BULLET = re.compile(
+    rf"^\s*(?:[-*]|\d+\.)\s+(?:\*\*)?({_REQ_REF})(?:\*\*)?\s*[:\-—\u2013]\s*(.+?)\s*$"
+)
+_FR_HEADING = re.compile(rf"^#{{1,6}}\s+({_REQ_REF})\b\s*[:\-—\u2013.]?\s*(.*?)\s*$")
+_US_HEADING = re.compile(
+    r"^#{1,6}\s+User Story\s+(\d+)\b\s*[:\-—\u2013]?\s*(.*?)\s*$", re.IGNORECASE
+)
+_HEADING_LINE = re.compile(r"^#{1,6}\s+(.*?)\s*$")
+_BULLET = re.compile(r"^\s*(?:[-*]|\d+\.)\s+(.+?)\s*$")
+_CROSS_REF = re.compile(rf"\b({_REQ_REF})\b")
+_TESTABLE_CUE = re.compile(
+    r"\b(shall|must|will|should|given|when|then|returns?|emits?|rejects?|accepts?|"
+    r"supports?|provides?|records?|computes?|validates?|stores?|allows?|prevents?|"
+    r"fails?|exits?|contains?|includes?|matches?|equals?|displays?|generates?|"
+    r"loads?|writes?|reads?|sends?|creates?|updates?|deletes?|verifies|checks?)\b|\d",
+    re.IGNORECASE,
+)
+
+
+def _clean_md(text: str) -> str:
+    return re.sub(r"\*\*(.+?)\*\*", r"\1", text).strip()
+
+
+def _parse_requirements(spec_text: str) -> list[tuple[str, str]]:
+    """(requirement_ref, requirement_text) pairs in document order.
+
+    Sources: FR/US bullets and headings anywhere, user-story headings,
+    and bullets under an acceptance heading. First occurrence of a
+    ref wins; acceptance bullets are numbered AC-1, AC-2, ... in
+    document order."""
+    found: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    lines = spec_text.splitlines()
+    heading = ""
+    ac_count = 0
+
+    def add(ref: str, text: str) -> None:
+        text = _clean_md(text)
+        if ref not in seen and text:
+            seen.add(ref)
+            found.append((ref, text))
+
+    for index, line in enumerate(lines):
+        us = _US_HEADING.match(line)
+        if us:
+            ref = f"US-{us.group(1)}"
+            text = us.group(2)
+            # Prefer the story sentence itself ("As a ..., I want ...")
+            # over the heading title when the section states one.
+            for following in lines[index + 1 :]:
+                if _HEADING_LINE.match(following):
+                    break
+                story = re.search(r"(As an?\s+.+)$", _clean_md(following), re.IGNORECASE)
+                if story:
+                    text = story.group(1)
+                    break
+                if following.strip():
+                    break
+            add(ref, text)
+            heading = line
+            continue
+        fr_heading = _FR_HEADING.match(line)
+        if fr_heading:
+            text = fr_heading.group(2)
+            if not text:
+                for following in lines[index + 1 :]:
+                    if following.strip() and not _HEADING_LINE.match(following):
+                        text = following.strip()
+                        break
+                    if _HEADING_LINE.match(following):
+                        break
+            add(fr_heading.group(1), text)
+            heading = line
+            continue
+        generic = _HEADING_LINE.match(line)
+        if generic:
+            heading = generic.group(1)
+            continue
+        bullet = _FR_BULLET.match(line)
+        if bullet:
+            add(bullet.group(1), bullet.group(2))
+            continue
+        if re.search(r"acceptance", heading, re.IGNORECASE):
+            item = _BULLET.match(line)
+            if item:
+                ac_count += 1
+                add(f"AC-{ac_count}", item.group(1))
+    return found
+
+
+def _propose_falsifier(text: str) -> str | None:
+    """A proposed falsification test for a requirement, or None when
+    the text carries no testable cue to anchor one to. Proposals are
+    marked as proposals in the test text itself; inventing a test for
+    an aspirational sentence would be fabrication, so those drafts
+    get the TODO marker instead (FR-2.3)."""
+    if not _TESTABLE_CUE.search(text):
+        return None
+    proposition = text.rstrip().rstrip(".")
+    return (
+        "Proposed falsification test: demonstrate a conforming scenario "
+        f"in which the following does not hold: {proposition}."
+    )
+
+
+def draft_claims_from_spec(spec_text: str, *, source_name: str = "spec.md") -> list[Claim]:
+    """Propose one draft claim per requirement stated in a spec.
+
+    Engine support for the extension's draft-claims command (FR-2.1 /
+    FR-2.4): deterministic, no model calls, no ratification. Each
+    draft carries its source requirement reference in ``source_ref``
+    (FR-2.3), a proposed falsification test where one can be anchored
+    (otherwise the TODO marker strict loading rejects), and — per
+    FR-6.3's engine capability — ``depends_on`` proposals scaffolded
+    from explicit cross-references to other requirements in the same
+    spec; the proposals are proposals by virtue of the claim's draft
+    status, and the source refs they came from are recorded in
+    ``metadata['depends_on_proposed_from']``."""
+    requirements = _parse_requirements(spec_text)
+    ids_by_ref = {ref: derived_claim_id(f"{ref} {text}") for ref, text in requirements}
+    drafts: list[Claim] = []
+    for ref, text in requirements:
+        anchor = f"{source_name}#{ref}"
+        cross_refs = [r for r in _CROSS_REF.findall(text) if r != ref and r in ids_by_ref]
+        falsifier = _propose_falsifier(text)
+        metadata: dict[str, Any] = {
+            "drafted": True,
+            "draft_source": "aee.extract.draft_claims_from_spec",
+            "requirement_ref": ref,
+            "falsifier_proposed": falsifier is not None,
+        }
+        if cross_refs:
+            metadata["depends_on_proposed_from"] = cross_refs
+        drafts.append(
+            Claim(
+                id=ids_by_ref[ref],
+                text=text,
+                kind=ClaimKind.REQUIREMENT,
+                status=ClaimStatus.DRAFT,
+                depends_on=[ids_by_ref[r] for r in cross_refs],
+                falsification_tests=[falsifier if falsifier is not None else TODO_FALSIFIER],
+                uncertainty=Uncertainty.INSUFFICIENT_EVIDENCE,
+                source_ref=anchor,
+                evidence=[
+                    Evidence(
+                        ref=anchor,
+                        kind=EvidenceKind.ASSERTED,
+                        direction=EvidenceDirection.SUPPORTS,
+                        source_quality=SourceQuality.MODEL,
+                        source_id=ref,
+                        description=(
+                            f"Draft proposed from requirement {ref} by the "
+                            "drafting helper; unratified — the evidence is "
+                            "the requirement text itself, as modelled."
+                        ),
+                    )
+                ],
+                metadata=metadata,
+            )
+        )
+    return drafts
+
+
+def draft_claims(path: str | Path) -> list[Claim]:
+    """Draft claims from a spec file; see draft_claims_from_spec."""
+    source = Path(path)
+    return draft_claims_from_spec(source.read_text(encoding="utf-8"), source_name=source.as_posix())
 
 
 def derived_claim_id(text: str, prefix: str = "CLM") -> str:
