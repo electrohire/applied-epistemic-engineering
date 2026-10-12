@@ -1,4 +1,5 @@
 {
+  "schema_version": "1.0",
   "claims": [
     {
       "boundary": [
@@ -687,30 +688,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Outcome-integrity suite: an explicitly empty bundle is a CLI exit-2 input error and an engine-level block (never pass); duplicate claim ids complete as an assessment with outcome block instead of crashing; the gate recomputes the outcome from contents and verifies the ledger hash.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_outcome_integrity.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-1 outcome integrity (OD-2 belt-and-braces).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #27, electrohire/applied-epistemic-engineering (squash 0c8600a)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "Close-out probe re-run: RT1-01, RT1-12, RT2-C1/H1/M4 all INVERTED - a forged {\"outcome\": \"pass\"} file fails the gate and an empty bundle exits 2.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -720,7 +697,7 @@
       "kind": "requirement",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-1",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-1 lands, an empty bundle never passes, a fabricated assessment file never gates as pass, and duplicate claim ids produce a completed block assessment rather than an exception or a silent discard.",
       "uncertainty": "high"
     },
@@ -736,30 +713,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Inflation suite: canonical evidence-identity dedup (20 copies of one item score as one), shared source normalisation, zero-weight/empty-ref/context exclusions, polarity-coherence challenge, and the draft outcome cap at iterate.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_score_inflation.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-2 inflation kit; the honest control bundle's scores are byte-identical before/after.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #28, electrohire/applied-epistemic-engineering (squash 574531e)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "Close-out probe re-run: the combined kill chain now scores 0.569/challenge (was 0.837 pass/ACCEPT); RT1-02/04/06/13/14/21/23 INVERTED. RT1-03's ref-string-only construction remains exploitable - the recorded FR-2 limit (an observed-kind item with no kind signal is indistinguishable from legitimate context evidence).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -769,7 +722,7 @@
       "kind": "requirement",
       "severity": "critical",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-2",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-2 lands, the combined inflation kill chain of duplicated model self-attestation, one human assertion, draft status and polarity relabelling yields no pass and no accept verdict, and each individual inflation probe scores only distinct positive-weight polarity-coherent evidence.",
       "uncertainty": "high"
     },
@@ -785,30 +738,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Reliability suites: strict from_dict validation refuses out-of-range/non-finite records by name; all reliability values and blended weights stay in [0,1]; credit is contribution-weighted (a zero-weight coattail earns ~0.07 effective observations and is never canonised); honest-table control unchanged (0.895/0.60).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_reliability_validation.py; tests/test_reliability.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-3 reliability integrity, including the required provenance field on record().",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #29, electrohire/applied-epistemic-engineering (squash 047e8ca)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "Residual recorded by the close-out probe re-run (RT1-07, composite): direct record() minting still canonises a junk source in 3 calls at the original numbers (reliability 1.0, blend 0.20 -> 0.60) once the caller supplies any self-asserted provenance string - provenance is a label, not an authority check. The bundle-author-reachable constructions in this claim (poisoned tables, coattail credit, framing) are closed and test-covered; the residual is a trusted-caller API boundary, recorded here rather than silently absorbed.",
-          "direction": "context",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -818,7 +747,7 @@
       "kind": "prediction",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-3 lands, poisoned reliability tables fail loading loudly, measured reliability and blended weights stay within zero to one, and a zero-weight source riding claims carried by other sources earns no reliability credit.",
       "uncertainty": "high"
     },
@@ -834,30 +763,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Ledger-integrity suite: sidecar head anchor (<ledger>.anchor.json committing count + tip, atomically rewritten per append); strict per-line verification errors; the gate requires the anchor; duplicate-append refusal by default.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_ledger_integrity.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-4 ledger anchoring (OD-3 sidecar design).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #30, electrohire/applied-epistemic-engineering (squash 37e82da)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "Close-out probe re-run (RT2-H2/M1, REMAINDER by recorded limit): ledger-alone tail truncation FAILS on the anchor leg and legacy anchor-less ledgers report unverifiable-anchor; an attacker who can rewrite BOTH the ledger and its anchor sidecar still defeats local anchoring - the recorded limit whose remedy is external anchoring (Spec 002 FR-8b, not built).",
-          "direction": "context",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -867,7 +772,7 @@
       "kind": "requirement",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-4",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-4 lands, ledger tail truncation is detectable by any consumer holding the recorded head anchor, a same-size same-mtime forgery is refused by a cached appender, and the ledger writer can never produce a file its own verifier cannot read.",
       "uncertainty": "high"
     },
@@ -883,30 +788,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Artifact-safety/input-coherence/schema-parity suites: symlink-aware collision guards on all commands (including ledger and anchor), write-before-append ordering with atomic renames, duplicate JSON keys refused at every load path, exit-code audit, and a 38-case generated corpus proving schema/loader parity.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_cli_artifact_safety.py; tests/test_input_coherence.py; tests/test_schema_parity.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-5 CLI artifact safety and input coherence, in two phases.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #31 (squash 63c0354); PR #32 (squash 5c50ce3), electrohire/applied-epistemic-engineering",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "Close-out probe re-run (RT2-M3, REMAINDER in part): the main leg is inverted (bad --output -> exit 2, ledger NOT appended, atomic writes); an --evaluator-output failure still leaves the completed main --output written, with exit 2 and a clean ledger - residual partial state, no false attestation, outside this claim's predicates (no input or ledger is overwritten and no false ledger entry is left).",
-          "direction": "context",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -916,7 +797,7 @@
       "kind": "requirement",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-5 lands, no CLI invocation can overwrite its own input or ledger, failed writes leave no false ledger record, input failures exit cleanly at code two with named positions, engine output is strict JSON that validates against its shipped schemas, and identical pinned replays produce identical digests.",
       "uncertainty": "high"
     },
@@ -932,22 +813,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Composer suites: empty compose yields block + exit 2 in the Python and Bash composers (PowerShell leg verified via the repo's parity harness and CI - pwsh is unavailable on this VM); invalid inputs become schema_violation findings voting block under every strategy; dedup by id+version means a duplicated pass cannot outvote a block; the engine-side validator refuses 27 violation classes by name against a byte-identical vendored schema.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_compose_results.py; tests/test_compose_parity.py (electrohire/spec-kit-evaluator @ eee9fef); tests/test_evaluator_contract.py (engine @ 6449975)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-6 evaluator composition integrity and engine-side evaluator-result validation (T609).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "PR #2, electrohire/spec-kit-evaluator (squash eee9fef); PR #34, electrohire/applied-epistemic-engineering (squash 9de02ba)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -957,7 +822,7 @@
       "kind": "requirement",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-6",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-6 lands, empty or all-invalid evaluator results never compose to pass in any of the three composers, inputs are schema-validated in the shipped path, composed output validates against the shipped schema without consumer workarounds, and filename tricks cannot move a composed outcome.",
       "uncertainty": "high"
     },
@@ -973,22 +838,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "Benchmark-integrity suite on the re-pinned stack (engine ==1.4.0, extension 1.2.0, evaluator @ eee9fef; check_pins passes): a forged grade aggregates to resolved 0 / rate 0.0 with the attempt disclosed as unverified, and hand-editing a chained event stream raises a broken-hash-chain error (probe re-run RT4-H4/H5 INVERTED).",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "tests/test_benchmark_integrity.py (electrohire/spec-kit-aee-benchmark @ e248d49)",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
-        },
-        {
-          "description": "Implemented and merged: FR-7 benchmark integrity - current pins, empty runs report invalid (never success), honesty labels on modeled/synthetic numbers, no self-grading, docker/GPU-free validation mode.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "electrohire/spec-kit-aee-benchmark @ e248d49 (FR-7 re-pin and integrity)",
-          "source_id": "github-merge-record-2026-10-12",
-          "source_quality": "artifact"
         }
       ],
       "falsification_tests": [
@@ -998,7 +847,7 @@
       "kind": "prediction",
       "severity": "high",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
-      "status": "supported",
+      "status": "draft",
       "text": "After FR-7 lands, the benchmark runs on pins matching the current engine, extension and evaluator, a forged grade with no grader artifact cannot enter its headline metrics, and its grounding downgrades unverifiable evidence of every kind.",
       "uncertainty": "high"
     },
@@ -1015,22 +864,6 @@
           "ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
           "source_id": "spec-003-aee-red-team-remediation",
           "source_quality": "primary"
-        },
-        {
-          "description": "This close-out is the claim's event: the full RT1/RT2/RT4 probe suite was re-run against current mains (48 of 70 findings INVERTED, 8 REMAINDER with recorded reasons, 14 STILL-LIVE - every still-live finding inside the owner-held FR-8 scope or the recorded RT1-07 residual), and the benchmark offline suite on the re-pinned stack runs 321 passed against the FR-7-captured baseline of 320 - no regression. Spec 002's T810 guard was executed in exactly this form and checked off with its scope recorded.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "specs/003-aee-red-team-remediation/probe-rerun-2026-10-12.md",
-          "source_id": "closeout-probe-rerun-2026-10-12",
-          "source_quality": "artifact"
-        },
-        {
-          "description": "The regression check T810 depends on now measures the hardened, re-pinned stack rather than the obsolete pins RT4-H5 found.",
-          "direction": "supports",
-          "kind": "observed",
-          "ref": "Benchmark offline suite (electrohire/spec-kit-aee-benchmark @ e248d49): 321 passed, 0 failed",
-          "source_id": "closeout-suite-run-2026-10-12",
-          "source_quality": "test"
         }
       ],
       "falsification_tests": [
@@ -1040,7 +873,7 @@
       "kind": "prediction",
       "severity": "medium",
       "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-7",
-      "status": "supported",
+      "status": "draft",
       "text": "After the Spec 003 close-out, the benchmark regression check that Spec 002 task T810 depends on validates the hardened stack rather than the obsolete stack, and its diagnostic results are recorded against the re-pinned benchmark baseline.",
       "uncertainty": "high"
     },
@@ -1085,12 +918,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-30",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1111,12 +952,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-31",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1137,12 +986,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-32",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1163,12 +1020,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-33",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1189,12 +1054,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-34",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1215,12 +1088,20 @@
       ],
       "evidence": [
         {
-          "description": "Requirement stated in Spec 003 FR-8 as amended under owner authorization OD-1, which this claim commits to test.",
+          "ref": "specs/003-aee-red-team-remediation/implementation-fr8.md",
+          "kind": "observed",
           "direction": "supports",
-          "kind": "asserted",
-          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-8",
-          "source_id": "spec-003-aee-red-team-remediation",
-          "source_quality": "primary"
+          "source_quality": "artifact",
+          "source_id": "fr8-record-RT-003-35",
+          "description": "Per-item FR-8 disposition record: what landed for each FR-8 item, the probe inversions, the two acceptance-text interactions, and the benchmark before/after."
+        },
+        {
+          "ref": "tests/test_fr8_semantics.py + original RT1 probe scripts re-run unmodified on the P4 build",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "source_id": "fr8-probe-verification-2026-10-12",
+          "description": "34 semantics tests; the original probes (p5 cycle suppression, p1 freshness/substance, p3 negation) re-run against the methodology-2.0 build show the inverted behavior directly."
         }
       ],
       "falsification_tests": [
@@ -1234,9 +1115,5 @@
       "text": "After FR-8 lands, the engine documentation states plainly that the weakest-link propagation cap is conditional on author-declared dependencies, cross-references the dependency scaffolding in Spec 002 FR-6.3, and claims no in-engine detection of omitted dependencies for RT1-22.",
       "uncertainty": "high"
     }
-  ],
-  "date": "2026-10-12",
-  "schema_version": "1.0",
-  "spec": "003-aee-red-team-remediation",
-  "version": "0.2.0"
+  ]
 }
