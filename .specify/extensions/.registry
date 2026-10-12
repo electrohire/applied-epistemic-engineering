@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "extensions": {
+    "aee": {
+      "version": "1.2.0",
+      "source": "local",
+      "manifest_hash": "sha256:b0fccb5b583ad013a77ff089032bc7f7b84e5986ab84b46dac5d429701bdf4a8",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {},
+      "registered_skills": [
+        "speckit-aee-assess",
+        "speckit-aee-challenge",
+        "speckit-aee-trace",
+        "speckit-aee-verify",
+        "speckit-aee-gate",
+        "speckit-aee-review",
+        "speckit-aee-gaps",
+        "speckit-aee-route-evidence",
+        "speckit-aee-report-savings"
+      ],
+      "installed_at": "2026-10-09T01:56:22.098815+00:00"
+    },
+    "evaluator": {
+      "version": "1.0.0",
+      "source": "local",
+      "manifest_hash": "sha256:c00fb63c4bf7b852f368d1e937a42b4d52e8439df9909096a987186f4718d577",
+      "enabled": true,
+      "priority": 10,
+      "registered_commands": {},
+      "registered_skills": [
+        "speckit-evaluator-run",
+        "speckit-evaluator-compose",
+        "speckit-evaluator-report",
+        "speckit-evaluator-route"
+      ],
+      "installed_at": "2026-10-09T01:56:37.128601+00:00"
+    }
+  }
+}

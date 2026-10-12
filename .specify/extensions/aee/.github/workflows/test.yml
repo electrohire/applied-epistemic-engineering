@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: ubuntu-latest
+            python: '3.13'
+          - os: windows-latest
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements/dev.txt
+      - run: python -m pip install --require-hashes -r requirements/dev.txt
+      - run: ruff check scripts tests
+      - run: pytest -q
+      - run: python scripts/python/run_aee.py --help
+      - name: Check out published Evaluator dependency
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: electrohire/spec-kit-evaluator
+          ref: e6e86e1ca2c99c167375953ad8d682913f3de244 # v1.0.0
+          path: artifacts/evaluator
+          persist-credentials: false
+      - run: python scripts/check_install.py --evaluator-dir artifacts/evaluator
+
+  # Preserve the existing protected-branch check name while expanding coverage.
+  validate:
+    if: always()
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every matrix job to pass
+        env:
+          TEST_RESULT: ${{ needs.test.result }}
+        run: test "$TEST_RESULT" = success

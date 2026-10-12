@@ -1,0 +1,138 @@
+schema_version: '1.0'
+
+extension:
+  id: aee
+  name: Applied Epistemic Engineering
+  version: 1.2.0
+  description: Challenge claims, trace evidence, propagate uncertainty, and route epistemic failures across phases
+  category: process
+  effect: read-write
+  author: ElectroHire
+  repository: https://github.com/electrohire/spec-kit-aee
+  license: MIT
+  homepage: https://github.com/electrohire/spec-kit-aee
+
+requires:
+  speckit_version: '>=1.0.0'
+  tools:
+    - name: python
+      required: true
+      version: '>=3.11'
+    # CLI supplied by https://github.com/electrohire/applied-epistemic-engineering
+    # 1.0.2 introduced the gaps command; 1.4.0 introduced the policy
+    # gates, reliability blending, and review subcommand used here.
+    - name: aee
+      required: true
+      version: '>=1.4.0,<2'
+    # Spec Kit extension, not a shell executable. Install it first; Spec Kit
+    # displays requires.tools but does not auto-install these dependencies.
+    # https://github.com/electrohire/spec-kit-evaluator
+    - name: spec-kit-evaluator
+      required: true
+      version: '>=1.0.0,<2'
+    # Optional token-economy tools. AEE cores the policy (measured-only
+    # savings, cite-original-lines evidence) and depends on the tools; every
+    # workflow degrades gracefully when one is absent. Informational only:
+    # Spec Kit does not auto-install these dependencies.
+    # rtk: https://github.com/rtk-ai/rtk - shell-output compression.
+    - name: rtk
+      required: false
+    # headroom: https://github.com/headroomlabs-ai/headroom - long-horizon
+    # session compression. See docs/token-economy.md for integration points.
+    - name: headroom
+      required: false
+    # token-router: https://github.com/sleeplesshan/token-router - local
+    # Ollama line router for evidence gathering.
+    - name: token-router
+      required: false
+    - name: ollama
+      required: false
+
+provides:
+  commands:
+    - name: speckit.aee.assess
+      file: commands/speckit.aee.assess.md
+      description: Assess explicit claims and emit both a rich AEE assessment and an Evaluator Contract result
+    - name: speckit.aee.challenge
+      file: commands/speckit.aee.challenge.md
+      description: Adversarially challenge atomicity, boundaries, falsifiability, dependencies, and evidence independence
+    - name: speckit.aee.trace
+      file: commands/speckit.aee.trace.md
+      description: Render the claim dependency graph and inspect epistemic provenance
+    - name: speckit.aee.verify
+      file: commands/speckit.aee.verify.md
+      description: Verify the tamper-evident AEE ledger without claiming that its contents are true
+    - name: speckit.aee.gate
+      file: commands/speckit.aee.gate.md
+      description: Apply a CI-friendly decision gate to an AEE assessment
+    - name: speckit.aee.review
+      file: commands/speckit.aee.review.md
+      description: Diff two AEE assessments into a materiality-filtered review queue
+    - name: speckit.aee.gaps
+      file: commands/speckit.aee.gaps.md
+      description: Generate or update the gap register from a verification matrix and test evidence
+    - name: speckit.aee.route-evidence
+      file: commands/speckit.aee.route-evidence.md
+      description: Route oversized logs and sources into raw evidence slices for AEE gates
+    - name: speckit.aee.report-savings
+      file: commands/speckit.aee.report-savings.md
+      description: Report measured RTK and Headroom token savings, never estimated
+  templates:
+    - name: aee-claims
+      file: templates/aee-claims.json
+      description: Structured claim and evidence input for the AEE engine
+  config:
+    - name: aee-config.yml
+      template: templates/aee-config.template.yml
+      description: AEE thresholds, ledger behavior, and lifecycle settings
+      required: false
+  scripts:
+    - name: aee-runner
+      file: scripts/python/run_aee.py
+      description: Path-safe adapter for the applied-epistemic-engineering CLI
+      runtimes:
+        - python
+    - name: aee-token-economy
+      file: scripts/python/aee_token_economy.py
+      description: Policy layer over optional token-economy tools (rtk, headroom, token-router)
+      runtimes:
+        - python
+
+hooks:
+  after_specify:
+    command: speckit.aee.assess
+    priority: 30
+    optional: true
+    prompt: Run an epistemic assessment of the specification?
+    description: Challenge requirements, assumptions, boundaries, and evidence after specification
+  after_plan:
+    command: speckit.aee.assess
+    priority: 30
+    optional: true
+    prompt: Run an epistemic assessment of the plan?
+    description: Challenge plan claims, decisions, dependencies, and supporting evidence
+  after_tasks:
+    command: speckit.aee.assess
+    priority: 30
+    optional: true
+    prompt: Run an epistemic assessment of the task breakdown?
+    description: Challenge task traceability and the evidence required to verify completion
+  after_implement:
+    command: speckit.aee.assess
+    priority: 30
+    optional: true
+    prompt: Run an epistemic assessment of the implementation?
+    description: Compare implementation claims with independently inspectable evidence
+  after_verify:
+    command: speckit.aee.gaps
+    priority: 40
+    optional: true
+    prompt: Regenerate the gap register from verification evidence?
+    description: Cross-reference the verification matrix against test evidence and update GAPS.md
+
+tags:
+  - epistemics
+  - evidence
+  - provenance
+  - uncertainty
+  - governance
