@@ -267,6 +267,31 @@ def test_assess_output_symlink_victim_survives(tmp_path: Path, capsys: pytest.Ca
     assert "resolves through a symlink" in capsys.readouterr().err
 
 
+def test_ledger_outside_project_root_warns_but_writes(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    # RT2 p09 section 5 / RT2-L3: an out-of-root --ledger is created
+    # (a local CLI has latitude) but never silently.
+    bundle = _bundle(tmp_path)
+    project = tmp_path / "project"
+    project.mkdir()
+    outside = tmp_path / "elsewhere" / "deep" / "ledger.jsonl"
+    code = main(
+        [
+            "assess",
+            "--input",
+            str(bundle),
+            "--project-root",
+            str(project),
+            "--ledger",
+            str(outside),
+        ]
+    )
+    assert code in (0, 1)
+    assert outside.is_file()
+    assert "outside the project root" in capsys.readouterr().err
+
+
 # ---------------------------------------------------------------------
 # Ordering + atomicity (RT2 p09 §2; RT2-M3)
 # ---------------------------------------------------------------------

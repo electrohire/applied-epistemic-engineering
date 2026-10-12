@@ -362,6 +362,17 @@ def _assess(args: argparse.Namespace) -> int:
         if args.output is not None:
             evaluator_protected.append((args.output, "the --output assessment"))
         _guard_output_path(args.evaluator_output, evaluator_protected, flag="--evaluator-output")
+    # RT2-L3 (FR-5.1): writes that resolve outside the project root
+    # are permitted (a local CLI has latitude) but never silent —
+    # warn loudly on stderr; the paths themselves are already in the
+    # run record (metadata.ledger / metadata.input).
+    warn_root = args.project_root if args.project_root is not None else Path.cwd()
+    if ledger_path is not None:
+        _warn_if_outside_root(ledger_path, warn_root, flag="--ledger")
+    if args.output is not None:
+        _warn_if_outside_root(args.output, warn_root, flag="--output")
+    if args.evaluator_output is not None:
+        _warn_if_outside_root(args.evaluator_output, warn_root, flag="--evaluator-output")
     claims = load_claims(args.input, strict=not args.lenient)
     if not claims:
         # Spec 003 FR-1.1 (OD-2, CLI half): an explicitly empty bundle
@@ -998,6 +1009,19 @@ def _load_json_strict(path: Path, *, what: str) -> Any:
         raise ValueError(
             f"{what} file {path.as_posix()}: JSON nesting too deep to process"
         ) from None
+
+
+def _warn_if_outside_root(path: Path, root: Path, *, flag: str) -> None:
+    """Spec 003 FR-5.1 (RT2-L3): a write target resolving outside the
+    project root is permitted but never silent — scripted runs (the
+    extension runner, CI) must be able to see the escape in the log."""
+    resolved = path.resolve()
+    if not resolved.is_relative_to(root.resolve()):
+        print(
+            f"warning: {flag} {path.as_posix()} resolves outside the project "
+            f"root ({resolved.as_posix()} is not under {root.resolve().as_posix()})",
+            file=sys.stderr,
+        )
 
 
 def _guard_output_path(
