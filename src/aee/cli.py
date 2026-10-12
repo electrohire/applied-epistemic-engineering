@@ -254,6 +254,21 @@ def build_parser() -> argparse.ArgumentParser:
     gate = sub.add_parser("gate", help="Return a CI-friendly decision from an assessment")
     gate.add_argument("--input", type=Path, required=True)
 
+    anchor = sub.add_parser(
+        "anchor",
+        help="Deposit an assessment's SHA-256 in an Axiomere .axmr ledger (optional, Spec 002 FR-8b)",
+    )
+    anchor.add_argument("--input", type=Path, required=True)
+    anchor.add_argument("--ledger", type=Path, required=True, help="Path to the .axmr ledger (created if absent)")
+    anchor.add_argument("--actor", default="aee-anchor")
+    anchor.add_argument("--project")
+    anchor.add_argument("--phase")
+    anchor.add_argument(
+        "--output",
+        type=Path,
+        help="Write the receipt-bearing assessment here instead of updating --input in place",
+    )
+
     graph = sub.add_parser("graph", help="Render claim dependencies as Mermaid")
     graph.add_argument("--input", type=Path, required=True)
     graph.add_argument("--output", type=Path)
@@ -315,6 +330,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _priority(args)
         if args.command == "gate":
             return _gate(args)
+        if args.command == "anchor":
+            return _anchor(args)
         if args.command == "graph":
             return _graph(args)
         if args.command == "gaps":
@@ -653,6 +670,42 @@ _SUMMARY_COUNTS = re.compile(
     r"Assessed (\d+) claim\(s\); found (\d+) failure mode\(s\); "
     r"(\d+) claim\(s\) below the (\d+(?:\.\d+)?) confidence threshold\."
 )
+
+
+def _anchor(args: argparse.Namespace) -> int:
+    """Spec 002 FR-8b (T804/T805): deposit the assessment's SHA-256
+    in an Axiomere ledger and write the receipt back as
+    `metadata.anchor`. When the optional axiomere package is absent
+    this degrades to a clear "anchor unavailable" message (FR-8.6)
+    and a non-zero exit - the assessment file is left untouched."""
+    from aee.anchor import AnchorUnavailable, anchor_assessment
+
+    value = _load_json_strict(args.input, what="assessment")
+    if not isinstance(value, dict) or not isinstance(value.get("metadata"), dict):
+        raise ValueError(
+            f"anchor: {args.input.as_posix()} is not a complete assessment (missing metadata)"
+        )
+    try:
+        receipt = anchor_assessment(
+            value,
+            ledger_path=args.ledger,
+            actor=args.actor,
+            project=args.project,
+            phase=args.phase,
+        )
+    except AnchorUnavailable as exc:
+        print(f"AEE anchor: {exc}", file=sys.stderr)
+        return 2
+    value["metadata"]["anchor"] = receipt
+    target = args.output if args.output is not None else args.input
+    target.write_text(_dumps(value, indent=2) + "\n", encoding="utf-8")
+    print(
+        "AEE anchor: deposited assessment SHA-256 "
+        f"{receipt['assessment_sha256'][:16]}... in {receipt['ledger']} "
+        f"(event #{receipt['event_seq']}, checkpoint root "
+        f"{str(receipt['checkpoint_root'])[:16]}...)"
+    )
+    return 0
 
 
 def _gate(args: argparse.Namespace) -> int:
