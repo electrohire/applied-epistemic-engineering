@@ -13,7 +13,7 @@ from typing import Any, cast
 from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.engine import AEEEngine
-from aee.extract import load_claims
+from aee.extract import load_claims, migrate_bundle, validate_bundle_structure
 from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import HashChainLedger
@@ -65,6 +65,26 @@ def build_parser() -> argparse.ArgumentParser:
         "reliability blends into scoring",
     )
     assess.add_argument("--reliability-alpha", type=float, default=0.5)
+    assess.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Compatibility mode (Spec 002 FR-1.3): load claims with the "
+        "historical silent-default loader instead of strict validation. "
+        "Its use is echoed into the assessment metadata.",
+    )
+
+    validate = sub.add_parser(
+        "validate",
+        help="Strict-load a claims bundle and run structural checks, without assessing",
+    )
+    validate.add_argument("bundle", type=Path)
+
+    migrate = sub.add_parser(
+        "migrate",
+        help="Convert a pre-engine legacy claims bundle to the current format",
+    )
+    migrate.add_argument("bundle", type=Path)
+    migrate.add_argument("--output", type=Path)
 
     challenge = sub.add_parser(
         "challenge", help="Emit a deterministic failure-mode projection of an assessment"
@@ -124,6 +144,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         if args.command == "assess":
             return _assess(args)
+        if args.command == "validate":
+            return _validate(args)
+        if args.command == "migrate":
+            return _migrate(args)
         if args.command == "challenge":
             return _challenge(args)
         if args.command == "verify-ledger":
@@ -144,8 +168,34 @@ def main(argv: Sequence[str] | None = None) -> int:
     raise AssertionError("unreachable")
 
 
+def _validate(args: argparse.Namespace) -> int:
+    claims = load_claims(args.bundle)
+    errors, warnings = validate_bundle_structure(claims)
+    for warning in warnings:
+        print(f"warning: {warning}")
+    if errors:
+        for error in errors:
+            print(f"Error: {error}", file=sys.stderr)
+        return 2
+    print(f"valid: {len(claims)} claim(s) in {args.bundle.as_posix()}")
+    return 0
+
+
+def _migrate(args: argparse.Namespace) -> int:
+    value = json.loads(args.bundle.read_text(encoding="utf-8"))
+    migrated, report = migrate_bundle(value)
+    for line in report:
+        print(f"migrate: {line}", file=sys.stderr)
+    if args.output:
+        _write_json(migrated, args.output)
+        print(f"migrated bundle written to {args.output.as_posix()}")
+    else:
+        print(json.dumps(migrated, indent=2))
+    return 0
+
+
 def _assess(args: argparse.Namespace) -> int:
-    claims = load_claims(args.input)
+    claims = load_claims(args.input, strict=not args.lenient)
     policy = None
     if args.policy:
         policy = AssessmentPolicy(
@@ -163,11 +213,15 @@ def _assess(args: argparse.Namespace) -> int:
         reliability=reliability,
         reliability_alpha=args.reliability_alpha,
     )
+    metadata: dict[str, Any] = {"input": args.input.as_posix()}
+    if args.lenient:
+        # FR-1.3: lenient mode is never silent — its use is on the record.
+        metadata["loading_mode"] = "lenient"
     assessment = engine.assess(
         claims,
         project=args.project,
         phase=args.phase,
-        metadata={"input": args.input.as_posix()},
+        metadata=metadata,
     )
     if args.ledger:
         HashChainLedger(args.ledger).append_assessment(assessment, actor=args.actor)

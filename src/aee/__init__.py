@@ -10,6 +10,7 @@ from aee.gaps import GapEngine, GapEntry, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import HashChainLedger, LedgerVerification
 from aee.model import (
+    BundleValidationError,
     Claim,
     ClaimKind,
     ClaimStatus,
@@ -36,6 +37,7 @@ __all__ = [
     "AEESession",
     "Assessment",
     "AssessmentPolicy",
+    "BundleValidationError",
     "Claim",
     "ClaimGraph",
     "ClaimKind",

@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from aee.extract import load_claims  # noqa: E402
+from aee.extract import load_claims
 
 FIXTURES = Path(__file__).resolve().parent
 GOLDEN = FIXTURES / "golden"

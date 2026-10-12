@@ -69,6 +69,145 @@ class Severity(StrEnum):
     INFO = "info"
 
 
+class BundleValidationError(ValueError):
+    """A claim bundle failed strict loading (Spec 002 FR-1).
+
+    Subclasses ValueError so existing clean-error paths (the CLI catches
+    ValueError -> exit 2) keep working. Every message names the claim id
+    (or position), the field, and the problem.
+    """
+
+
+def _edit_distance(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    previous = list(range(len(b) + 1))
+    for i, ca in enumerate(a, start=1):
+        current = [i]
+        for j, cb in enumerate(b, start=1):
+            current.append(min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (ca != cb)))
+        previous = current
+    return previous[-1]
+
+
+# Field names a legacy/near-miss author plausibly meant (Spec 002 FR-1.2/1.5).
+_FIELD_ALIASES: dict[str, str] = {
+    "statement": "text",
+    "proposition": "text",
+    "claim": "text",
+    "falsifier": "falsification_tests",
+    "falsifiers": "falsification_tests",
+    "dependencies": "depends_on",
+    "conflicts": "conflicts_with",
+    "source": "source_ref",
+    "url": "ref",
+    "path": "ref",
+    "quality": "source_quality",
+    "type": "kind",
+}
+
+
+def suggest_field_name(name: str, known: set[str]) -> str | None:
+    """Did-you-mean: explicit alias first, then edit distance over known fields."""
+    alias = _FIELD_ALIASES.get(name)
+    if alias is not None and alias in known:
+        return alias
+    best: str | None = None
+    best_distance = 3  # suggest only when within edit distance 2
+    for candidate in sorted(known):
+        distance = _edit_distance(name, candidate)
+        if distance < best_distance:
+            best, best_distance = candidate, distance
+    return best
+
+
+def _check_unknown_fields(value: dict[str, Any], known: set[str], context: str) -> None:
+    unknown = sorted(set(value) - known)
+    if not unknown:
+        return
+    parts = []
+    for name in unknown:
+        suggestion = suggest_field_name(name, known)
+        hint = f" (did you mean '{suggestion}'?)" if suggestion else ""
+        parts.append(f"unknown field '{name}'{hint}")
+    raise BundleValidationError(
+        f"{context}: " + "; ".join(parts) + f". Valid fields: {', '.join(sorted(known))}"
+    )
+
+
+def _enum_field(
+    enum_cls: type[ClaimKind]
+    | type[ClaimStatus]
+    | type[EvidenceKind]
+    | type[EvidenceDirection]
+    | type[SourceQuality]
+    | type[Uncertainty]
+    | type[Severity],
+    raw: Any,
+    *,
+    context: str,
+    field: str,
+) -> Any:
+    if isinstance(raw, enum_cls):
+        return raw
+    try:
+        return enum_cls(raw)
+    except ValueError:
+        valid = ", ".join(member.value for member in enum_cls)
+        raise BundleValidationError(
+            f"{context}: field '{field}' has invalid value {raw!r}; valid values: {valid}"
+        ) from None
+
+
+def _str_field(
+    value: dict[str, Any],
+    field: str,
+    *,
+    context: str,
+    default: str = "",
+    required: bool = False,
+    non_empty: bool = False,
+) -> str:
+    if field not in value:
+        if required:
+            raise BundleValidationError(f"{context}: field '{field}' is required but missing")
+        return default
+    raw = value[field]
+    if not isinstance(raw, str):
+        raise BundleValidationError(
+            f"{context}: field '{field}' must be a string, got {type(raw).__name__}"
+        )
+    if non_empty and not raw.strip():
+        raise BundleValidationError(f"{context}: field '{field}' must not be empty")
+    return raw
+
+
+def _opt_str_field(value: dict[str, Any], field: str, *, context: str) -> str | None:
+    raw = value.get(field)
+    if raw is None:
+        return None
+    if not isinstance(raw, str):
+        raise BundleValidationError(
+            f"{context}: field '{field}' must be a string or null, got {type(raw).__name__}"
+        )
+    return raw
+
+
+def _str_list_field(value: dict[str, Any], field: str, *, context: str) -> list[str]:
+    raw = value.get(field, [])
+    if not isinstance(raw, list):
+        raise BundleValidationError(
+            f"{context}: field '{field}' must be a list of strings, got {type(raw).__name__}"
+        )
+    for item in raw:
+        if not isinstance(item, str):
+            raise BundleValidationError(
+                f"{context}: field '{field}' must be a list of strings; "
+                f"found {type(item).__name__} item {item!r}"
+            )
+    return [str(item) for item in raw]
+
+
 class ConfidenceBand(StrEnum):
     UNKNOWN = "unknown"
     LOW = "low"
@@ -121,18 +260,70 @@ class Evidence:
             "content_hash": self.content_hash,
         }
 
+    _FIELDS = frozenset(
+        {
+            "ref",
+            "kind",
+            "direction",
+            "source_quality",
+            "description",
+            "source_id",
+            "independent_of",
+            "observed_at",
+            "content_hash",
+        }
+    )
+
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> Evidence:
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str = "evidence"
+    ) -> Evidence:
+        if not strict:
+            return cls(
+                ref=str(value.get("ref", "")),
+                kind=EvidenceKind(value.get("kind", EvidenceKind.ASSERTED.value)),
+                direction=EvidenceDirection(
+                    value.get("direction", EvidenceDirection.SUPPORTS.value)
+                ),
+                source_quality=SourceQuality(
+                    value.get("source_quality", SourceQuality.UNKNOWN.value)
+                ),
+                description=str(value.get("description", "")),
+                source_id=str(value.get("source_id", "")),
+                independent_of=[str(item) for item in value.get("independent_of", [])],
+                observed_at=value.get("observed_at"),
+                content_hash=value.get("content_hash"),
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context}: evidence must be an object, got {type(value).__name__}"
+            )
+        _check_unknown_fields(value, set(cls._FIELDS), context)
         return cls(
-            ref=str(value.get("ref", "")),
-            kind=EvidenceKind(value.get("kind", EvidenceKind.ASSERTED.value)),
-            direction=EvidenceDirection(value.get("direction", EvidenceDirection.SUPPORTS.value)),
-            source_quality=SourceQuality(value.get("source_quality", SourceQuality.UNKNOWN.value)),
-            description=str(value.get("description", "")),
-            source_id=str(value.get("source_id", "")),
-            independent_of=[str(item) for item in value.get("independent_of", [])],
-            observed_at=value.get("observed_at"),
-            content_hash=value.get("content_hash"),
+            ref=_str_field(value, "ref", context=context, required=True),
+            kind=_enum_field(
+                EvidenceKind,
+                value.get("kind", EvidenceKind.ASSERTED.value),
+                context=context,
+                field="kind",
+            ),
+            direction=_enum_field(
+                EvidenceDirection,
+                value.get("direction", EvidenceDirection.SUPPORTS.value),
+                context=context,
+                field="direction",
+            ),
+            source_quality=_enum_field(
+                SourceQuality,
+                value.get("source_quality", SourceQuality.UNKNOWN.value),
+                context=context,
+                field="source_quality",
+            ),
+            description=_str_field(value, "description", context=context),
+            source_id=_str_field(value, "source_id", context=context),
+            independent_of=_str_list_field(value, "independent_of", context=context),
+            observed_at=_opt_str_field(value, "observed_at", context=context),
+            content_hash=_opt_str_field(value, "content_hash", context=context),
         )
 
 
@@ -161,17 +352,60 @@ class FailureMode:
             "resolved": self.resolved,
         }
 
+    _FIELDS = frozenset(
+        {
+            "id",
+            "claim_id",
+            "challenge",
+            "breakpoint",
+            "severity",
+            "category",
+            "recovery_hint",
+            "resolved",
+        }
+    )
+
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> FailureMode:
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str = "failure mode"
+    ) -> FailureMode:
+        if not strict:
+            return cls(
+                id=str(value.get("id", "")),
+                claim_id=str(value.get("claim_id", "")),
+                challenge=str(value.get("challenge", "")),
+                breakpoint=str(value.get("breakpoint", "")),
+                severity=Severity(value.get("severity", Severity.MEDIUM.value)),
+                category=str(value.get("category", "other")),
+                recovery_hint=str(value.get("recovery_hint", "")),
+                resolved=bool(value.get("resolved", False)),
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context}: failure mode must be an object, got {type(value).__name__}"
+            )
+        _check_unknown_fields(value, set(cls._FIELDS), context)
+        resolved = value.get("resolved", False)
+        if not isinstance(resolved, bool):
+            raise BundleValidationError(
+                f"{context}: field 'resolved' must be a boolean, got {type(resolved).__name__}"
+            )
         return cls(
-            id=str(value.get("id", "")),
-            claim_id=str(value.get("claim_id", "")),
-            challenge=str(value.get("challenge", "")),
-            breakpoint=str(value.get("breakpoint", "")),
-            severity=Severity(value.get("severity", Severity.MEDIUM.value)),
-            category=str(value.get("category", "other")),
-            recovery_hint=str(value.get("recovery_hint", "")),
-            resolved=bool(value.get("resolved", False)),
+            id=_str_field(value, "id", context=context, required=True, non_empty=True),
+            claim_id=_str_field(value, "claim_id", context=context, required=True),
+            challenge=_str_field(
+                value, "challenge", context=context, required=True, non_empty=True
+            ),
+            breakpoint=_str_field(value, "breakpoint", context=context),
+            severity=_enum_field(
+                Severity,
+                value.get("severity", Severity.MEDIUM.value),
+                context=context,
+                field="severity",
+            ),
+            category=_str_field(value, "category", context=context, default="other"),
+            recovery_hint=_str_field(value, "recovery_hint", context=context),
+            resolved=resolved,
         )
 
 
@@ -239,28 +473,152 @@ class Claim:
             "metadata": dict(self.metadata),
         }
 
+    # 'confidence_band' is emitted by to_dict as derived output; it is a
+    # known field on load (accepted, recomputed, never trusted as input).
+    _FIELDS = frozenset(
+        {
+            "id",
+            "text",
+            "kind",
+            "status",
+            "boundary",
+            "depends_on",
+            "conflicts_with",
+            "evidence",
+            "assumptions",
+            "alternatives",
+            "falsification_tests",
+            "uncertainty",
+            "severity",
+            "source_ref",
+            "domain",
+            "confidence",
+            "confidence_band",
+            "failures",
+            "metadata",
+        }
+    )
+
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> Claim:
+    def from_dict(
+        cls, value: dict[str, Any], *, strict: bool = True, context: str | None = None
+    ) -> Claim:
+        """Load a claim. Strict by default (Spec 002 FR-1): unknown fields,
+        missing/empty text, bad enum values, and wrong types are loud errors
+        naming the claim id, the field, and the problem. ``strict=False`` is
+        the explicitly-named lenient compatibility path (FR-1.3) — it keeps
+        the historical default-everything behavior for internal extraction
+        use and is echoed into assessment metadata wherever a command
+        exposes it."""
+        if not strict:
+            confidence = value.get("confidence")
+            return cls(
+                id=str(value.get("id", "")),
+                text=str(value.get("text", "")),
+                kind=ClaimKind(value.get("kind", ClaimKind.ASSUMPTION.value)),
+                status=ClaimStatus(value.get("status", ClaimStatus.DRAFT.value)),
+                boundary=[str(item) for item in value.get("boundary", [])],
+                depends_on=[str(item) for item in value.get("depends_on", [])],
+                conflicts_with=[str(item) for item in value.get("conflicts_with", [])],
+                evidence=[
+                    Evidence.from_dict(item, strict=False) for item in value.get("evidence", [])
+                ],
+                assumptions=[str(item) for item in value.get("assumptions", [])],
+                alternatives=[str(item) for item in value.get("alternatives", [])],
+                falsification_tests=[str(item) for item in value.get("falsification_tests", [])],
+                uncertainty=Uncertainty(
+                    value.get("uncertainty", Uncertainty.INSUFFICIENT_EVIDENCE.value)
+                ),
+                severity=Severity(value.get("severity", Severity.MEDIUM.value)),
+                source_ref=str(value.get("source_ref", "")),
+                domain=str(value.get("domain", "")),
+                confidence=float(confidence) if confidence is not None else None,
+                failures=[
+                    FailureMode.from_dict(item, strict=False) for item in value.get("failures", [])
+                ],
+                metadata=dict(value.get("metadata", {})),
+            )
+        if not isinstance(value, dict):
+            raise BundleValidationError(
+                f"{context or 'claim'}: claim must be an object, got {type(value).__name__}"
+            )
+        raw_id = value.get("id")
+        ctx = context or (f"claim '{raw_id}'" if isinstance(raw_id, str) and raw_id else "claim")
+        _check_unknown_fields(value, set(cls._FIELDS), ctx)
+        claim_id = _str_field(value, "id", context=ctx, required=True, non_empty=True)
+        ctx = context or f"claim '{claim_id}'"
+        text = _str_field(value, "text", context=ctx, required=True, non_empty=True)
+        evidence_raw = value.get("evidence", [])
+        if not isinstance(evidence_raw, list):
+            raise BundleValidationError(
+                f"{ctx}: field 'evidence' must be a list, got {type(evidence_raw).__name__}"
+            )
+        failures_raw = value.get("failures", [])
+        if not isinstance(failures_raw, list):
+            raise BundleValidationError(
+                f"{ctx}: field 'failures' must be a list, got {type(failures_raw).__name__}"
+            )
+        metadata = value.get("metadata", {})
+        if not isinstance(metadata, dict):
+            raise BundleValidationError(
+                f"{ctx}: field 'metadata' must be an object, got {type(metadata).__name__}"
+            )
         confidence = value.get("confidence")
-        return cls(
-            id=str(value.get("id", "")),
-            text=str(value.get("text", "")),
-            kind=ClaimKind(value.get("kind", ClaimKind.ASSUMPTION.value)),
-            status=ClaimStatus(value.get("status", ClaimStatus.DRAFT.value)),
-            boundary=[str(item) for item in value.get("boundary", [])],
-            depends_on=[str(item) for item in value.get("depends_on", [])],
-            conflicts_with=[str(item) for item in value.get("conflicts_with", [])],
-            evidence=[Evidence.from_dict(item) for item in value.get("evidence", [])],
-            assumptions=[str(item) for item in value.get("assumptions", [])],
-            alternatives=[str(item) for item in value.get("alternatives", [])],
-            falsification_tests=[str(item) for item in value.get("falsification_tests", [])],
-            uncertainty=Uncertainty(
-                value.get("uncertainty", Uncertainty.INSUFFICIENT_EVIDENCE.value)
-            ),
-            severity=Severity(value.get("severity", Severity.MEDIUM.value)),
-            source_ref=str(value.get("source_ref", "")),
-            domain=str(value.get("domain", "")),
-            confidence=float(confidence) if confidence is not None else None,
-            failures=[FailureMode.from_dict(item) for item in value.get("failures", [])],
-            metadata=dict(value.get("metadata", {})),
-        )
+        if confidence is not None and (
+            isinstance(confidence, bool) or not isinstance(confidence, (int, float))
+        ):
+            raise BundleValidationError(
+                f"{ctx}: field 'confidence' must be a number or null, "
+                f"got {type(confidence).__name__}"
+            )
+        try:
+            return cls(
+                id=claim_id,
+                text=text,
+                kind=_enum_field(
+                    ClaimKind,
+                    value.get("kind", ClaimKind.ASSUMPTION.value),
+                    context=ctx,
+                    field="kind",
+                ),
+                status=_enum_field(
+                    ClaimStatus,
+                    value.get("status", ClaimStatus.DRAFT.value),
+                    context=ctx,
+                    field="status",
+                ),
+                boundary=_str_list_field(value, "boundary", context=ctx),
+                depends_on=_str_list_field(value, "depends_on", context=ctx),
+                conflicts_with=_str_list_field(value, "conflicts_with", context=ctx),
+                evidence=[
+                    Evidence.from_dict(item, context=f"{ctx} evidence[{index}]")
+                    for index, item in enumerate(evidence_raw)
+                ],
+                assumptions=_str_list_field(value, "assumptions", context=ctx),
+                alternatives=_str_list_field(value, "alternatives", context=ctx),
+                falsification_tests=_str_list_field(value, "falsification_tests", context=ctx),
+                uncertainty=_enum_field(
+                    Uncertainty,
+                    value.get("uncertainty", Uncertainty.INSUFFICIENT_EVIDENCE.value),
+                    context=ctx,
+                    field="uncertainty",
+                ),
+                severity=_enum_field(
+                    Severity,
+                    value.get("severity", Severity.MEDIUM.value),
+                    context=ctx,
+                    field="severity",
+                ),
+                source_ref=_str_field(value, "source_ref", context=ctx),
+                domain=_str_field(value, "domain", context=ctx),
+                confidence=float(confidence) if confidence is not None else None,
+                failures=[
+                    FailureMode.from_dict(item, context=f"{ctx} failures[{index}]")
+                    for index, item in enumerate(failures_raw)
+                ],
+                metadata=dict(metadata),
+            )
+        except BundleValidationError:
+            raise
+        except ValueError as exc:  # e.g. __post_init__ confidence range
+            raise BundleValidationError(f"{ctx}: {exc}") from None
