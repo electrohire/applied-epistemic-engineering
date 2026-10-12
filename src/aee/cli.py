@@ -19,7 +19,12 @@ from aee import __version__
 from aee.adapters.evaluator import EvaluatorAdapter
 from aee.engine import AEEEngine
 from aee.evidence_check import check_evidence
-from aee.extract import load_claims, migrate_bundle, validate_bundle_structure
+from aee.extract import (
+    duplicate_key_hook,
+    load_claims,
+    migrate_bundle,
+    validate_bundle_structure,
+)
 from aee.gaps import GapEngine, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import DEFAULT_LEDGER_PATH, HashChainLedger
@@ -410,6 +415,9 @@ def _assess(args: argparse.Namespace) -> int:
             json.loads(
                 args.reliability.read_text(encoding="utf-8"),
                 parse_constant=_reject_constant,
+                object_pairs_hook=duplicate_key_hook(
+                    f"reliability file {args.reliability.as_posix()}"
+                ),
             )
         )
     engine = AEEEngine(
@@ -1004,7 +1012,14 @@ def _load_json_strict(path: Path, *, what: str) -> Any:
         )
 
     try:
-        return json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+        # Duplicate keys are refused here too (FR-5.4): a gate or
+        # review reasoning over a last-wins parse of a doubled field
+        # would be reasoning over whichever value came last.
+        return json.loads(
+            path.read_text(encoding="utf-8"),
+            parse_constant=_reject_constant,
+            object_pairs_hook=duplicate_key_hook(f"{what} file {path.as_posix()}"),
+        )
     except RecursionError:
         raise ValueError(
             f"{what} file {path.as_posix()}: JSON nesting too deep to process"

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,33 @@ from aee.model import (
     SourceQuality,
     Uncertainty,
 )
+
+def duplicate_key_hook(source: str) -> Callable[[list[tuple[str, Any]]], dict[str, Any]]:
+    """``object_pairs_hook`` rejecting duplicate JSON keys (FR-5.4).
+
+    Python's json is last-wins for a repeated key, so a bundle could
+    carry two ``claims`` lists — or a claim two ``text`` fields — and
+    the reader would silently keep whichever came last (RT2-M7).
+    Every engine JSON load site uses this hook: the first repeated
+    key is a loud error naming the key and the source being loaded,
+    never a silent overwrite. Shared by the bundle loader, the CLI's
+    strict-JSON loads (assessments, reliability files, migrate input),
+    the session state load, and the gaps evidence scan, so the rule
+    cannot drift between surfaces."""
+
+    def hook(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in result:
+                raise BundleValidationError(
+                    f"{source}: duplicate JSON key {key!r}; duplicate keys are "
+                    "refused, not last-wins (Spec 003 FR-5.4)"
+                )
+            result[key] = item
+        return result
+
+    return hook
+
 
 # Spec 003 FR-5.3: explicit JSON nesting ceiling for bundles. The
 # interpreter's own limit is version-dependent (CPython 3.13's C JSON
@@ -69,7 +97,15 @@ def load_claims(path: str | Path, *, strict: bool = True) -> list[Claim]:
             )
 
         try:
-            value = json.loads(source.read_text(encoding="utf-8"), parse_constant=_reject_constant)
+            # utf-8-sig: a BOM-prefixed bundle parses instead of
+            # failing on the BOM byte (the Markdown path's FR-5.4
+            # discipline, applied to JSON as well); duplicate keys are
+            # refused by the shared hook (FR-5.4).
+            value = json.loads(
+                source.read_text(encoding="utf-8-sig"),
+                parse_constant=_reject_constant,
+                object_pairs_hook=duplicate_key_hook(source.as_posix()),
+            )
         except RecursionError:
             # Spec 003 FR-5.3 (RT2-M6): nesting deeper than the
             # interpreter stack is a named input error, not a leaked
@@ -334,7 +370,10 @@ def migrate_bundle(value: Any) -> tuple[dict[str, Any], list[str]]:
 def extract_markdown_claims(path: str | Path) -> list[Claim]:
     """Extract only explicitly identified claims; never invent support or certainty."""
     source = Path(path)
-    lines = source.read_text(encoding="utf-8").splitlines()
+    # utf-8-sig (FR-5.4, RT2-M8): a BOM before the first heading used
+    # to make that heading unrecognisable, silently deleting the
+    # first claim in the file.
+    lines = source.read_text(encoding="utf-8-sig").splitlines()
     claims: list[Claim] = []
     active: dict[str, Any] | None = None
     pending_heading = ""
@@ -589,7 +628,9 @@ def draft_claims_from_spec(spec_text: str, *, source_name: str = "spec.md") -> l
 def draft_claims(path: str | Path) -> list[Claim]:
     """Draft claims from a spec file; see draft_claims_from_spec."""
     source = Path(path)
-    return draft_claims_from_spec(source.read_text(encoding="utf-8"), source_name=source.as_posix())
+    return draft_claims_from_spec(
+        source.read_text(encoding="utf-8-sig"), source_name=source.as_posix()
+    )
 
 
 def derived_claim_id(text: str, prefix: str = "CLM") -> str:
