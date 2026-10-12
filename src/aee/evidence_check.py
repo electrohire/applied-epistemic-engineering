@@ -32,7 +32,15 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from aee.model import Claim, Evidence, FailureMode, Severity, SourceQuality
+from aee.model import (
+    CONTENT_HASH_MISMATCHED,
+    CONTENT_HASH_VERIFIED,
+    Claim,
+    Evidence,
+    FailureMode,
+    Severity,
+    SourceQuality,
+)
 
 # Finding categories (the granular kind; folded failure modes carry the
 # broader "provenance_gap" category so recovery routing treats them as
@@ -270,7 +278,15 @@ def _check_item(claim_id: str, index: int, evidence: Evidence, root: Path) -> Ev
     if resolved is not None:
         result.resolved_path = resolved.relative_to(root).as_posix()
         if evidence.content_hash is not None:
-            _check_content_hash(resolved, evidence.content_hash, add)
+            # FR-5.10: record the recomputation's verdict on the item
+            # itself, so assessment output distinguishes a verified
+            # hash from a merely declared one (and from a mismatch).
+            # When no recomputation happened here (unresolvable ref,
+            # unsupported algorithm), the status stays unset and the
+            # record reads declared-not-verified.
+            status = _check_content_hash(resolved, evidence.content_hash, add)
+            if status is not None:
+                evidence.content_hash_status = status
     _check_observed_at(evidence, add)
     # FR-3.3/FR-3.4: declared-vs-derived is a challenge, and an
     # undeclared (unknown) quality is never upgraded by derivation.
@@ -325,7 +341,11 @@ def _resolve_local(ref: str, root: Path, add: Any) -> Path | None:
     return resolved
 
 
-def _check_content_hash(path: Path, declared_hash: str, add: Any) -> None:
+def _check_content_hash(path: Path, declared_hash: str, add: Any) -> str | None:
+    """Recompute the hash; return its FR-5.10 verification state —
+    ``verified``/``mismatched`` when a recomputation decided it, or
+    None when none happened (unsupported algorithm: nothing was
+    recomputed, so the hash remains merely declared)."""
     raw = declared_hash.strip()
     expected = raw
     if ":" in raw:
@@ -336,20 +356,22 @@ def _check_content_hash(path: Path, declared_hash: str, add: Any) -> None:
                 f"content_hash uses unsupported algorithm '{algorithm.strip()}'; "
                 "only sha256 can be recomputed",
             )
-            return
+            return None
     expected = expected.strip().lower()
     if not expected or any(char not in "0123456789abcdef" for char in expected):
         add(
             CONTENT_HASH_MISMATCH,
             f"declared content_hash {declared_hash!r} is not a sha256 hex digest",
         )
-        return
+        return CONTENT_HASH_MISMATCHED
     actual = hashlib.sha256(path.read_bytes()).hexdigest()
     if actual != expected:
         add(
             CONTENT_HASH_MISMATCH,
             f"content_hash mismatch for {path.name}: declared {expected}, recomputed {actual}",
         )
+        return CONTENT_HASH_MISMATCHED
+    return CONTENT_HASH_VERIFIED
 
 
 def _check_observed_at(evidence: Evidence, add: Any) -> None:

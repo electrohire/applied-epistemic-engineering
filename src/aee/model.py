@@ -256,6 +256,15 @@ class ConfidenceBand(StrEnum):
         return cls.UNKNOWN
 
 
+# content_hash verification states (Spec 003 FR-5.10, RT2-L6). An
+# evidence item's declared hash is a CLAIM, not a verification
+# result; assessment output marks which of these states the hash is
+# in so a republished hash never reads as a verification result.
+CONTENT_HASH_VERIFIED = "verified"
+CONTENT_HASH_DECLARED = "declared_not_verified"
+CONTENT_HASH_MISMATCHED = "mismatched"
+
+
 @dataclass(slots=True)
 class Evidence:
     """Inspectable support, contradiction, or context for a claim."""
@@ -269,6 +278,14 @@ class Evidence:
     independent_of: list[str] = field(default_factory=list)
     observed_at: str | None = None
     content_hash: str | None = None
+    # Verification state of content_hash, set ONLY by the evidence
+    # checker (aee.evidence_check) when it recomputes the hash in
+    # this run. Never loaded from input: from_dict accepts the key
+    # (it is in _FIELDS, like Claim's confidence_band) and ignores
+    # the value, so a bundle or republished assessment claiming
+    # "verified" for itself resets to declared-not-verified on the
+    # next assessment (FR-5.10).
+    content_hash_status: str | None = None
 
     @property
     def is_observed(self) -> bool:
@@ -296,7 +313,7 @@ class Evidence:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        value: dict[str, Any] = {
             "ref": self.ref,
             "kind": self.kind.value,
             "direction": self.direction.value,
@@ -307,6 +324,12 @@ class Evidence:
             "observed_at": self.observed_at,
             "content_hash": self.content_hash,
         }
+        if self.content_hash is not None:
+            # FR-5.10: a declared hash is always labelled with its
+            # verification state; absent a recomputation in this run
+            # the honest label is declared_not_verified.
+            value["content_hash_status"] = self.content_hash_status or CONTENT_HASH_DECLARED
+        return value
 
     _FIELDS = frozenset(
         {
@@ -319,6 +342,9 @@ class Evidence:
             "independent_of",
             "observed_at",
             "content_hash",
+            # Emitted by to_dict as derived output; accepted on load
+            # and ignored (never trusted) — see the field's comment.
+            "content_hash_status",
         }
     )
 
