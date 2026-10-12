@@ -1,0 +1,80 @@
+{
+  "claims": [
+    {
+      "evidence": [
+        "docs/design-notes/DN-001-founding-decisions.md \u00a76",
+        "docs/architecture/03-verdict-engine.md"
+      ],
+      "falsifier": "F-001-D1: a run where a post-freeze criterion change altered a verdict without an appended amendment record.",
+      "id": "CLM-001-01",
+      "kind": "design",
+      "statement": "Freezing the research design (question, sources, criteria, verdict rules) before retrieval prevents post-hoc criterion drift in verdicts.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "docs/architecture/02-claim-evidence-model.md"
+      ],
+      "falsifier": "F-001-D2: an exported artifact in which two items sharing one origin increase an evidence count or weight.",
+      "id": "CLM-001-02",
+      "kind": "design",
+      "statement": "Counting evidence by origin group prevents derivative sources from inflating support for a claim.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "docs/architecture/03-verdict-engine.md"
+      ],
+      "falsifier": "F-001-D3: a seeded-defect run (e.g. swapped source, corrupted evidence) that the control suite passes as valid.",
+      "id": "CLM-001-03",
+      "kind": "design",
+      "statement": "A control suite with discriminating positive and negative controls detects defective runs that a pass-only check suite would certify.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "docs/architecture/04-records-export.md"
+      ],
+      "falsifier": "F-001-D4: a tampered record (altered verdict or evidence entry) whose replay verifies clean against its recorded hashes.",
+      "id": "CLM-001-04",
+      "kind": "design",
+      "statement": "An append-only hash-chained event store makes silent rewriting of a research record detectable on replay.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "docs/architecture/05-trust-safety.md",
+        "docs/architecture/01-source-layer.md"
+      ],
+      "falsifier": "F-001-D5: any exported citation that does not resolve to a real, retrievable record (kill criterion K1).",
+      "id": "CLM-001-05",
+      "kind": "design",
+      "statement": "Resolving every citation against its source of record before use reduces fabricated-reference incidence to zero in exported artifacts.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "docs/architecture/03-verdict-engine.md"
+      ],
+      "falsifier": "F-001-D6: an audit scenario in which a blended score and the per-claim register lead an adjudicator to the same decision quality and speed, measured under the K3 protocol.",
+      "id": "CLM-001-06",
+      "kind": "design",
+      "statement": "A per-claim verdict taxonomy (INVALID/INCONCLUSIVE/CONTRADICTED/SUPPORTED) preserves information that a single blended study score destroys \u2014 specifically, which claims failed and why.",
+      "status": "asserted-design"
+    },
+    {
+      "evidence": [
+        "specs/001-research-engine/spec.md \u00a76",
+        "docs/architecture/06-product-shape.md"
+      ],
+      "falsifier": "F-001-D7: a smaller workflow that exercises Articles I-XII completely, or a demonstration that the U2 slice omits an article (owner decision OD-1).",
+      "id": "CLM-001-07",
+      "kind": "scope",
+      "statement": "The systematic-review evidence-question workflow (U2) is the smallest workflow that exercises every constitutional article end-to-end, and is therefore the correct MVP slice.",
+      "status": "proposed-pending-owner"
+    }
+  ],
+  "date": "2026-10-11",
+  "spec": "001-research-engine",
+  "version": "0.1.0"
+}

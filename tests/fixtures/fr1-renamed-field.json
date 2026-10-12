@@ -1,0 +1,1 @@
+{"claims":[{"falsification_tests":["Load the bundle and observe an empty claim text"],"id":"CLM-REN-01","kind":"requirement","statement":"The renamed-field bundle must not load with an empty text.","status":"draft"}]}

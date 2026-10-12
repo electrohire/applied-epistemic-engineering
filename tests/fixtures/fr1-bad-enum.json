@@ -1,0 +1,1 @@
+{"claims":[{"falsification_tests":["Load the bundle and read the error message"],"id":"CLM-ENUM-01","kind":"design","status":"draft","text":"A claim whose kind is not in the engine vocabulary."}]}

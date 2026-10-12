@@ -1,0 +1,17 @@
+{
+  "fixture": "fr1-renamed-field.json",
+  "behavior": "loaded",
+  "claim_count": 1,
+  "claims": [
+    {
+      "id": "CLM-REN-01",
+      "text": "",
+      "kind": "requirement",
+      "status": "draft",
+      "evidence_refs": [],
+      "falsification_tests": [
+        "Load the bundle and observe an empty claim text"
+      ]
+    }
+  ]
+}
