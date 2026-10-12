@@ -73,6 +73,12 @@ class RecoveryOperator:
         elif category == "ambiguous_requirement":
             strategy = RecoveryStrategy.CLARIFY
             verification = "The revised claim contains a measurable observable or decision rule."
+        elif category == "independence_unmodeled":
+            strategy = RecoveryStrategy.CLARIFY
+            verification = (
+                "Independence between the shared evidence items is declared, "
+                "or the shared corroboration is recorded as shared."
+            )
         else:
             strategy = RecoveryStrategy.DEFINE_FALSIFIER
             verification = "A concrete observation that would refute the claim is documented."
