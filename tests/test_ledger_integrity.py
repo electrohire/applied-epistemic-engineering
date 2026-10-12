@@ -310,7 +310,7 @@ def test_same_size_same_mtime_tip_forgery_is_refused_by_cached_instance(
     stat = path.stat()
     forged = path.read_text(encoding="utf-8").replace("AAAAAAAAAAAAAAAA", "BBBBBBBBBBBBBBBB")
     assert len(forged.encode("utf-8")) == stat.st_size
-    path.write_text(forged, encoding="utf-8")
+    path.write_bytes(forged.encode("utf-8"))
     os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
     assert (path.stat().st_size, path.stat().st_mtime_ns) == (
         stat.st_size,
