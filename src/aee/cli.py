@@ -203,6 +203,13 @@ def build_parser() -> argparse.ArgumentParser:
     challenge.add_argument("--output", type=Path)
     challenge.add_argument("--actor", default="aee")
     challenge.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Compatibility mode (Spec 002 FR-1.3), as for assess: load "
+        "claims with the historical silent-default loader instead of "
+        "strict validation. Its use is echoed into the output metadata.",
+    )
+    challenge.add_argument(
         "--as-of",
         type=_parse_as_of,
         default=None,
@@ -272,6 +279,13 @@ def build_parser() -> argparse.ArgumentParser:
     graph = sub.add_parser("graph", help="Render claim dependencies as Mermaid")
     graph.add_argument("--input", type=Path, required=True)
     graph.add_argument("--output", type=Path)
+    graph.add_argument(
+        "--lenient",
+        action="store_true",
+        help="Compatibility mode (Spec 002 FR-1.3), as for assess: load "
+        "claims with the historical silent-default loader instead of "
+        "strict validation.",
+    )
 
     gaps = sub.add_parser(
         "gaps", help="Generate or update a gap register from a verification matrix"
@@ -574,7 +588,7 @@ def _assess(args: argparse.Namespace) -> int:
 def _challenge(args: argparse.Namespace) -> int:
     if args.output is not None:
         _guard_output_path(args.output, [(args.input, "the --input bundle")])
-    claims = load_claims(args.input)
+    claims = load_claims(args.input, strict=not args.lenient)
     if not claims:
         print(
             "Error: input bundle contains zero claims: an empty bundle "
@@ -582,11 +596,18 @@ def _challenge(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
+    challenge_metadata: dict[str, Any] = {
+        "input": args.input.as_posix(),
+        "mode": "challenge",
+    }
+    if args.lenient:
+        # FR-1.3: lenient mode is never silent — its use is on the record.
+        challenge_metadata["loading_mode"] = "lenient"
     assessment = AEEEngine(args.threshold).assess(
         claims,
         project=args.project,
         phase=args.phase,
-        metadata={"input": args.input.as_posix(), "mode": "challenge"},
+        metadata=challenge_metadata,
         as_of=args.as_of,
     )
     failures = [cast(FailureMode, failure).to_dict() for failure in assessment.failures]
@@ -1056,7 +1077,7 @@ def _gate_ledger_check(value: dict[str, Any], metadata: dict[str, Any], *, sourc
 def _graph(args: argparse.Namespace) -> int:
     if args.output is not None:
         _guard_output_path(args.output, [(args.input, "the --input bundle")])
-    rendered = ClaimGraph(load_claims(args.input)).to_mermaid()
+    rendered = ClaimGraph(load_claims(args.input, strict=not args.lenient)).to_mermaid()
     if args.output:
         _atomic_write_text(args.output, rendered)
     else:
