@@ -1,0 +1,324 @@
+{
+  "$defs": {
+    "bundle_object": {
+      "properties": {
+        "claims": {
+          "items": {
+            "$ref": "#/$defs/claim"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "claims"
+      ],
+      "type": "object"
+    },
+    "claim": {
+      "additionalProperties": false,
+      "properties": {
+        "alternatives": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "assumptions": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "boundary": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "confidence_band": {
+          "description": "Known field, accepted and ignored on load (the band is recomputed from confidence); deliberately unconstrained so the schema accepts exactly what the strict loader accepts."
+        },
+        "conflicts_with": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "dispositions": {
+          "items": {
+            "$ref": "#/$defs/disposition"
+          },
+          "type": "array"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/evidence"
+          },
+          "type": "array"
+        },
+        "failures": {
+          "items": {
+            "$ref": "#/$defs/failure"
+          },
+          "type": "array"
+        },
+        "falsification_tests": {
+          "items": {
+            "pattern": "^\\s*(?!TODO\\b)",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "observation",
+            "requirement",
+            "assumption",
+            "inference",
+            "hypothesis",
+            "decision",
+            "prediction",
+            "compliance"
+          ]
+        },
+        "metadata": {
+          "type": "object"
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "source_ref": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "supported",
+            "partially_supported",
+            "unsupported",
+            "contradicted",
+            "unverifiable",
+            "superseded"
+          ]
+        },
+        "text": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "uncertainty": {
+          "enum": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "insufficient_evidence"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "text"
+      ],
+      "type": "object"
+    },
+    "disposition": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "challenge_category": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "split",
+            "accepted-atomic",
+            "waived"
+          ]
+        },
+        "reason": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "successors": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "challenge_category",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "direction": {
+          "enum": [
+            "supports",
+            "contradicts",
+            "context"
+          ]
+        },
+        "independent_of": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "observed",
+            "inferred",
+            "asserted",
+            "contradicted",
+            "unsupported"
+          ]
+        },
+        "observed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ref": {
+          "type": "string"
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "source_quality": {
+          "enum": [
+            "primary",
+            "secondary",
+            "tertiary",
+            "artifact",
+            "test",
+            "human",
+            "model",
+            "unknown"
+          ]
+        }
+      },
+      "required": [
+        "ref"
+      ],
+      "type": "object"
+    },
+    "failure": {
+      "additionalProperties": false,
+      "properties": {
+        "breakpoint": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "challenge": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "claim_id": {
+          "type": "string"
+        },
+        "disposition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/disposition"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "id": {
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "recovery_hint": {
+          "type": "string"
+        },
+        "resolved": {
+          "type": "boolean"
+        },
+        "severity": {
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "claim_id",
+        "challenge"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://electrohire.com/schemas/aee-claim-bundle-1.0.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/bundle_object"
+    },
+    {
+      "items": {
+        "$ref": "#/$defs/claim"
+      },
+      "type": "array"
+    }
+  ],
+  "description": "Input contract for a claims bundle, reconciled with the engine's strict loader (aee.model Claim/Evidence/FailureMode/Disposition.from_dict, Spec 002 FR-1 / Spec 003 FR-5.9): the enum sets are the model's, required fields and additionalProperties match what strict loading accepts and rejects, and tests/test_schema_parity.py walks a generated corpus asserting schema and loader agree. Top-level keys beyond 'claims'/'schema_version' are permitted because the loader permits them (real bundles carry date/spec/version metadata).",
+  "title": "Applied Epistemic Engineering Claims Bundle"
+}
