@@ -26,9 +26,9 @@
 ## FR-2 — Claims drafting [extension + engine]
 
 - [x] T201 [engine] Drafting helper in `src/aee/extract.py` (requirement → draft claim proposal, reusing `derived_claim_id`); drafts hard-coded to `status: draft`.
-- [ ] T202 [extension] New command `commands/speckit.aee.draft-claims.md` + registration in `extension.yml` provides list.
-- [ ] T203 [extension] Runner support in `scripts/python/run_aee.py` for draft generation from a spec directory.
-- [ ] T204 [extension] Ratification guard: no tool path sets a drafted claim above draft; TODO falsifiers emitted explicitly so FR-1 strict loading rejects unfinished drafts.
+- [x] T202 [extension] New command `commands/speckit.aee.draft-claims.md` + registration in `extension.yml` provides list. — Done: spec-kit-aee PR #18 (merge 527feae); extension 9 → 10 commands, coordinator-verified.
+- [x] T203 [extension] Runner support in `scripts/python/run_aee.py` for draft generation from a spec directory. — Done: spec-kit-aee PR #18 (merge 527feae); clean exit-2 refusals verified (missing spec, root escape, helper-less engine).
+- [x] T204 [extension] Ratification guard: no tool path sets a drafted claim above draft; TODO falsifiers emitted explicitly so FR-1 strict loading rejects unfinished drafts. — Done: spec-kit-aee PR #18 (merge 527feae); drafts born draft with asserted/model evidence, no promotion path exists, verified live.
 - [x] T205 [engine] Tests: fixture spec → drafts are per-requirement, all draft, source_ref set; unedited drafts assess no higher than their evidence warrants.
 
 ## FR-3 — Verifiable evidence [engine]
@@ -43,7 +43,7 @@
 
 - [x] T401 [engine] Stamp `metadata.engine_version` from `aee.__version__` in engine/cli metadata assembly.
 - [x] T402 [engine] Drift test: `aee --version` string equals the stamped version source.
-- [ ] T403 [extension] Runner passes extension version; recorded as `metadata.extension_version`; absent (not fabricated) on the bare-CLI path.
+- [x] T403 [extension] Runner passes extension version; recorded as `metadata.extension_version`; absent (not fabricated) on the bare-CLI path. — Done: spec-kit-aee PR #18 (merge 527feae); runner stamps BEFORE its own ledger append — engine gate on the produced assessment passes (exit 0) against engine main, tamper refused.
 - [x] T404 [engine] Version policy doc (README/docs): engine version = source of truth, extension floor = compatibility contract, catalog update in the same release PR as an extension bump.
 
 ## FR-5 — Challenge dispositions [engine]
@@ -60,7 +60,7 @@
 - [x] T601 [engine] Scoring consumes `Evidence.independent_of` (`src/aee/scoring.py`).
 - [x] T602 [engine] Independence basis in score notes (`declared` / `inferred-from-references` / `none`); inferred basis carries the shared-origin caveat.
 - [x] T603 [engine] Shared-evidence warning class (`independence_unmodeled`) when claims share supporting refs/source_ids without declarations.
-- [ ] T604 [extension] Draft-claims scaffolds `depends_on` proposals from explicit spec cross-references (rides on T202/T203).
+- [x] T604 [extension] Draft-claims scaffolds `depends_on` proposals from explicit spec cross-references (rides on T202/T203). — Done: spec-kit-aee PR #18 (merge 527feae); proposals surfaced in the runner JSON summary with proposed_from refs, verified live.
 - [x] T605 [engine] Tests: same-origin-different-ref fixture no longer reports unqualified 1.0; declarations change the computation; disjoint fixture stays silent.
 
 ## FR-7 — Reference evaluator [evaluator]
@@ -73,7 +73,7 @@
 ## FR-8a — Ledger parity [engine + extension]
 
 - [x] T801 [engine] `assess` ledgers by default (documented default path) with `--no-ledger` opt-out; `--ledger <path>` retained.
-- [ ] T802 [extension] Runner reports the verify-ledger verdict alongside assessment/evaluator/ledger paths after append.
+- [x] T802 [extension] Runner reports the verify-ledger verdict alongside assessment/evaluator/ledger paths after append. — Done: spec-kit-aee PR #18 (merge 527feae); `ledger_verification` reported from the runner's own chain verify, `null` (not invented) under `--no-ledger`.
 - [x] T803 [engine] Docs: ledger entry is the record (it already stores the assessment SHA-256); the JSON file is a working copy. CLI help updated.
 
 ## FR-8b — Axiomere anchoring (separate, later, non-blocking) [engine or extension]
