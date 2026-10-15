@@ -42,11 +42,13 @@ package yourself. Install the Spec Kit extension, which installs a compatible en
 dependencies automatically on first use:
 
 ```bash
-specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip
+specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip
 ```
 
-`spec-kit-aee` is a Spec Kit extension distributed as a GitHub release archive, not a
-PyPI package; its version (1.5.0) is independent of this engine's version.
+The example pins spec-kit-aee 1.5.1, the extension release tested with this engine; check
+its [releases](https://github.com/electrohire/spec-kit-aee/releases) for newer versions.
+`spec-kit-aee` is a Spec Kit extension distributed as a GitHub release archive, not a PyPI
+package, and is versioned independently of this engine.
 
 For development:
 

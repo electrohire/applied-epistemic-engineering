@@ -3,6 +3,18 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.5.2] - 2026-10-15
+
+Documentation only. Engine behavior, scoring, and `methodology_version` are
+unchanged.
+
+### Changed
+- The Spec Kit install example in the README (the PyPI project page), quickstart,
+  Spec Kit integration, and migration docs now pins spec-kit-aee 1.5.1, the tested
+  extension release with the `draft-claims` setup fix (it pinned 1.5.0). The text
+  presents it as a pinned example of an independently versioned extension. The
+  engine requirement the extension declares stays `>=1.5.0,<2`.
+
 ## [1.5.1] - 2026-10-15
 
 Documentation and package metadata only. Engine behavior, scoring, and

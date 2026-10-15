@@ -51,7 +51,7 @@ falsification test are attached. That is deliberate.
 - No compatibility aliases that obscure which implementation produced a record.
 
 For Spec Kit projects, install the `spec-kit-aee` extension
-(`specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip`);
+(`specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip`);
 it installs this engine and the `spec-kit-evaluator` extension automatically (see
 [Spec Kit integration](spec-kit.md)). Keep domain logic in this package and lifecycle
 orchestration in the extension.
