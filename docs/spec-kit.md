@@ -26,7 +26,7 @@ Evaluator Contract.
 One command installs everything:
 
 ```bash
-specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip
+specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip
 ```
 
 Spec Kit's `requires.tools` metadata is informational, so the extension's runner installs its own
