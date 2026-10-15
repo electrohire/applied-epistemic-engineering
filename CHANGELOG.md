@@ -3,6 +3,29 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-10-15
+
+Documentation and package metadata only. Engine behavior, scoring, and
+`methodology_version` are unchanged.
+
+### Changed
+- README (the PyPI project page) and the quickstart now state supported
+  platforms (Linux, macOS, Windows; Python 3.11-3.13) and that Spec Kit users
+  install the `spec-kit-aee` extension, which installs a compatible engine
+  (`>=1.5.0,<2`) automatically. The extension is a Spec Kit extension, not a
+  PyPI package, and is versioned independently.
+- `docs/spec-kit.md` documents the one-command Spec Kit install and what the
+  extension installs automatically; `docs/migration.md` no longer tells Spec Kit
+  users to install the two extensions separately.
+- `docs/versioning.md`: the extension's engine floor is `>=1.5.0,<2` (it said
+  `>=1.4.0,<2`), and catalog updates follow Spec Kit's current procedure (a new
+  Extension Submission issue after each tested release; no direct catalog PR).
+- Added the `Operating System :: OS Independent` classifier.
+
+### Fixed
+- README documentation links were relative, so they broke on PyPI; they are now
+  absolute.
+
 ## [1.5.0] - 2026-10-12
 
 ### Added
