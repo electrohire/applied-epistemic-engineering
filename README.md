@@ -33,6 +33,21 @@ derived from recorded evidence and explicit rules.
 pip install applied-epistemic-engineering
 ```
 
+Requires Python 3.11 or later; tested on Linux, macOS, and Windows with Python 3.11, 3.12,
+and 3.13.
+
+Using [Spec Kit](https://github.com/github/spec-kit)? You don't need to install this
+package yourself. Install the Spec Kit extension, which installs a compatible engine
+(`applied-epistemic-engineering>=1.5.0,<2`, the latest available) and its other
+dependencies automatically on first use:
+
+```bash
+specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip
+```
+
+`spec-kit-aee` is a Spec Kit extension distributed as a GitHub release archive, not a
+PyPI package; its version (1.5.0) is independent of this engine's version.
+
 For development:
 
 ```bash
@@ -141,11 +156,12 @@ runner describe identical semantics (ledger by default, same default path,
 
 ## Documentation
 
-Full documentation is configured for Read the Docs at
+Full documentation is published on Read the Docs at
 [applied-epistemic-engineering.readthedocs.io](https://applied-epistemic-engineering.readthedocs.io).
-Users adopting AEE from another implementation can follow the [migration guide](docs/migration.md).
+Users adopting AEE from another implementation can follow the
+[migration guide](https://github.com/electrohire/applied-epistemic-engineering/blob/main/docs/migration.md).
 How the engine, extension, and catalog versions relate is specified in the
-[version policy](docs/versioning.md).
+[version policy](https://github.com/electrohire/applied-epistemic-engineering/blob/main/docs/versioning.md).
 
 ## Ownership and license
 

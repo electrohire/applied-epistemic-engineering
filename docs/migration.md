@@ -50,5 +50,8 @@ falsification test are attached. That is deliberate.
 - No model-generated confidence masquerading as observed evidence.
 - No compatibility aliases that obscure which implementation produced a record.
 
-For Spec Kit projects, install `spec-kit-evaluator` and `spec-kit-aee`; keep domain logic in this
-package and lifecycle orchestration in the extension.
+For Spec Kit projects, install the `spec-kit-aee` extension
+(`specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip`);
+it installs this engine and the `spec-kit-evaluator` extension automatically (see
+[Spec Kit integration](spec-kit.md)). Keep domain logic in this package and lifecycle
+orchestration in the extension.

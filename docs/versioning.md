@@ -26,7 +26,7 @@ upstream spec-kit catalog entry — coherent.
 
 - `electrohire/spec-kit-aee` declares the engine versions it works
   with in its `extension.yml` (`requires.tools` entry for `aee`,
-  currently `>=1.4.0,<2`). That floor — not any one machine's installed
+  currently `>=1.5.0,<2`). That floor — not any one machine's installed
   copy — is the compatibility contract between the two repos.
 - The extension runner enforces the floor at startup and records its
   own version in assessments it produces as
@@ -36,17 +36,24 @@ upstream spec-kit catalog entry — coherent.
   engine release that satisfies it, and vice versa: an engine release
   that breaks the extension's declared range must be coordinated with
   an extension release that updates the range.
+- The extension runner installs the latest engine in that range
+  automatically when its Python lacks one, so an engine patch or minor
+  release within the range reaches Spec Kit users without an extension
+  release.
 
-## The catalog entry moves with the extension release
+## The catalog entry follows every extension release
 
-- The upstream spec-kit catalog entry for the AEE extension is updated
-  **in the same release PR** as any extension version bump — never as
-  a later follow-up. A catalog entry lagging the released extension
-  (as the 1.0.1 entry lagged the 1.2.0 release) is a policy violation,
-  not a backlog item.
-- The catalog submission follows the upstream template checklist
-  exactly, with the download URL pinned to the release tag being
-  submitted.
+- After each extension release is published and its exact public
+  archive is tested, the upstream spec-kit catalog entry is updated
+  through a **new Extension Submission issue** marked as an update to
+  the existing entry. Spec Kit does not accept direct pull requests to
+  its catalog; a maintainer's triage starts validation, which opens the
+  catalog pull request. A catalog entry lagging the released extension
+  (as the 1.0.1 entry lagged the 1.2.0 release) should be resubmitted
+  promptly.
+- The submission uses the current upstream form unchanged, with the
+  download URL pinned to the release tag being submitted (see the
+  extension's CONTRIBUTING.md release checklist).
 
 ## Releases
 

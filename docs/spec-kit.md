@@ -21,3 +21,26 @@ Evaluator Contract findings.
 This keeps AEE opinionated and independently versioned without forking or weakening the neutral
 Evaluator Contract.
 
+## Install in a Spec Kit project
+
+One command installs everything:
+
+```bash
+specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.0.zip
+```
+
+Spec Kit's `requires.tools` metadata is informational, so the extension's runner installs its own
+dependencies on first use:
+
+- **This engine:** when the Python running the extension lacks an in-range engine, the runner
+  creates a private environment at `.specify/extensions/aee/.runtime/venv` and installs the
+  latest `applied-epistemic-engineering>=1.5.0,<2` from PyPI, plus `jsonschema>=4.0` for
+  evaluator composition. An engine already installed in that Python takes precedence.
+- **The Evaluator extension:** `assess` installs the pinned `spec-kit-evaluator` release
+  (currently v1.1.1, SHA-256 verified) through `specify extension add evaluator`.
+
+Set `SPECKIT_AEE_AUTO_INSTALL=0` to disable these installs. The extension and the evaluator are
+Spec Kit extensions published as GitHub release archives, not PyPI packages, and are versioned
+independently of this engine. The install path is tested on Linux, macOS, and Windows with
+Python 3.11, 3.12, and 3.13.
+
