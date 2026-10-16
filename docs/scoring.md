@@ -39,12 +39,29 @@ validation before changing a threshold. Record policy identity, thresholds,
 source provenance, and counterevidence with the decision. See
 [use cases and evaluation](use-cases.md) for evaluating an agent-loop benefit.
 
-## Methodology 2.0 (Spec 003 FR-8, joint with Spec 004)
+## Scoring methodology and lexicon versions
 
-The semantics below are methodology version **2.0** (the
-`methodology_version` field on every assessment; lexicon data
-version 1.0, `src/aee/lexicons.py`). Score-altering changes never
-land under an unchanged methodology version (FR-8.2).
+These version numbers describe different parts of an assessment; they are not
+competing versions of AEE.
+
+| Version | What it identifies | Current value |
+| --- | --- | --- |
+| Engine package | The installed `applied-epistemic-engineering` software release, reported as `metadata.engine_version` | 1.5.2 |
+| Scoring methodology | The meaning of scores and decision rules, recorded as `methodology_version` | 2.0 |
+| Lexicon data | The vocabulary lists used by challenge/scoring heuristics, defined as `LEXICON_VERSION` in `src/aee/lexicons.py` | 1.0 |
+
+The methodology is 2.0 because its semantics changed from the earlier methodology.
+The vocabulary dataset remains 1.0 because it follows its own change history.
+An engine bug fix or documentation update does not automatically increment either.
+If a lexicon change alters scores on existing inputs, the methodology version
+must also change so consumers know that the scores are no longer comparable.
+
+Do not rename the published methodology 2.0 to 1.0 merely to make the labels
+match. Earlier 1.0 results and current 2.0 results would then share a label with
+different meanings. A future methodology change needs an explicit compatibility
+policy and recorded versions; historical assessment records must not be relabeled.
+
+The semantics below describe scoring methodology **2.0**.
 
 **Threshold.** The confidence threshold is *inclusive* — a
 propagated score of exactly the threshold passes — and the

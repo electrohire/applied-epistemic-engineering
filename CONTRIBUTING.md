@@ -8,3 +8,18 @@
 
 By contributing, you agree that your contribution is licensed under the MIT License.
 
+## Fuzz testing
+
+`pytest tests/test_fuzz_target.py` exercises the shared input-boundary target,
+seed corpus, and reproducible mutations on all supported operating systems.
+The ClusterFuzzLite workflow additionally runs coverage-guided Atheris fuzzing
+in its official Linux container on pull requests and main pushes. This container
+is supplemental testing; Linux, macOS, and Windows remain equally supported.
+
+The first input byte selects JSON (even) or Markdown (odd); the remaining bytes
+are the claim file. Invalid input may be rejected, but accepted input must be
+assessable without an unexpected exception or mutation of the original file.
+Preserve minimized crash inputs as regression tests when fixing a fuzz finding.
+
+Changes should receive independent human review before merging. Automated
+checks and agent self-review do not count as an independent approval.
