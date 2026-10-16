@@ -1,6 +1,6 @@
 build>=1.2
 hatchling>=1.25
-installer>=0.7
+installer>=1.1.0
 jsonschema>=4.0
 mkdocs>=1.6
 mkdocs-material>=9.5
