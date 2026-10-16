@@ -9,6 +9,8 @@ and [Semantic Versioning](https://semver.org/).
 - Group documentation navigation into short tabs so every section remains
   accessible at desktop widths. Explain the independent scoring methodology
   and lexicon versions without relabeling historical assessments.
+- Enable Mermaid diagrams in the documentation so flowcharts render rather
+  than appearing as code blocks.
 - Add a ClusterFuzzLite/Atheris input-boundary fuzz target and share its corpus
   with regression tests across Linux, macOS, and Windows.
 - Add a standalone agent skill to the engine package source and document CLI,
