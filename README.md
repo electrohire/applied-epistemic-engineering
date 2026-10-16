@@ -14,8 +14,8 @@ An evidence-centered Python toolkit for turning important claims into inspectabl
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
 falsification tests, recovery work, and decision history explicit.
 
-This is an original, ground-up ElectroHire implementation. Its result model aligns directly with
-ElectroHire's Spec Kit Evaluator Contract while the domain engine remains independently packaged.
+The result model aligns directly with the Spec Kit Evaluator Contract while the
+domain engine remains independently packaged.
 
 ## Choose your interface
 

@@ -5,6 +5,11 @@ and [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Changed
+- Remove company branding from the README, documentation prose, API description,
+  and documentation repository label while preserving copyright, attribution,
+  and repository URLs.
+
 ## [1.5.3] - 2026-10-16
 
 ### Changed
