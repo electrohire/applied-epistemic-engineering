@@ -11,3 +11,11 @@ dist/
 site/
 .aee/
 
+
+# Machine-local AEE audit/runtime state
+.aee/
+.specify/extensions/aee/.runtime/
+.specify/extensions/aee/assessments/
+.specify/extensions/aee/ledger/
+.specify/extensions/evaluator/results/
+.specify/extensions/evaluator/composed/

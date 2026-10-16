@@ -23,6 +23,22 @@ propagated(claim) = min(direct(claim), propagated(each required dependency))
 Scores communicate the state of the recorded evidence. They do not measure metaphysical truth,
 legal sufficiency, or safety certification.
 
+## Optional decision policies and review
+
+An explicit assessment policy can require independent corroboration, abstain
+when support is absent or solely model self-attestation, and challenge claims
+with counterevidence. Stage caps still apply; a score never ratifies a claim.
+Source reliability can blend recorded resolved outcomes into evidence quality.
+The review queue highlights material changes between assessments rather than
+requiring an unbounded re-review of every unchanged claim.
+
+Defaults are decision rules, not probabilities of truth or universal constants.
+Their measurement provenance is recorded with the implementations in
+`aee.policy`, `aee.reliability`, and `aee.review`; a changed workload needs its own
+validation before changing a threshold. Record policy identity, thresholds,
+source provenance, and counterevidence with the decision. See
+[use cases and evaluation](use-cases.md) for evaluating an agent-loop benefit.
+
 ## Methodology 2.0 (Spec 003 FR-8, joint with Spec 004)
 
 The semantics below are methodology version **2.0** (the

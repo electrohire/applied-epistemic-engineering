@@ -3,7 +3,7 @@ schema_version: '1.0'
 extension:
   id: aee
   name: Applied Epistemic Engineering
-  version: 1.2.0
+  version: 1.5.1
   description: Challenge claims, trace evidence, propagate uncertainty, and route epistemic failures across phases
   category: process
   effect: read-write
@@ -13,19 +13,35 @@ extension:
   homepage: https://github.com/electrohire/spec-kit-aee
 
 requires:
-  speckit_version: '>=1.0.0'
+  speckit_version: '>=1.0.0,<2'
   tools:
     - name: python
       required: true
       version: '>=3.11'
     # CLI supplied by https://github.com/electrohire/applied-epistemic-engineering
     # 1.0.2 introduced the gaps command; 1.4.0 introduced the policy
-    # gates, reliability blending, and review subcommand used here.
+    # gates, reliability blending, and review subcommand; 1.5.0 is
+    # the realigned engine (Spec 004 vocabulary: lifecycle
+    # stages, stage-capped reported statuses, lane-paired outcomes,
+    # not_understood, methodology 2.0) - the floor moves to it so
+    # pre-realignment engines are refused cleanly. Spec Kit installs no
+    # Python packages, so the runner provisions this range itself into
+    # .specify/extensions/aee/.runtime when the invoking Python lacks it,
+    # together with jsonschema>=4.0 for the evaluator composer that
+    # `run_aee.py compose` runs there.
     - name: aee
       required: true
-      version: '>=1.4.0,<2'
-    # Spec Kit extension, not a shell executable. Install it first; Spec Kit
-    # displays requires.tools but does not auto-install these dependencies.
+      version: '>=1.5.0,<2'
+    # Spec Kit extension, not a shell executable. REQUIRED companion:
+    # AEE is one evaluator among many by design, and its results are
+    # composed through the common evaluator extension so every
+    # evaluator's output is handled consistently. The contract alone
+    # would leave that consistency opt-in, so the pair is one system:
+    # this manifest declares the evaluator extension required and the
+    # runner's assess enforces it. When the extension is missing, assess
+    # installs the pinned, SHA-256-verified release through
+    # `specify extension add`, and refuses (exit 2) only when that is
+    # disabled (SPECKIT_AEE_AUTO_INSTALL=0) or fails.
     # https://github.com/electrohire/spec-kit-evaluator
     - name: spec-kit-evaluator
       required: true
@@ -50,6 +66,9 @@ requires:
 
 provides:
   commands:
+    - name: speckit.aee.draft-claims
+      file: commands/speckit.aee.draft-claims.md
+      description: Draft atomic claims from a spec's requirements for human ratification; drafts are born draft and are never upgraded by the tool
     - name: speckit.aee.assess
       file: commands/speckit.aee.assess.md
       description: Assess explicit claims and emit both a rich AEE assessment and an Evaluator Contract result
@@ -98,6 +117,9 @@ provides:
       runtimes:
         - python
 
+# Hooks bind no arguments; the artifact and phase each hook expects
+# (including the after_verify matrix/evidence defaults and its stop
+# condition) are specified in docs/usage.md, "Hook expectations".
 hooks:
   after_specify:
     command: speckit.aee.assess

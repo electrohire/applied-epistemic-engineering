@@ -6,7 +6,7 @@ engineering artifacts (README.md). It is grounded in the project's own
 materials: the seven core principles in README.md, the epistemic invariants
 in `docs/concepts.md`, the scoring model in `docs/scoring.md`, the ledger
 limits in `docs/ledger.md`, the trust boundaries in `docs/security.md`, the
-threshold-provenance rule in `docs/porting-from-epistemic-ledger.md`, and
+threshold-provenance rule in `docs/scoring.md`, and
 the contribution rules in CONTRIBUTING.md. Where this document and those
 sources disagree, the sources win until this constitution is amended.
 
@@ -52,7 +52,7 @@ noise to average away (README principle 2; `docs/concepts.md`). Scoring
 subtracts a contradiction penalty rather than hiding disagreement, and the
 ported contested gate surfaces a contradiction penalty at or above the
 policy threshold as a CHALLENGE verdict instead of letting it disappear
-into an averaged score (`docs/porting-from-epistemic-ledger.md`).
+into an averaged score (`docs/scoring.md`).
 
 **Falsifier:** a change that drops, merges away, or silently re-weights
 contradicting evidence so a contested claim reports as uncontested.
@@ -68,7 +68,7 @@ dependency))` (README principle 4; `docs/scoring.md`). Forced abstention
 applies where there is no supporting evidence, or support consisting
 solely of model self-attestation: unknown means ABSTAIN, not a near-zero
 score that reads downstream as measured-and-weak
-(`docs/porting-from-epistemic-ledger.md`).
+(`docs/scoring.md`).
 
 **Falsifier:** a propagated score above the propagated score of any
 required dependency, or an evidence-free claim reported as measured
@@ -124,7 +124,7 @@ verification as proof of truth, authorship, or time.
 ### VIII. Thresholds Carry Measured Provenance
 
 No mechanism is ported, and no threshold is set, on intuition
-(`docs/porting-from-epistemic-ledger.md`). Each ported mechanism names
+(`docs/scoring.md`). Each ported mechanism names
 the measurement behind it: the policy gates from STANCE-02 production
 analysis, per-source reliability as `1 − Brier` over resolved outcomes,
 and the 0.05 materiality default validated as the hysteresis point
@@ -202,4 +202,7 @@ I–VII require explicit owner approval recorded in the change, not just
 a passing test suite. The baseline state of the project at adoption is
 recorded in `specs/001-baseline-current-state/`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-08
+**Version**: 1.0.1 | **Ratified**: 2026-10-08 | **Last Amended**: 2026-10-16
+
+Amendment 1.0.1: update documentation references after removing retired porting
+guides; the evidence, threshold-provenance, and governance requirements are unchanged.

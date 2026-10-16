@@ -1,6 +1,14 @@
 # Quickstart
 
+Prefer ordinary-language requests to terminal commands? Start with the
+[direct agent and Spec Kit skill guide](agent.md). The agent can execute the
+workflow below for you while preserving the same evidence rules.
+
 ## Install
+
+Install the distribution `applied-epistemic-engineering`; it provides both
+`import aee` and the `aee` CLI. The Spec Kit extension ID `aee` identifies the
+separate adapter. See [names and assurance boundaries](names-and-assurance.md).
 
 ```bash
 python -m pip install applied-epistemic-engineering
@@ -15,13 +23,12 @@ package yourself. Install the Spec Kit extension, which installs a compatible en
 dependencies automatically on first use:
 
 ```bash
-specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip
+specify extension add aee
 ```
 
-The example pins spec-kit-aee 1.5.1, the extension release tested with this engine; check
-its [releases](https://github.com/electrohire/spec-kit-aee/releases) for newer versions.
-`spec-kit-aee` is a Spec Kit extension distributed as a GitHub release archive, not a PyPI
-package, and is versioned independently of this engine.
+
+
+`spec-kit-aee` is the independently versioned adapter, installed by Spec Kit.
 
 ## Assess structured claims
 
@@ -101,4 +108,3 @@ aee gaps --matrix specs/verification-matrix.md --evidence evidence/ --output GAP
 aee gaps --matrix specs/verification-matrix.md --evidence evidence/ \
   --existing GAPS.md --close GAP-001 --output GAPS.md
 ```
-

@@ -27,13 +27,14 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: quickstart.md
+  - CLI, agent, and Spec Kit: agent.md
+  - Use cases and agent loops: use-cases.md
   - Foundations: concepts.md
+  - Names and assurance boundaries: names-and-assurance.md
   - Scoring: scoring.md
   - Ledger: ledger.md
   - Version policy: versioning.md
-  - Porting from the Epistemic Ledger: porting-from-epistemic-ledger.md
   - Spec Kit Integration: spec-kit.md
-  - Migration guide: migration.md
   - Python API: api.md
   - Security: security.md
 

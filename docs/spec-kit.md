@@ -1,6 +1,12 @@
 # Spec Kit integration
 
-The Python package owns epistemic analysis. The
+End users can ask the project's agent to assess a spec or explain missing
+evidence; they do not need to learn these installation/runner commands. Spec Kit
+renders operation `SKILL.md` files for the selected agent integration. See
+[agent workflows and discovery](agent.md#use-through-spec-kit).
+
+The PyPI distribution `applied-epistemic-engineering` (Python import and CLI
+`aee`) owns epistemic analysis. The
 [`spec-kit-aee`](https://github.com/electrohire/spec-kit-aee) extension owns Spec Kit artifact
 discovery, lifecycle hooks, and command UX. The
 [`spec-kit-evaluator`](https://github.com/electrohire/spec-kit-evaluator) extension owns the shared
@@ -19,15 +25,19 @@ inside the evaluator contract's opaque `state.aee` field, while actionable failu
 Evaluator Contract findings.
 
 This keeps AEE opinionated and independently versioned without forking or weakening the neutral
-Evaluator Contract.
+Evaluator Contract. The extension IDs are `aee` and `evaluator`, respectively;
+neither is a pip install name. A composed `pass` remains a policy outcome, not a
+truth or correctness certificate; see [assurance boundaries](names-and-assurance.md).
 
 ## Install in a Spec Kit project
 
-One command installs everything:
+Install the adapter:
 
 ```bash
-specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip
+specify extension add aee
 ```
+
+
 
 Spec Kit's `requires.tools` metadata is informational, so the extension's runner installs its own
 dependencies on first use:
@@ -43,4 +53,3 @@ Set `SPECKIT_AEE_AUTO_INSTALL=0` to disable these installs. The extension and th
 Spec Kit extensions published as GitHub release archives, not PyPI packages, and are versioned
 independently of this engine. The install path is tested on Linux, macOS, and Windows with
 Python 3.11, 3.12, and 3.13.
-
