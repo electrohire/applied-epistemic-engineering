@@ -8,7 +8,7 @@
 [![PyPI](https://img.shields.io/pypi/v/applied-epistemic-engineering.svg)](https://pypi.org/project/applied-epistemic-engineering/)
 [![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io/en/latest/)
 
-OpenSSF Best Practices assessment: 97% (in progress); reporting-history criteria remain unclaimed.
+OpenSSF Best Practices Passing criteria: 100% met (self-assessment, verified 2026-10-16).
 
 An evidence-centered Python toolkit for turning important claims into inspectable engineering
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
