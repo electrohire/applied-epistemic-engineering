@@ -46,7 +46,7 @@ competing versions of AEE.
 
 | Version | What it identifies | Current value |
 | --- | --- | --- |
-| Engine package | The installed `applied-epistemic-engineering` software release, reported as `metadata.engine_version` | 1.5.2 |
+| Engine package | The installed `applied-epistemic-engineering` software release, reported as `metadata.engine_version` | 1.5.3 |
 | Scoring methodology | The meaning of scores and decision rules, recorded as `methodology_version` | 2.0 |
 | Lexicon data | The vocabulary lists used by challenge/scoring heuristics, defined as `LEXICON_VERSION` in `src/aee/lexicons.py` | 1.0 |
 
