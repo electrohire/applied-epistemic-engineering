@@ -1,5 +1,9 @@
 # Dependency and onboarding audit — 2026-09-17
 
+For the current dependency names, installation policies, and repository tooling,
+see [development setup](../DEVELOPMENT.md). The version-specific findings below
+are historical evidence, not current installation instructions.
+
 > **Update 2026-10-02:** this audit describes the 1.0.1 release surface
 > (six commands), which shipped 2026-09-23. The 1.1.0 branch adds two
 > commands (`speckit.aee.route-evidence`, `speckit.aee.report-savings`)

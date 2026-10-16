@@ -2,9 +2,9 @@
   "schema_version": "1.0",
   "extensions": {
     "aee": {
-      "version": "1.5.1",
+      "version": "1.5.2",
       "source": "local",
-      "manifest_hash": "sha256:4b76756f5c9bec66e26678ccf0dfc3eb6204faf0c7695c8b88f958b6cfbd1c77",
+      "manifest_hash": "sha256:975f7a70d87f28cfca3df1fae2ae57d5c966482cfe69a6ab6f5575d06fcbd848",
       "enabled": true,
       "priority": 10,
       "registered_commands": {},
@@ -20,12 +20,12 @@
         "speckit-aee-route-evidence",
         "speckit-aee-report-savings"
       ],
-      "installed_at": "2026-10-16T19:35:48.004496+00:00"
+      "installed_at": "2026-10-16T20:53:26.904475+00:00"
     },
     "evaluator": {
-      "version": "1.1.1",
+      "version": "1.1.2",
       "source": "local",
-      "manifest_hash": "sha256:c291810384223ba145871e1cf90fc9ccdc211383b84ef5bf947ee3253f5e2f0e",
+      "manifest_hash": "sha256:dc1c1967df23b88efc90047d19ab53d1e8d5f4156f8c3f2a40dc7f52792a751c",
       "enabled": true,
       "priority": 10,
       "registered_commands": {},
@@ -35,7 +35,7 @@
         "speckit-evaluator-report",
         "speckit-evaluator-route"
       ],
-      "installed_at": "2026-10-16T19:35:49.654549+00:00"
+      "installed_at": "2026-10-16T20:53:28.873541+00:00"
     }
   }
 }

@@ -23,7 +23,6 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
-import yaml
 
 ROOT = Path(__file__).parents[1]
 RUNNER = ROOT / "scripts" / "python" / "run_aee.py"
@@ -562,15 +561,17 @@ def test_command_templates_quote_placeholders() -> None:
     assert "never eval" in assess
 
 
-def test_readme_install_tag_matches_manifest_version() -> None:
-    manifest = yaml.safe_load((ROOT / "extension.yml").read_text(encoding="utf-8"))
-    version = manifest["extension"]["version"]
+def test_user_install_and_older_setup_fallback_are_separate() -> None:
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "specify extension add aee\n" in readme
+    assert "spec-kit-aee/archive/refs/tags/" not in readme
+    troubleshooting = (ROOT / "DEVELOPMENT.md").read_text(encoding="utf-8")
     match = re.search(
-        r"spec-kit-aee/archive/refs/tags/v(\d+\.\d+\.\d+)\.zip", readme
+        r"spec-kit-aee/archive/refs/tags/v(\d+\.\d+\.\d+)\.zip", troubleshooting
     )
-    assert match, "README must install this extension from a tag archive"
-    assert match.group(1) == version
+    assert match, "older installations need a reproducible troubleshooting fallback"
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert f"## {match.group(1)} - " in changelog, "fallback must name a recorded release"
     assert "1.1.0 (unreleased)" not in readme
 
 

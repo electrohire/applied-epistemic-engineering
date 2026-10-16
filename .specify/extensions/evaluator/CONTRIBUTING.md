@@ -7,6 +7,10 @@ evaluator behavior, keep the Python, Bash, and PowerShell composers at parity
 
 ## Reproduce CI
 
+See [development setup](DEVELOPMENT.md) for this repository's own Spec Kit/AEE
+installation and the shared component/dependency names. Runtime requirements
+for a standalone composer differ from the AEE adapter's managed runtime.
+
 CI runs on Ubuntu, Windows, and macOS with Python 3.11, 3.12, and 3.13, the
 same targets as applied-epistemic-engineering and spec-kit-aee. Code must parse
 on Python 3.11 (for example, no same-quote nesting inside f-strings).
@@ -14,11 +18,19 @@ on Python 3.11 (for example, no same-quote nesting inside f-strings).
 ```bash
 python -m pip install -r requirements.txt pyyaml
 python -m unittest discover -s tests -v
+python -m pip install ruff==0.17.0
+python -m ruff check scripts tests
 ```
 
 The Bash composer legs need `bash` and `jq` (not run on Windows); the
 PowerShell legs need `pwsh`. CI fails when a required tool is missing instead
 of skipping the leg.
+
+The suite includes reproducible malformed-input fuzzing across all composition
+strategies. It checks fail-closed outcomes, output schema validity, and input
+immutability. Run the full suite, lint, and CodeQL before major releases; retain
+minimized regression cases for any discovered issue. Confirmed exploitable
+static/dynamic-analysis findings must be fixed according to [SECURITY.md](SECURITY.md).
 
 ## Release and catalog submission checklist
 
@@ -56,6 +68,8 @@ Prior cases: original submission
 [#4414](https://github.com/github/spec-kit/issues/4414) (catalog PR
 [#4420](https://github.com/github/spec-kit/pull/4420)), after
 [#4403](https://github.com/github/spec-kit/issues/4403) failed validation.
-The catalog still lists 1.0.0; 1.1.0 was never submitted.
+The evaluator 1.1.1 catalog update was submitted through
+[#4979](https://github.com/github/spec-kit/issues/4979) and merged in
+[#4980](https://github.com/github/spec-kit/pull/4980). The 1.1.0 release was never submitted.
 
 By contributing, you agree to the MIT license.

@@ -151,7 +151,7 @@ def test_other_commands_are_not_blocked_without_evaluator(
 
 def test_manifest_declares_evaluator_required() -> None:
     manifest = yaml.safe_load((ROOT / "extension.yml").read_text(encoding="utf-8"))
-    assert manifest["extension"]["version"] == "1.5.1"
+    assert manifest["extension"]["version"] == "1.5.2"
     tools = {tool["name"]: tool for tool in manifest["requires"]["tools"]}
     evaluator = tools["spec-kit-evaluator"]
     assert evaluator["required"] is True

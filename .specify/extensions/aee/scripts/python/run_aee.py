@@ -198,15 +198,15 @@ RUNTIME_VENV = _EXTENSION_DIR / ".runtime" / "venv"
 # required companion missing. Within extension.yml
 # requires.tools[spec-kit-evaluator]; update version, URL, and digest
 # together.
-EVALUATOR_VERSION = "1.1.1"
-# The published v1.1.1 release archive (tag commit b2aa01e) and its
+EVALUATOR_VERSION = "1.1.2"
+# The published v1.1.2 release archive (tag commit 40413ae) and its
 # SHA-256, verified against the public download.
 EVALUATOR_ARCHIVE_URL = (
     "https://github.com/electrohire/spec-kit-evaluator/archive/refs/tags/"
     f"v{EVALUATOR_VERSION}.zip"
 )
 EVALUATOR_ARCHIVE_SHA256 = (
-    "79a54460d37ee2b760daf52b4f54a21ce30d43e763aba2c93901b24db7281151"
+    "f2803c5da687bb4f269b31023983dbe827a7dd36d1cff626afec96b7aed9ff95"
 )
 _EVALUATOR_ARCHIVE_MAX_BYTES = 16 * 1024 * 1024
 _EVALUATOR_INSTALL_COMMAND = f"specify extension add evaluator --from {EVALUATOR_ARCHIVE_URL}"

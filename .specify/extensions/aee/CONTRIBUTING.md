@@ -1,5 +1,9 @@
 # Contributing
 
+See [development setup](DEVELOPMENT.md) for this repository's own Spec Kit/AEE
+installation, dependency names, and the distinction between installed releases
+and the product source under test.
+
 Use issues and pull requests. Keep domain logic in
 [applied-epistemic-engineering](https://github.com/electrohire/applied-epistemic-engineering)
 and this repository a thin adapter to
@@ -27,8 +31,8 @@ and macOS with Python 3.11, 3.12, and 3.13, the same targets as the engine and
 the Evaluator.
 
 For a clean install smoke, clone the Evaluator dependency at the commit pinned
-in the CI workflow (currently v1.1.1,
-`b2aa01e294b949ad18c301d41194badccb3a8196`), then run:
+in the CI workflow (currently v1.1.2,
+`40413aef4951f4eea947ed2e2291a7b123a6bac3`), then run:
 
 ```bash
 python scripts/check_install.py --evaluator-dir /path/to/spec-kit-evaluator
@@ -54,6 +58,11 @@ uv pip compile requirements/dev.in --universal --generate-hashes --python-versio
 ```
 
 Do not commit generated assessment data, credentials, or private evidence.
+
+The suite includes reproducible generated-path fuzzing of the runner's output
+boundary. Run it with the full suite, lint, and CodeQL before major releases.
+Preserve minimized regression cases for discovered issues. Confirmed exploitable
+static/dynamic-analysis findings must be fixed promptly under SECURITY.md.
 
 ## Metadata, release, and catalog corrections
 

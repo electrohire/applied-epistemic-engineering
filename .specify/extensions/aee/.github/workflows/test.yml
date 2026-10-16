@@ -31,12 +31,12 @@ jobs:
       - run: ruff check scripts tests
       - run: pytest -q
       - run: python scripts/python/run_aee.py --help
-      # The v1.1.1 tag commit, matching run_aee.py EVALUATOR_ARCHIVE_URL.
+      # The v1.1.2 tag commit, matching run_aee.py EVALUATOR_ARCHIVE_URL.
       - name: Check out pinned Evaluator dependency
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: electrohire/spec-kit-evaluator
-          ref: b2aa01e294b949ad18c301d41194badccb3a8196 # v1.1.1
+          ref: 40413aef4951f4eea947ed2e2291a7b123a6bac3 # v1.1.2
           path: artifacts/evaluator
           persist-credentials: false
       - run: python scripts/check_install.py --evaluator-dir artifacts/evaluator
