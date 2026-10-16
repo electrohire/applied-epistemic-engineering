@@ -1,5 +1,9 @@
 # Applied Epistemic Engineering for Python
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15598/badge)](https://www.bestpractices.dev/en/projects/15598)
+
+OpenSSF assessment: 97%; reporting-history criteria remain unclaimed.
+
 [![CI](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml)
 [![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io)
@@ -19,8 +23,8 @@ ElectroHire's Spec Kit Evaluator Contract while the domain engine remains indepe
 - **Agent:** give your agent the maintained
   [standalone SKILL.md](https://github.com/electrohire/applied-epistemic-engineering/tree/main/src/aee/skills/applied-epistemic-engineering)
   and ask it to inspect your claims and evidence in ordinary language. The agent
-  handles commands and setup; no Spec Kit is required. This skill is an unreleased
-  source addition until the next planned package release.
+  handles commands and setup; no Spec Kit is required. The packaged skill is
+  included from engine 1.5.3.
 - **Spec Kit:** install extension ID `aee`, then ask the project's agent to use
   its installed AEE skills. The extension provisions the engine and evaluator.
 

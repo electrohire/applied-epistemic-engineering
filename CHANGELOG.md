@@ -5,6 +5,8 @@ and [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+## [1.5.3] - 2026-10-16
+
 ### Changed
 - Group documentation navigation into short tabs so every section remains
   accessible at desktop widths. Explain the independent scoring methodology

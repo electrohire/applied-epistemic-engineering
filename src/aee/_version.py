@@ -7,4 +7,4 @@ one string, so they cannot drift from each other (FR-4.4). The
 release time; see ``docs/versioning.md``.
 """
 
-__version__ = "1.5.2"
+__version__ = "1.5.3"

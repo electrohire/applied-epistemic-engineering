@@ -47,7 +47,7 @@ dependencies on first use:
   latest `applied-epistemic-engineering>=1.5.0,<2` from PyPI, plus `jsonschema>=4.0` for
   evaluator composition. An engine already installed in that Python takes precedence.
 - **The Evaluator extension:** `assess` installs the pinned `spec-kit-evaluator` release
-  (currently v1.1.1, SHA-256 verified) through `specify extension add evaluator`.
+  (currently v1.1.2, SHA-256 verified) through `specify extension add evaluator`.
 
 Set `SPECKIT_AEE_AUTO_INSTALL=0` to disable these installs. The extension and the evaluator are
 Spec Kit extensions published as GitHub release archives, not PyPI packages, and are versioned
