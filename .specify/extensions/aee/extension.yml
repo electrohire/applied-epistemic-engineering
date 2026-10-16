@@ -3,7 +3,7 @@ schema_version: '1.0'
 extension:
   id: aee
   name: Applied Epistemic Engineering
-  version: 1.5.1
+  version: 1.5.2
   description: Challenge claims, trace evidence, propagate uncertainty, and route epistemic failures across phases
   category: process
   effect: read-write

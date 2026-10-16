@@ -1,5 +1,9 @@
 # Applied Epistemic Engineering for Spec Kit
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15599/badge)](https://www.bestpractices.dev/en/projects/15599)
+
+OpenSSF assessment: 97%; reporting-history criteria remain unclaimed.
+
 [![Test](https://github.com/electrohire/spec-kit-aee/actions/workflows/test.yml/badge.svg)](https://github.com/electrohire/spec-kit-aee/actions/workflows/test.yml)
 [![CodeQL](https://github.com/electrohire/spec-kit-aee/actions/workflows/codeql.yml/badge.svg)](https://github.com/electrohire/spec-kit-aee/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/electrohire/spec-kit-aee/badge)](https://securityscorecards.dev/viewer/?uri=github.com/electrohire/spec-kit-aee)
@@ -13,6 +17,20 @@ The implementation is an original ElectroHire design split into two deliberate l
 
 ## What it does
 
+### Names used by this project
+
+| Surface | Name |
+| --- | --- |
+| This repository / GitHub archive | `electrohire/spec-kit-aee` / `spec-kit-aee` |
+| Spec Kit extension ID | `aee` (used by `specify extension add aee`) |
+| Engine PyPI distribution | `applied-epistemic-engineering` |
+| Engine Python import and CLI | `aee` (`from aee import AEESession`; `aee --version`) |
+| Companion repository / extension ID | `electrohire/spec-kit-evaluator` / `evaluator` |
+
+The shared short name does not make the engine and adapter the same package.
+Do not use `pip install aee` to install the engine. For this repository's own
+Spec Kit/AEE setup, see [development setup](DEVELOPMENT.md).
+
 1. Extracts only explicitly identified claims; ordinary prose is never silently promoted into evidence.
 2. Challenges claim atomicity, observability, boundaries, falsifiability, dependencies, contradictions, and evidence independence.
 3. Scores evidence using published weights and caps dependent confidence at the weakest supporting claim.
@@ -22,7 +40,31 @@ The implementation is an original ElectroHire design split into two deliberate l
 
 AEE is a decision aid. It does **not** prove truth, certify compliance, replace domain review, or make a model's self-attestation into observed evidence.
 
+A passing gate means the configured policy accepted the recorded assessment.
+A score is not a calibrated probability of truth, and a valid ledger does not
+make its contents true. Formal verification can establish a precisely stated
+property under explicit assumptions; AEE does not currently provide a theorem
+prover or independent certification authority. See the engine's
+[names and assurance boundaries](https://applied-epistemic-engineering.readthedocs.io/en/latest/names-and-assurance/).
+
 ## Installation
+
+### Let your agent handle the workflow
+
+Ask your agent: “Set up AEE for this Spec Kit project, assess the spec's explicit
+claims, and explain missing evidence.” After setup, it reads the installed
+operation `SKILL.md` files and runs the commands for you. Spec Kit renders ten
+AEE skills and four evaluator skills into the selected integration's directory
+(for example `.agents/skills/` for Codex or `.github/skills/` for Copilot).
+Reload the agent session if newly installed skills are not discovered yet.
+
+The source [onboarding skill](skills/spec-kit-aee/SKILL.md) helps an agent set up
+and find those operation skills. It is included from extension v1.5.2;
+operation skills are generated during installation. For direct agent use
+without Spec Kit, use the engine's
+[standalone skill and three-interface guide](https://applied-epistemic-engineering.readthedocs.io/en/latest/agent/).
+The terminal instructions below are also usable by the agent; end users do not
+need to memorize CLI or slash-command syntax.
 
 Start with an initialized [Spec Kit](https://github.com/github/spec-kit) project and
 Python 3.11 or later. Supported and tested on Linux, macOS, and Windows with Python
@@ -37,12 +79,12 @@ commands belong in your coding agent's chat, not in PowerShell or Bash.
 | Evaluator extension (required companion) | extension ID `evaluator`, version `>=1.0.0,<2` | [electrohire/spec-kit-evaluator](https://github.com/electrohire/spec-kit-evaluator): the common evaluator this adapter's results are composed through — composition, reporting, and routing over the engine-produced result; installed automatically by `assess` when missing |
 | This adapter | extension ID `aee` | [electrohire/spec-kit-aee](https://github.com/electrohire/spec-kit-aee): ten agent commands and optional lifecycle hooks |
 
-The engine needs 1.5.0, the realigned engine (Spec 004 vocabulary, methodology 2.0), and the runner enforces the range itself by checking `aee --version` against `>=1.5.0,<2`. The Evaluator Contract result is produced by the engine itself, and the evaluator extension is a **required companion** to this adapter: AEE is one evaluator among many by design, and its results are composed through that common evaluator so every evaluator's output is handled the same way. The evaluator extension is a Spec Kit extension, **not** a PyPI package or shell executable.
+The engine needs at least 1.5.0, the realigned engine (Spec 004 vocabulary, methodology 2.0), and the runner enforces the range itself by checking `aee --version` against `>=1.5.0,<2`. The Evaluator Contract result is produced by the engine itself, and the evaluator extension is a **required companion** to this adapter: AEE is one evaluator among many by design, and its results are composed through that common evaluator so every evaluator's output is handled the same way. The evaluator extension is a Spec Kit extension, **not** a PyPI package or shell executable.
 
 Spec Kit's `requires.tools` metadata documents dependencies; it does not install them or verify their versions. The runner (`scripts/python/run_aee.py`, which every AEE command calls) therefore installs both itself:
 
 - **Engine.** If the Python running the adapter lacks an in-range `aee` command or importable `aee` package, the first AEE command creates a private environment at `.specify/extensions/aee/.runtime/venv`, installs `applied-epistemic-engineering>=1.5.0,<2` and the evaluator composer's `jsonschema>=4.0` from PyPI into it, and uses it from then on. Each later run checks that environment's `aee` version and imports its packages on its own interpreter; if that check fails (for example after damage), the environment is rebuilt from scratch. Removing the extension removes it. An engine you install yourself in the active Python takes precedence.
-- **Evaluator extension.** If `.specify/extensions/evaluator/` is absent, `assess` (or `compose`) downloads the pinned spec-kit-evaluator v1.1.1 archive, verifies its SHA-256, and installs it with `specify extension add evaluator` (the `specify` command must be on PATH).
+- **Evaluator extension.** If `.specify/extensions/evaluator/` is absent, `assess` (or `compose`) downloads the pinned spec-kit-evaluator v1.1.2 archive, verifies its SHA-256, and installs it with `specify extension add evaluator` (the `specify` command must be on PATH).
 
 Set `SPECKIT_AEE_AUTO_INSTALL=0` to disable both installs; an already provisioned runtime environment is still used. When something is missing, the runner then refuses with exit 2 and names the manual install command instead, as it does when an automatic install fails (for example, offline).
 
@@ -53,33 +95,31 @@ In a new or existing project, install the adapter; its dependencies follow
 automatically:
 
 ```bash
-specify extension add aee --from https://github.com/electrohire/spec-kit-aee/archive/refs/tags/v1.5.1.zip
+specify extension add aee
 specify extension list
 ```
 
-The first AEE command provisions the engine and the first `assess` installs the
-evaluator extension (both need network access once). To install them up front
-instead, for example on an offline or locked-down machine, run these in the
-Python environment your coding agent uses:
 
-```bash
-python -m pip install "applied-epistemic-engineering>=1.5.0,<2"
-aee --version
-specify extension add evaluator --from https://github.com/electrohire/spec-kit-evaluator/archive/refs/tags/v1.1.1.zip
-```
 
-The commands above install the current releases (this adapter's
-archive tag always matches the version in `extension.yml`). To test
-unreleased changes, clone this repository, check out the PR branch, then run
-`specify extension add --dev /absolute/path/to/spec-kit-aee` from a disposable
-initialized project. Back up generated assessments before replacing an existing
-installation; `--force` can overwrite its extension directory.
-
-The community catalog is discovery-only by default. Explicit `--from` URLs select
-the published archives. Installation downloads code; deterministic AEE operations
-make no model API calls. Your chosen coding agent has its own inference setup.
+The first AEE command provisions the engine; assess/compose installs the
+evaluator companion when missing. Installation needs network access once.
+The user does not need a separate pip or evaluator installation. Deterministic
+AEE operations make no model API calls; your chosen agent has its own setup.
+For offline preparation, standalone composer prerequisites, immutable archive
+fallbacks, or testing unreleased source, see [development setup](DEVELOPMENT.md).
 
 ## First run and configuration
+
+### Use cases in agent loops
+
+Place AEE after specification to challenge unbounded requirements, after planning
+to expose unsupported assumptions, and after implementation to compare completion
+claims with actual evidence. Handoffs retain provenance, contradictions, and
+uncertainty instead of turning repeated assertions into corroboration. Recovery
+work identifies the next bounded check. These controls can help catch unsupported
+claims before they propagate; no guaranteed or measured hallucination-reduction
+rate is claimed. See the engine's
+[use-case and evaluation guide](https://applied-epistemic-engineering.readthedocs.io/en/latest/use-cases/).
 
 The [step-by-step walkthrough](docs/usage.md) covers all ten commands, expected
 exit codes, output files, gap evidence format, and recovery. Start with the

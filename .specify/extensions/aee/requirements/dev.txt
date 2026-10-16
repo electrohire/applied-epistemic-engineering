@@ -16,9 +16,9 @@ anyio==4.15.1 \
     #   mcp
     #   sse-starlette
     #   starlette
-applied-epistemic-engineering==1.5.0 \
-    --hash=sha256:37df25b35cb4293bc415aa9168c8fdd3aac9c87a9e1e17c8d8ddd05a87eb1aa5 \
-    --hash=sha256:3eef8f41128972c6ae4348296a830a04ce1ec9ad1248dee29e4159e6252e7fbb
+applied-epistemic-engineering==1.5.3 \
+    --hash=sha256:b289cea6a6e3c36c1bc88732f860f56fb22122786f0ba9b2e2ffc31da6fb6aee \
+    --hash=sha256:fa3fa579a8cf67794c15ef61610b8fe7d4236612aa32345658c40fa41983c207
     # via -r requirements/dev.in
 attrs==26.1.0 \
     --hash=sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309 \

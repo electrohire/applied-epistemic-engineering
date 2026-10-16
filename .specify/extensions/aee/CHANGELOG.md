@@ -2,6 +2,26 @@
 
 All notable changes follow Semantic Versioning.
 
+## Unreleased
+
+## 1.5.2 - 2026-10-16
+
+- Pin evaluator 1.1.2, including its fail-closed invalid-encoding fix, with
+  verified public archive checksum; add the live OpenSSF assessment badge.
+
+- Add reproducible input fuzzing of the runner's output-path boundary on every
+  supported platform, and document the pre-release analysis requirement.
+
+- Add an agent onboarding/router skill, document ordinary-language workflows,
+  and verify both extensions' generated agent skills in installation acceptance.
+
+- Clarify the engine distribution/import/CLI and extension IDs, assurance
+  boundaries, and this repository's current Spec Kit/AEE development setup.
+
+- `check_install.py` prints the engine and jsonschema versions the runner
+  provisioned and the Evaluator version it installed, so acceptance logs
+  record the resolved dependency versions (test harness only).
+
 ## 1.5.1 - 2026-10-15
 
 Documentation only; the runner and its dependency pins are unchanged.

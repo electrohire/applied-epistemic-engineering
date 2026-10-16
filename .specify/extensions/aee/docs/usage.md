@@ -1,5 +1,12 @@
 # First assessment, recovery, and verification
 
+Agent route: ask “Use AEE to assess this feature and explain what evidence is
+missing.” The installed assessment `SKILL.md` guides the agent through the same
+steps below; it executes the CLI and reports artifacts for you. The adapter's
+[onboarding skill](../skills/spec-kit-aee/SKILL.md) explains skill discovery and
+dependency setup. For a standalone engine agent workflow without Spec Kit, see
+the [engine's guide](https://applied-epistemic-engineering.readthedocs.io/en/latest/agent/).
+
 Complete the README installation first (`specify extension add aee`; the runner
 installs the engine and the Evaluator extension itself on first use). All shell
 commands here run from your initialized project root. No paid inference is needed

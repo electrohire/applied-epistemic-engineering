@@ -267,8 +267,13 @@ def _run_checks(
         commands += list((root / ".claude/skills").glob("speckit-aee-*/SKILL.md"))
         check(len(commands) == 10, f"expected ten rendered commands: {commands}")
         for path in commands:
+            content = path.read_text(encoding="utf-8")
+            if path.name == "SKILL.md":
+                frontmatter = yaml.safe_load(content.split("---", 2)[1])
+                check(bool(frontmatter.get("name")), f"skill name missing: {path}")
+                check(bool(frontmatter.get("description")), f"skill description missing: {path}")
             check(
-                not re.search(r"__SPECKIT_COMMAND_[A-Z_]+__", path.read_text()),
+                not re.search(r"__SPECKIT_COMMAND_[A-Z_]+__", content),
                 f"unresolved command placeholder left in {path}",
             )
         hooks = yaml.safe_load((root / ".specify/extensions.yml").read_text())["hooks"]
@@ -284,6 +289,16 @@ def _run_checks(
                          str(root / ".specify/extensions/aee/scripts/python/run_aee.py"),
                          "assess", "--input", "claims.json", code=1)
         paths = json.loads(result)
+        # In clean installs assess provisions the evaluator. Its skills cannot
+        # exist before that first operation has installed the companion.
+        evaluator_skills = list((root / ".claude/skills").glob("speckit-evaluator-*/SKILL.md"))
+        evaluator_commands = list((root / ".claude/commands").glob("speckit.evaluator.*.md"))
+        check(len(evaluator_skills + evaluator_commands) == 4,
+              "evaluator must render four discoverable operation skills/commands")
+        for path in evaluator_skills:
+            frontmatter = yaml.safe_load(path.read_text(encoding="utf-8").split("---", 2)[1])
+            check(bool(frontmatter.get("name")) and bool(frontmatter.get("description")),
+                  f"invalid evaluator skill metadata: {path}")
         if clean_interpreter:
             # The clean interpreter has no engine and no jsonschema, so the
             # runner must have provisioned its private runtime from the
@@ -303,6 +318,9 @@ def _run_checks(
                 probe.returncode == 0,
                 f"the runner must provision its runtime: {probe.stderr}",
             )
+            engine_version, jsonschema_version = probe.stdout.split()
+            print(f"provisioned runtime: applied-epistemic-engineering "
+                  f"{engine_version}, jsonschema {jsonschema_version}")
         # Without --evaluator-dir the runner installed its required
         # companion itself during this first assess.
         listed = command(specify, "extension", "list", "--json")
@@ -324,6 +342,8 @@ def _run_checks(
                 and installed["evaluator"]["version"] == pinned.group(1),
                 f"the runner must install its pinned evaluator version: {listed}",
             )
+            print(f"evaluator installed by the runner: "
+                  f"{installed['evaluator']['version']}")
         check(
             (root / paths["assessment"]).is_file(),
             f"assess named a missing assessment file: {paths}",
