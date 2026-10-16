@@ -2,7 +2,7 @@ site_name: Applied Epistemic Engineering
 site_description: Evidence-centered claim engineering for Python and Spec Kit.
 site_url: https://applied-epistemic-engineering.readthedocs.io
 repo_url: https://github.com/electrohire/applied-epistemic-engineering
-repo_name: electrohire/applied-epistemic-engineering
+repo_name: applied-epistemic-engineering
 edit_uri: edit/main/docs/
 
 theme:

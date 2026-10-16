@@ -24,7 +24,7 @@ upstream spec-kit catalog entry — coherent.
 
 ## The extension's `requires` floor is the compatibility contract
 
-- `electrohire/spec-kit-aee` declares the engine versions it works
+- [`spec-kit-aee`](https://github.com/electrohire/spec-kit-aee) declares the engine versions it works
   with in its `extension.yml` (`requires.tools` entry for `aee`,
   currently `>=1.5.0,<2`). That floor — not any one machine's installed
   copy — is the compatibility contract between the two repos.

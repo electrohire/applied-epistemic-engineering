@@ -7,9 +7,9 @@
 | PyPI distribution | `applied-epistemic-engineering` | The independently usable Python engine; install with `python -m pip install applied-epistemic-engineering` |
 | Python import | `aee` | The module installed by that distribution; for example, `from aee import AEESession` |
 | Engine CLI | `aee` | The executable installed by that distribution; for example, `aee --version` |
-| Spec Kit extension repository | `electrohire/spec-kit-aee` | The adapter distributed as a GitHub release archive |
+| Spec Kit extension repository | [`spec-kit-aee`](https://github.com/electrohire/spec-kit-aee) | The adapter distributed as a GitHub release archive |
 | Spec Kit extension ID | `aee` | The adapter selected by `specify extension add aee` |
-| Evaluator extension repository / ID | `electrohire/spec-kit-evaluator` / `evaluator` | The companion contract, composer, reports, and routing |
+| Evaluator extension repository / ID | [`spec-kit-evaluator`](https://github.com/electrohire/spec-kit-evaluator) / `evaluator` | The companion contract, composer, reports, and routing |
 
 The Python module and the Spec Kit extension share the short name `aee`, but they
 are different components. **Do not use `pip install aee` as an installation command

@@ -1,4 +1,4 @@
-"""Adapter for ElectroHire's Spec Kit Evaluator Contract v1.0."""
+"""Adapter for the Spec Kit Evaluator Contract v1.0."""
 
 from __future__ import annotations
 
@@ -227,7 +227,7 @@ def validate_evaluator_result(result: dict[str, Any]) -> None:
     finding carrying nothing but ``kind`` — were ACCEPTED while the
     evaluator repo's shipped schema rejected them. This validator now
     delegates to that schema: a vendored copy ships in ``aee.schemas``
-    and parity with electrohire/spec-kit-evaluator's shipped schema is
+    and parity with spec-kit-evaluator's shipped schema is
     pinned by tests.
 
     When the ``jsonschema`` package is importable the vendored schema

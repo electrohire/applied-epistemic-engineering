@@ -9,7 +9,7 @@ Spec Kit extension whose ID is also **`aee`**. See
 [names and assurance boundaries](names-and-assurance.md) for installation names
 and the limits of verification.
 
-The ElectroHire Python engine provides:
+The Python engine provides:
 
 - a typed claim and evidence model;
 - deterministic stress tests;
