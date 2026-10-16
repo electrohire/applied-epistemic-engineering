@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -60,6 +61,12 @@ def test_safe_segment_is_idempotent_on_success(value: str) -> None:
 @given(value=_VALID)
 def test_safe_segment_accepts_exactly_well_formed_values(value: str) -> None:
     """Characterization: well-formed inputs are accepted and normalized once."""
+    if value == "after_":
+        # A bare "after_" names no lifecycle phase and is rejected
+        # (RT3-21); it is the one well-formed-looking exception.
+        with pytest.raises(ValueError):
+            run_aee._safe_segment(value)
+        return
     result = run_aee._safe_segment(value)
     expected = value if value.startswith("after_") else f"after_{value}"
     assert result == expected

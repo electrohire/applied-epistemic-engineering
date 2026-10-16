@@ -21,14 +21,22 @@ The evaluator contract lets any extension:
 
 ## Installation
 
+The Spec Kit community catalog is discovery-only, so install from this
+repository's release archive:
+
 ```bash
-specify extension add evaluator
+specify extension add evaluator --from https://github.com/electrohire/spec-kit-evaluator/archive/refs/tags/v1.1.1.zip
 ```
 
-Or for local development:
+The Python composer needs `jsonschema>=4.0` (`requirements.txt`) in the
+Python that runs it; the Bash composer needs `jq`; the PowerShell composer has
+no extra dependency. [spec-kit-aee](https://github.com/electrohire/spec-kit-aee)
+installs this extension and the composer's dependency automatically.
+
+For local development, from a checkout of this repository:
 
 ```bash
-specify extension add --dev /path/to/spec-kit/extensions/evaluator
+specify extension add --dev /absolute/path/to/spec-kit-evaluator
 ```
 
 ## Commands
@@ -103,6 +111,51 @@ The full JSON Schema is at `schemas/evaluator-result.schema.json`. Every evaluat
 | `contradicted` | Conflicts with other observed evidence |
 | `unsupported` | No evidence found to support or refute |
 
+## Reference Evaluator: `spec-structure`
+
+The extension ships one deterministic reference evaluator (Spec 002 FR-7), registered in [`evaluators.yml`](evaluators.yml) — a stock install is no longer a contract without a tenant. It checks a feature directory for the contract's basics:
+
+- `spec.md` / `plan.md` / `tasks.md` presence, and required spec sections (title, requirements, acceptance/success criteria)
+- `claims.json` presence and strict-load validity (structural mirror of the AEE engine's strict loader: known fields only, non-empty `id`/`text`, valid enums, list-typed fields, no duplicate ids or JSON keys)
+- every claim carries at least one falsification test
+- `assessment.json` presence
+- task ↔ requirement traceability (every task line references a requirement; every requirement in `spec.md` is referenced from `tasks.md`)
+
+It is deliberately small and deterministic — no model calls; the same feature directory produces a byte-identical result modulo `metadata.timestamp`. Judging epistemics remains AEE's role; this evaluator proves the contract composes.
+
+### Walkthrough (discovery → run → compose)
+
+From a clean checkout, with nothing registered by hand:
+
+```bash
+# 1. Discover: evaluators.yml registers the evaluator and its script
+grep -A3 'id: spec-structure' evaluators.yml
+
+# 2. Run it against the passing fixture
+mkdir -p /tmp/evaluator-results
+python3 scripts/python/spec_structure_evaluator.py \
+  --feature-dir examples/fixtures/spec-structure/passing \
+  --phase after_specify \
+  --output /tmp/evaluator-results/spec-structure-after_specify-20260101T000000Z.json
+
+# 3. Validate the emitted result against the contract schema
+python3 -c "
+import json, jsonschema
+schema = json.load(open('schemas/evaluator-result.schema.json'))
+result = json.load(open('/tmp/evaluator-results/spec-structure-after_specify-20260101T000000Z.json'))
+jsonschema.validate(result, schema)
+print('emitted result is schema-valid; outcome:', result['outcome'])
+"
+
+# 4. Compose (the run command's results-directory flow)
+python3 scripts/python/compose_results.py \
+  --results-dir /tmp/evaluator-results --phase after_specify --strategy strict --json
+```
+
+Expected: the emitted result has `outcome: "pass"` and the composed result has `outcome: "pass"` with `evaluator_count: 1`. Repeat with `examples/fixtures/spec-structure/failing` (missing `plan.md` and `assessment.json`, a claim with no falsification test, a strict-load-invalid claim, uncovered requirements) — the emitted and composed outcomes are `block`, and every defect is named in the findings.
+
+The walkthrough is exercised by `tests/test_spec_structure_evaluator.py` (`python3 -m unittest discover -s tests`).
+
 ## Composition Strategies
 
 When multiple evaluators run at the same phase, their results are composed:
@@ -112,6 +165,19 @@ When multiple evaluators run at the same phase, their results are composed:
 | `strict` (default) | Most severe outcome wins |
 | `majority` | Most common outcome wins; ties break toward severity |
 | `optimistic` | Least severe outcome wins |
+
+## Composition Contract (fail-closed)
+
+All three composers (Python, Bash, PowerShell) implement the same contract (Spec 003 FR-6), verified by a shared fixture corpus in `tests/`:
+
+- **Empty fails closed.** Zero usable results — missing directory, no files for the phase, or no *valid* files — composes to `outcome: "block"` with an explicit no-results finding and exit code 2. Absence of evidence is never a pass.
+- **Inputs are validated.** The Python composer always applies the shipped JSON Schema (`jsonschema>=4.0`, see `requirements.txt`, is a hard dependency — its absence is a hard error, never a silent skip). Bash/PowerShell enforce the same minimum contract (required keys, enums, evaluator `id` + `version`, payload `phase` equal to the requested phase). A malformed or invalid file is **wrapped as a blocking `schema_violation` finding** and votes `block` under every strategy — never skipped toward pass, never a traceback.
+- **Identity is the payload.** Dedup and counting use `evaluator.id` + `version`, never the filename; duplicates of one evaluator count once. Finding ids are namespaced `<evaluator.id>:<finding.id>`.
+- **Composed output is schema-valid.** No `_evaluator_id` injection, `model_routing` omitted rather than `null`, summaries within the 500-char cap; the Python composer self-validates its output before emitting it.
+- **Advisory strategies are marked.** `majority`/`optimistic` results carry `metadata.gating: false`; when they overturn a `block`, `metadata.block_overridden: true` is recorded and the inputs' outcomes stay visible in `metadata.evaluator_results`. Only `strict` compositions gate.
+- **Exit codes are the gate contract:** 0 = `pass`/`warn`, 1 = `iterate`/`clarify`/`gather_evidence`, 2 = `block` or hard error.
+
+> **Decision (Spec 003 T610, recorded with Spec 002 FR-7.4):** `speckit.evaluator.report` and `speckit.evaluator.route` remain prompt-only commands — this extension ships executables for composition only, and no test pins report/route output. The earlier promise of priority-ordered findings in composition is removed from the compose command (no shipped composer implements evaluator priority); see `commands/speckit.evaluator.compose.md`.
 
 ## Hooks
 
@@ -148,17 +214,28 @@ See `templates/evaluator-result-template.json` for a starting point.
 ## File Structure
 
 ```
-.specify/extensions/evaluator/
+spec-kit-evaluator/
+├── evaluators.yml                      # Registered evaluators (spec-structure)
 ├── schemas/
 │   └── evaluator-result.schema.json   # JSON Schema for evaluator results
 ├── templates/
 │   └── evaluator-result-template.json # Template for new evaluator results
+├── scripts/
+│   ├── python/spec_structure_evaluator.py  # Reference evaluator (FR-7)
+│   ├── python/compose_results.py      # Composition (Python)
+│   ├── bash/compose-results.sh        # Composition (Bash)
+│   └── powershell/compose-results.ps1 # Composition (PowerShell)
+├── examples/
+│   ├── demo.py                        # Quick-start demo
+│   └── fixtures/spec-structure/       # Passing + failing fixture specs
+└── tests/                             # unittest suite (python3 -m unittest discover -s tests)
+
+Installed into a project (.specify/extensions/evaluator/):
 ├── results/                            # Individual evaluator result files
 │   ├── <evaluator-id>-<phase>-<ts>.json
 │   └── composed-<phase>-<ts>.json
-├── reports/                            # Human-readable reports (markdown format)
-│   └── report-<phase>-<ts>.md
-└── evaluators.yml                      # Registered evaluator configuration
+└── reports/                            # Human-readable reports (markdown format)
+    └── report-<phase>-<ts>.md
 ```
 
 ## License

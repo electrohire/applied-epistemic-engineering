@@ -23,15 +23,23 @@ def test_manifest_uses_supported_dependency_metadata() -> None:
     tools = {tool["name"]: tool for tool in requires["tools"]}
     required = {name for name, tool in tools.items() if tool["required"]}
     optional = {name for name, tool in tools.items() if not tool["required"]}
+    # Spec 005: the evaluator extension is a required companion.
     assert required == {"python", "aee", "spec-kit-evaluator"}
-    assert optional == {"rtk", "headroom", "token-router", "ollama"}
-    assert "1.4.0" in SpecifierSet(tools["aee"]["version"])
+    assert optional == {
+        "rtk",
+        "headroom",
+        "token-router",
+        "ollama",
+    }
+    assert "1.5.0" in SpecifierSet(tools["aee"]["version"])
+    assert "1.4.0" not in SpecifierSet(tools["aee"]["version"])  # Spec 004 P5-E1 floor
     assert "1.0.2" not in SpecifierSet(tools["aee"]["version"])
     for group in ("commands", "templates", "scripts", "config"):
         for item in manifest.data["provides"][group]:
             assert (ROOT / item.get("file", item.get("template", ""))).is_file()
     names = {command["name"] for command in manifest.commands}
-    assert len(names) == 9
+    assert len(names) == 10
+    assert "speckit.aee.draft-claims" in names
     assert len(manifest.hooks) == 5
     assert all(hook["command"] in names for hook in manifest.hooks.values())
 
@@ -40,6 +48,12 @@ def test_manifest_uses_supported_dependency_metadata() -> None:
 def project(tmp_path: Path) -> Path:
     assert shutil.which("aee"), "Activate the environment containing requirements/dev.txt"
     shutil.copyfile(ROOT / "templates/aee-claims.json", tmp_path / "claims.json")
+    # Spec 005: assess requires the evaluator companion installed.
+    evaluator = tmp_path / ".specify" / "extensions" / "evaluator"
+    evaluator.mkdir(parents=True)
+    (evaluator / "extension.yml").write_text(
+        "extension:\n  id: evaluator\n", encoding="utf-8"
+    )
     return tmp_path
 
 
@@ -130,7 +144,7 @@ def test_policy_assessment_carries_verdicts(project: Path) -> None:
     assessment = json.loads((project / paths["assessment"]).read_text())
     assert assessment["verdicts"], "policy assessment must carry verdicts"
     for verdict in assessment["verdicts"].values():
-        assert verdict["verdict"] in {"accept", "challenge", "abstain"}
+        assert verdict["verdict"] in {"accept", "challenge", "abstain", "unjudged"}  # Spec 004 R1.4: stage-created claims are unjudged
     plain = run(project, "assess", "--input", "claims.json",
                 "--phase", "after_specify", "--no-ledger")
     plain_assessment = json.loads(

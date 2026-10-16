@@ -3,7 +3,13 @@
 Applied Epistemic Engineering (AEE) treats consequential claims as engineering artifacts:
 identifiable, bounded, challengeable, evidence-linked, recoverable, and auditable.
 
-The ElectroHire Python package provides:
+The PyPI distribution **`applied-epistemic-engineering`** installs the Python
+module and CLI **`aee`**. The separate **`spec-kit-aee`** repository supplies the
+Spec Kit extension whose ID is also **`aee`**. See
+[names and assurance boundaries](names-and-assurance.md) for installation names
+and the limits of verification.
+
+The ElectroHire Python engine provides:
 
 - a typed claim and evidence model;
 - deterministic stress tests;
@@ -14,8 +20,12 @@ The ElectroHire Python package provides:
 - native conversion to the Spec Kit Evaluator Contract.
 
 !!! important
-    AEE does not certify truth, compliance, safety, or correctness. It records what is known,
-    why it is believed, what remains uncertain, and what evidence would change the decision.
+    AEE does not certify truth, compliance, safety, or general correctness. It records
+    claims, the evidence and checks supporting them, what remains uncertain, and what
+    evidence would change the decision. The record itself can be incomplete or mistaken.
+    A passing policy gate or valid ledger is not an independent certification.
 
-Start with the [quickstart](quickstart.md), then read the [foundations](concepts.md).
-
+Choose [CLI, direct agent, or Spec Kit](agent.md), then use the
+[quickstart](quickstart.md) and [foundations](concepts.md).
+See [use cases and agent loops](use-cases.md) for evidence-aware completion gates,
+handoffs, disagreement review, and how to evaluate effects on unsupported claims.

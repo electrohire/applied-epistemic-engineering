@@ -33,6 +33,16 @@ The wrapper runs the command unchanged and appends a telemetry record
 done by rtk's hooks; the wrapper records, it does not filter. Savings are
 read back with `rtk gain`, never inferred from byte counts.
 
+**Trust model for `shell`:** the wrapper is telemetry, *not* a sandbox.
+It confines the working directory to the project root and bounds the
+command's lifetime (`--timeout`, default 600 s, after which the command
+is killed and the wrapper returns 2), and it redacts secret-looking
+argv values (secret-named `key=value` pairs, values after secret-named
+flags, known token shapes) from the telemetry record. It does **not**
+restrict what the wrapped command itself may read, write, or execute —
+a command run through `shell` has the operator's full privileges. Keep
+secrets out of argv regardless; redaction is hygiene, not a guarantee.
+
 ### token-router — evidence gathering before assess() gates
 
 The upstream `token-router` script (https://github.com/sleeplesshan/token-router)
@@ -42,6 +52,13 @@ a router, never a summarizer, and its output is never cited as evidence —
 cite the original file and line ranges. See
 `commands/speckit.aee.route-evidence.md`. Without token-router or Ollama, the
 helper falls back to deterministic literal-match windows and says so.
+
+The router is executed code, so discovery is a trust decision: only a
+router inside the project root or its parent is run — a
+`TOKEN_ROUTER_HOME` pointing elsewhere is ignored (deterministic
+fallback instead). Router ranges are strictly typed (JSON booleans are
+not integers), and the route record names the router's path and
+SHA-256 so a routing decision can be audited to an exact router build.
 
 ### headroom — long-horizon session compression
 

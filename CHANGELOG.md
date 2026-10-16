@@ -3,6 +3,17 @@
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Changed
+- Add a standalone agent skill to the engine package source and document CLI,
+  direct-agent, and Spec Kit skill workflows. Remove retired scaffold migration
+  and porting pages from the current documentation.
+- Distinguish the PyPI distribution, Python module, engine CLI, and Spec Kit
+  extension IDs; explain bounded verification, certification limits, and why
+  GitHub/RTD development docs can differ from released PyPI metadata.
+- Refresh this repository's own Spec Kit, AEE, and evaluator setup.
+
 ## [1.5.2] - 2026-10-15
 
 Documentation only. Engine behavior, scoring, and `methodology_version` are

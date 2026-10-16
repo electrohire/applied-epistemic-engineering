@@ -15,7 +15,7 @@ $ARGUMENTS
 Resolve `artifact=<path>` and optional `phase=<phase>` using the same prerequisites and path rules as `__SPECKIT_COMMAND_AEE_ASSESS__`. Run the AEE adapter's `challenge` operation, which emits a deterministic failure-mode projection (failures plus bounded recovery proposals) rather than aggregate scoring.
 
 ```bash
-python .specify/extensions/aee/scripts/python/run_aee.py challenge --input <artifact> --phase <phase>
+python .specify/extensions/aee/scripts/python/run_aee.py challenge --input "<artifact>" --phase "<phase>"
 ```
 
 For every failure in the emitted projection, report:

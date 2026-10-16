@@ -1,5 +1,7 @@
-# Reference settings only: run_aee.py does not load this file.
-# Translate choices to explicit CLI flags; see docs/usage.md.
+# Reference settings only: NO script loads this file — neither
+# run_aee.py nor aee_token_economy.py reads it. Every value below is
+# operator reference for both adapters; translate choices to explicit
+# CLI flags; see docs/usage.md.
 schema_version: '1.0'
 
 # Claims below this transparent score require recovery before passing.

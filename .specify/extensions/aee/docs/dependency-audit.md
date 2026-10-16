@@ -40,13 +40,17 @@ alerts were returned at audit time. Historical failed runs remain in history.
 - [Original AEE catalog submission](https://github.com/github/spec-kit/issues/4565)
 
 The inspected installer validates Spec Kit version compatibility but does not
-install or enforce extension tool dependencies. `spec-kit-evaluator` in
+install or enforce extension tool dependencies. Since 1.5.0 the AEE runner
+therefore installs them itself: the engine (and jsonschema) into a private
+runtime environment, and the Evaluator extension through `specify` (see the
+README). `spec-kit-evaluator` in
 `requires.tools` is an informational extension dependency, not an executable.
 Both dependency repositories are linked in the README and manifest comments.
 
 Local validation uses Python 3.12.6, Spec Kit 1.0.8, AEE engine 1.0.2, and Evaluator
-1.0.0 at commit `e6e86e1ca2c99c167375953ad8d682913f3de244`. CI repeats tests and
-installation on Linux Python 3.11/3.13 and Windows Python 3.12. This is tested
+1.0.0 at commit `e6e86e1ca2c99c167375953ad8d682913f3de244`. CI now repeats tests,
+installation, and sandbox acceptance (Spec Kit alone, then AEE installing its own
+dependencies) on Linux, macOS, and Windows with Python 3.11, 3.12, and 3.13. This is tested
 coverage, not a claim to have exercised every Spec Kit/agent version allowed by
 the compatibility range. The installation smoke uses the Claude integration;
 other agents' rendering is outside this run's coverage.
