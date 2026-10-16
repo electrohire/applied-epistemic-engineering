@@ -6,6 +6,11 @@ and [Semantic Versioning](https://semver.org/).
 ## Unreleased
 
 ### Changed
+- Group documentation navigation into short tabs so every section remains
+  accessible at desktop widths. Explain the independent scoring methodology
+  and lexicon versions without relabeling historical assessments.
+- Add a ClusterFuzzLite/Atheris input-boundary fuzz target and share its corpus
+  with regression tests across Linux, macOS, and Windows.
 - Add a standalone agent skill to the engine package source and document CLI,
   direct-agent, and Spec Kit skill workflows. Remove retired scaffold migration
   and porting pages from the current documentation.

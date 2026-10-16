@@ -62,7 +62,7 @@ Issues = "https://github.com/electrohire/applied-epistemic-engineering/issues"
 packages = ["src/aee"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/aee", "tests", "docs", "README.md", "LICENSE", "CHANGELOG.md", "mkdocs.yml", ".readthedocs.yaml"]
+include = ["src/aee", "tests", "fuzz", "docs", "README.md", "LICENSE", "CHANGELOG.md", "mkdocs.yml", ".readthedocs.yaml"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
