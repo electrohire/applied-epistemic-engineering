@@ -1,13 +1,14 @@
 # Applied Epistemic Engineering for Python
 
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15598/badge)](https://www.bestpractices.dev/en/projects/15598)
-
-OpenSSF assessment: 97%; reporting-history criteria remain unclaimed.
-
 [![CI](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml)
-[![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/electrohire/applied-epistemic-engineering/badge)](https://securityscorecards.dev/viewer/?uri=github.com/electrohire/applied-epistemic-engineering)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15598/badge)](https://www.bestpractices.dev/en/projects/15598)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/applied-epistemic-engineering.svg)](https://pypi.org/project/applied-epistemic-engineering/)
+[![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io/en/latest/)
+
+OpenSSF Best Practices assessment: 97% (in progress); reporting-history criteria remain unclaimed.
 
 An evidence-centered Python toolkit for turning important claims into inspectable engineering
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
