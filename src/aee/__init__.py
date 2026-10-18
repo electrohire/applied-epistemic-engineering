@@ -56,6 +56,11 @@ from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queu
 from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
 from aee.session import AEESession
 from aee.sources import normalize_source_identity, source_identity
+from aee.verification_approval import (
+    VerificationMethodApproval,
+    append_method_approval,
+    check_method_approval,
+)
 from aee.verification_links import (
     TestDiscovery,
     capture_test_discovery,
@@ -118,7 +123,9 @@ __all__ = [
     "Uncertainty",
     "Verdict",
     "VerdictChange",
+    "VerificationMethodApproval",
     "append_execution_record",
+    "append_method_approval",
     "assessment_content_digest",
     "build_context",
     "build_review_queue",
@@ -128,6 +135,7 @@ __all__ = [
     "check_evidence",
     "check_execution_applicability",
     "check_freshness",
+    "check_method_approval",
     "check_verification_links",
     "normalize_claim_id",
     "normalize_source_identity",

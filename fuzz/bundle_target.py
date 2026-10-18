@@ -11,12 +11,21 @@ from aee.execution_evidence import MAX_RECORD_BYTES, ExecutionRecord
 from aee.execution_reports import _junit
 from aee.extract import load_claims, validate_bundle_structure
 from aee.graph import ClaimGraph
+from aee.verification_approval import VerificationMethodApproval
 from aee.verification_links import TestDiscovery
 
 
 def fuzz_one(data: bytes) -> None:
     """Malformed inputs may be rejected; accepted inputs must remain processable."""
     # New boundaries are ingestion only: never execute a fuzzed record's argv.
+    if data[:1] == b"\x05":
+        try:
+            approval = VerificationMethodApproval.from_bytes(data[1:])
+        except ValueError:
+            return
+        if VerificationMethodApproval.from_dict(approval.to_dict()).digest != approval.digest:
+            raise AssertionError("approval record roundtrip changed its identity")
+        return
     if data[:1] == b"\x04":
         try:
             discovery = TestDiscovery.from_bytes(data[1:])

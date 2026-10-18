@@ -58,3 +58,27 @@ not executed. Instrumented container fuzzing, real supported-platform CI, scoped
 human-approved methods, preflight, CLI/skills, shared evaluator contracts and
 extension orchestration remain pending. T007 remains open for those integration
 and approval boundaries; no release is published during baseline readiness.
+
+## Method permission increment
+
+Full local engine suite:978passed,2optional axiomere skips. The six new modules
+have285focused cases with845statements/378branches,100%line and branch coverage
+and zero exclusions. Both Windows/Linux strict mypy and owned-source Ruff pass.
+This is still not100%whole-repository/native-platform coverage or a completed
+execution-control feature. The approval policies/receipts in tests are synthetic;
+no actual human approval or identity service is claimed.
+
+Actual self-use audit .aee/execution-control-loop/implementation-method-approval-07
+observed980collected items, captured scoped execution/JUnit/coverage, verified all
+24anchored ledger entries and consumed one actual AEE/Evaluator result. Its six
+bounded machine observations remain iterate with human acceptance unrecorded.
+Earlier source snapshots remain immutable historical observations and become
+stale when rechecked against changed source bytes. Deeply nested JSON is rejected
+as a typed input error, and portable fuzzing includes approval ingestion without
+executing commands or promoting approval authority.
+
+Remaining work includes production host-policy integration, existing gap/test-ID
+mapping, preflight/command authorization, CLI/skills, evaluator contract/parity,
+extension orchestration, full maintained-code coverage, supported-platform CI,
+instrumented fuzzing and matched after evidence. No product release or baseline
+environment change has occurred.

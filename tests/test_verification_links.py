@@ -341,7 +341,7 @@ def test_record_size_bounds_and_strict_json(collected, monkeypatch):
     from aee import verification_links as module
 
     _, record = collected
-    for data in ["string", b"[]", b'{"x":1,"x":2}']:
+    for data in ["string", b"[]", b'{"x":1,"x":2}', b"[" * 2000 + b"0" + b"]" * 2000]:
         with pytest.raises(ValueError):
             Discovery.from_bytes(data)
     monkeypatch.setattr(module, "MAX_DISCOVERY_BYTES", 1)
@@ -435,3 +435,128 @@ def test_long_parameterized_test_identity(collected, length, expected):
         {"schema_version": "1.0", "tests": [{"id": "x" * length, "path": "tests/test_one.py"}]}
     ).encode()
     assert verify(report_record(collected, report))["outcome"] == expected
+
+
+def method_fixture(root, requirement_ids=("R02",)):
+    from aee import VerificationMethodApproval, snapshot_scope
+
+    (root / "manual-requirement.md").write_text("Synthetic non-test requirement fixture")
+    (root / "approval-receipt.txt").write_text(
+        "Synthetic external-host receipt fixture; not real human approval"
+    )
+    return VerificationMethodApproval.from_dict(
+        dict(
+            schema_version="1.0",
+            decision="approve_method",
+            method_id="MANUAL-01",
+            method_description="Inspect the bounded fixture",
+            requirement_ids=list(requirement_ids),
+            approver_label="synthetic human label",
+            approved_at="2026-10-18T00:00:00+00:00",
+            receipt_path="approval-receipt.txt",
+            scope=snapshot_scope(
+                root, ["manual-requirement.md", "approval-receipt.txt"], repository_id="example"
+            ).to_dict(),
+        )
+    )
+
+
+@pytest.mark.parametrize("trusted", [False, True])
+def test_non_test_method_needs_separate_host_approval_and_is_not_execution(collected, trusted):
+    root, discovery = collected
+    method = method_fixture(root)
+    result = check_verification_links(
+        discovery,
+        root,
+        repository_id="example",
+        accepted_requirement_ids=["FR-1", "R02"],
+        links={"FR-1": ["tests.test_one::test_one"]},
+        trusted_discovery_digests=[discovery.digest],
+        approved_methods=[method],
+        trusted_human_approval_digests=[method.digest] if trusted else [],
+    )
+    assert result["outcome"] == ("pass" if trusted else "gather_evidence")
+    assert result["method_approvals"][0]["verification_status"] == "unassessed"
+    if not trusted:
+        assert result["missing_requirements"] == ["R02"]
+        assert "method_approval_not_applicable" in result["findings"]
+
+
+def test_stale_method_and_orphan_tests_remain_blockers(collected):
+    root, discovery = collected
+    method = method_fixture(root, ["FR-1", "R02"])
+    result = check_verification_links(
+        discovery,
+        root,
+        repository_id="example",
+        accepted_requirement_ids=["FR-1", "R02"],
+        links={},
+        trusted_discovery_digests=[discovery.digest],
+        approved_methods=[method],
+        trusted_human_approval_digests=[method.digest],
+    )
+    assert result["orphan_test_ids"] == ["tests.test_one::test_one"]
+    assert result["outcome"] == "gather_evidence"
+    (root / "approval-receipt.txt").write_text("changed permission")
+    result = check_verification_links(
+        discovery,
+        root,
+        repository_id="example",
+        accepted_requirement_ids=["FR-1", "R02"],
+        links={"FR-1": ["tests.test_one::test_one"]},
+        trusted_discovery_digests=[discovery.digest],
+        approved_methods=[method],
+        trusted_human_approval_digests=[method.digest],
+    )
+    assert "method_approval_not_applicable" in result["findings"]
+
+
+def test_duplicate_or_malformed_methods_are_refused(collected, monkeypatch):
+    root, discovery = collected
+    method = method_fixture(root)
+    for methods in ("method", [True], [method, method]):
+        with pytest.raises(ValueError):
+            check_verification_links(
+                discovery,
+                root,
+                repository_id="example",
+                accepted_requirement_ids=["FR-1"],
+                links={},
+                approved_methods=methods,
+            )
+    from aee import VerificationMethodApproval
+
+    oversized = VerificationMethodApproval(b" " * (2 * 1024 * 1024 + 1))
+    for methods in ([method] * 10001, [oversized]):
+        with pytest.raises(ValueError):
+            check_verification_links(
+                discovery,
+                root,
+                repository_id="example",
+                accepted_requirement_ids=["FR-1"],
+                links={},
+                approved_methods=methods,
+            )
+
+
+def test_method_cannot_introduce_an_unaccepted_requirement(collected):
+    root, discovery = collected
+    method = method_fixture(root)
+    result = check_verification_links(
+        discovery,
+        root,
+        repository_id="example",
+        accepted_requirement_ids=["FR-1"],
+        links={"FR-1": ["tests.test_one::test_one"]},
+        trusted_discovery_digests=[discovery.digest],
+        approved_methods=[method],
+        trusted_human_approval_digests=[method.digest],
+    )
+    assert result["unknown_requirements"] == ["R02"]
+    assert result["outcome"] == "gather_evidence"
+
+
+def test_excessive_discovery_nesting_is_a_typed_input_error():
+    depth = max(10000, sys.getrecursionlimit() * 4)
+    with pytest.raises(ValueError, match="nesting"):
+        Discovery.from_bytes(b"[" * depth + b"0" + b"]" * depth)

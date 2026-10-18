@@ -67,5 +67,35 @@ check_verification_links accepts explicit accepted requirement IDs and many-to-m
 test links, allows shared tests, and reports missing/unknown requirements,
 broken IDs and orphan tests. Its pass means link integrity only; test execution,
 verification adequacy and requirement acceptance remain separate. Human-approved
-non-test methods need scoped authenticated approval, not a name/checkbox; this
-alternative and preflight/workflow integration are still pending.
+non-test methods need scoped authenticated approval, not a name/checkbox. The
+permission record below supplies the API boundary; production host authority
+and preflight/workflow integration remain pending.
+
+## Scoped non-test permission (development branch)
+
+VerificationMethodApproval1.0 is a bounded canonical JSON statement containing
+decision=approve_method, canonical unique requirement IDs and method ID, method
+description, approver label, timezone-bearing stated date, scoped receipt path
+and ScopeSnapshot. The receipt itself must be among the hashed scoped files.
+Neither the date nor the label proves identity, trusted time or actual approval.
+
+check_method_approval defaults to unverified/gather_evidence. A dedicated
+trusted_human_approval_digests policy must come from the embedding host after
+authenticating the original human receipt through an independent channel. Keep
+that policy outside the editable agent workspace. An agent-controlled CLI flag,
+an imported approval boolean, a collection/command pin or an immediately observed
+agent file write cannot establish that human policy. The core does not implement
+an identity/signature/timestamp service. Policy removal revokes the receipt;
+changed requirements, receipt bytes, repository identity or unreadable scope
+cannot pass even with a pinned record. Ledger append preserves the statement
+with approval_trust=unverified and does not authenticate the actor.
+
+The link checker can use applicable approvals for individually named requirements
+alongside real test links. Duplicate method IDs, unknown requirements, invalid
+approvals and orphan/broken tests remain blockers. It still requires applicable
+discovery; approval does not waive an empty/disappeared inventory. The result
+only grants permission to use this scoped method. verification_status stays
+unassessed; actual execution/result/freshness are separate requirements for the
+final gate. Production host integration, preflight, gap mapping, CLI/skills and
+cross-component routing remain pending. Tests use synthetic host policies and
+receipts, never actual maintainer approval.

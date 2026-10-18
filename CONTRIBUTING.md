@@ -17,7 +17,8 @@ in its official Linux container on pull requests and main pushes. This container
 is supplemental testing; Linux, macOS, and Windows remain equally supported.
 
 Input bytes0/1 select claim JSON/Markdown;2 selects strict execution-record JSON
-and3 selects bounded JUnit parsing. Selector4 ingests test-discovery records.
+and3 selects bounded JUnit parsing. Selector4 ingests test-discovery records;
+5 ingests scoped method approval statements without authenticating them.
 Other bytes retain even/odd claim routing.
 Execution fuzzing only ingests data and never runs the recorded command. The
 remaining bytes are the selected document. Invalid input may be rejected, but accepted input must be

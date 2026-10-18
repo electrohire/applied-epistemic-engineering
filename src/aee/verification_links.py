@@ -23,6 +23,7 @@ from aee.execution_evidence import (
 )
 from aee.execution_scope import ScopeSnapshot, _file, scope_path, snapshot_scope
 from aee.extract import duplicate_key_hook
+from aee.verification_approval import VerificationMethodApproval, check_method_approval
 
 MAX_DISCOVERY_ENTRIES = 10_000
 MAX_DISCOVERY_BYTES = 8 * 1024 * 1024
@@ -149,9 +150,14 @@ class TestDiscovery:
     def from_bytes(cls, data: bytes) -> TestDiscovery:
         if not isinstance(data, bytes) or len(data) > MAX_DISCOVERY_BYTES:
             raise ValueError("discovery input must be bounded bytes")
-        return cls.from_dict(
-            json.loads(data.decode("utf-8"), object_pairs_hook=duplicate_key_hook("test discovery"))
-        )
+        try:
+            return cls.from_dict(
+                json.loads(
+                    data.decode("utf-8"), object_pairs_hook=duplicate_key_hook("test discovery")
+                )
+            )
+        except RecursionError as exc:
+            raise ValueError("test discovery nesting exceeds the parser limit") from exc
 
     def to_dict(self) -> dict[str, Any]:
         return cast(dict[str, Any], json.loads(self.canonical))
@@ -318,12 +324,14 @@ def check_verification_links(
     accepted_requirement_ids: Sequence[str],
     links: Mapping[str, Sequence[str]],
     trusted_discovery_digests: Collection[str] = (),
+    approved_methods: Sequence[VerificationMethodApproval] = (),
+    trusted_human_approval_digests: Collection[str] = (),
 ) -> dict[str, Any]:
     """Check many-to-many requirement links against actual collected identities.
 
-    Shared tests are allowed; every managed test must be linked. This initial
-    test-only route cannot grant a human verification exemption from a name or
-    checkbox. Approved non-test methods require a separate trusted policy.
+    Shared tests are allowed; every collected test must be linked. A separate
+    authenticated human policy can authorize a scoped non-test method. That is
+    permission to use a method, never evidence that it was executed or passed.
     """
     requirements = _names(accepted_requirement_ids)
     if not isinstance(links, Mapping):
@@ -333,6 +341,33 @@ def check_verification_links(
     if links:
         _names(list(links))
     checked = {key: _names(tests) for key, tests in links.items()}
+    if (
+        not isinstance(approved_methods, (list, tuple))
+        or len(approved_methods) > 10000
+        or any(not isinstance(method, VerificationMethodApproval) for method in approved_methods)
+        or sum(len(method.canonical) for method in approved_methods) > 2 * 1024 * 1024
+    ):
+        raise ValueError("approved methods must be a bounded sequence of approval records")
+    approvals = [
+        check_method_approval(
+            method,
+            root,
+            repository_id=repository_id,
+            trusted_human_approval_digests=trusted_human_approval_digests,
+        )
+        for method in approved_methods
+    ]
+    if len({method["method_id"] for method in approvals}) != len(approvals):
+        raise ValueError("duplicate verification method identity")
+    approved_requirements = {
+        identity
+        for method in approvals
+        if method["outcome"] == "pass"
+        for identity in method["requirement_ids"]
+    }
+    declared_method_requirements = {
+        identity for method in approvals for identity in method["requirement_ids"]
+    }
     result = verify_test_discovery(
         discovery,
         root,
@@ -346,11 +381,16 @@ def check_verification_links(
     actual = {test["id"] for test in result["tests"]}
     linked = {test for tests in checked.values() for test in tests}
     result.update(
-        missing_requirements=sorted(set(requirements) - set(checked)),
-        unknown_requirements=sorted(set(checked) - set(requirements)),
+        missing_requirements=sorted(set(requirements) - set(checked) - approved_requirements),
+        unknown_requirements=sorted(
+            (set(checked) | declared_method_requirements) - set(requirements)
+        ),
         broken_test_ids=sorted(linked - actual),
         orphan_test_ids=sorted(actual - linked),
+        method_approvals=approvals,
     )
+    if any(method["outcome"] != "pass" for method in approvals):
+        result["findings"].append("method_approval_not_applicable")
     for key in (
         "missing_requirements",
         "unknown_requirements",

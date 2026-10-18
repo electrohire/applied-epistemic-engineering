@@ -6,6 +6,12 @@ and [Semantic Versioning](https://semver.org/).
 ## Unreleased
 
 ### Added
+- Development scoped non-test method approvals bind canonical requirements,
+  method identity/description, source bytes and an inspectable receipt. A separate
+  host-authenticated human policy is required; names, JSON approval flags,
+  execution trust pins and ledger actor labels cannot grant authority. Permission
+  to use a method does not establish that it ran or passed. The link checker
+  retains orphan/broken/unknown requirements and tests as blockers.
 - Development receipt-backed test discovery checks managed directory membership
   and source bytes before/after explicit collection and again at ingestion. New,
   renamed, deleted or changed tests invalidate cached inventory. Strict links
