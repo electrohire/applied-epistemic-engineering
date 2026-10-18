@@ -74,7 +74,8 @@ line-length = 100
 # Vendored spec-kit extensions are verbatim copies from their home repos
 # (electrohire/spec-kit-aee, electrohire/spec-kit-evaluator), where they are
 # linted and formatted; this repo's quality gate covers its own code only.
-extend-exclude = [".specify/extensions"]
+# Spec Kit's generated framework scripts are maintained upstream, not AEE code.
+extend-exclude = [".specify/extensions", ".specify/scripts"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
