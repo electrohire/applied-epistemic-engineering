@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {
+      "id": "EC-001",
+      "text": "Versioned command execution evidence, scope snapshots and provenance",
+      "kind": "requirement",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "This repository and linked execution-control issues; no truth certification"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/spec.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "EC-002",
+      "text": "Deterministic freshness: missing/stale/untrusted/incomplete cannot pass",
+      "kind": "requirement",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "This repository and linked execution-control issues; no truth certification"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/spec.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "EC-003",
+      "text": "Strict accepted requirement-to-real-test/approved-method integrity",
+      "kind": "requirement",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "This repository and linked execution-control issues; no truth certification"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/spec.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "EC-004",
+      "text": "Scoped preflight decisions with real human authorization boundaries",
+      "kind": "requirement",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "This repository and linked execution-control issues; no truth certification"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/spec.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "EC-005",
+      "text": "Bounded status-preserving context and ledger anchors",
+      "kind": "requirement",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "This repository and linked execution-control issues; no truth certification"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/spec.md",
+      "uncertainty": "high",
+      "evidence": []
+    }
+  ]
+}

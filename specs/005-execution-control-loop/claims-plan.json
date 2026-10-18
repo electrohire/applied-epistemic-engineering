@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0",
+  "claims": [
+    {
+      "id": "PLAN-EC-001",
+      "text": "Proposed implementation plan: Versioned command execution evidence, scope snapshots and provenance",
+      "kind": "decision",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "Proposed design only; implementation/testing/human acceptance pending"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/plan.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "PLAN-EC-002",
+      "text": "Proposed implementation plan: Deterministic freshness: missing/stale/untrusted/incomplete cannot pass",
+      "kind": "decision",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "Proposed design only; implementation/testing/human acceptance pending"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/plan.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "PLAN-EC-003",
+      "text": "Proposed implementation plan: Strict accepted requirement-to-real-test/approved-method integrity",
+      "kind": "decision",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "Proposed design only; implementation/testing/human acceptance pending"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/plan.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "PLAN-EC-004",
+      "text": "Proposed implementation plan: Scoped preflight decisions with real human authorization boundaries",
+      "kind": "decision",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "Proposed design only; implementation/testing/human acceptance pending"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/plan.md",
+      "uncertainty": "high",
+      "evidence": []
+    },
+    {
+      "id": "PLAN-EC-005",
+      "text": "Proposed implementation plan: Bounded status-preserving context and ledger anchors",
+      "kind": "decision",
+      "status": "draft",
+      "stage": "created",
+      "boundary": [
+        "Proposed design only; implementation/testing/human acceptance pending"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "falsification_tests": [
+        "Adversarial/unit/integration evidence demonstrates a violation of this requirement."
+      ],
+      "source_ref": "specs/005-execution-control-loop/plan.md",
+      "uncertainty": "high",
+      "evidence": []
+    }
+  ]
+}

@@ -5,6 +5,13 @@ and [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+### Added
+- Development Python primitives for explicit scoped snapshots/freshness and
+  bounded status-preserving context with dependency/conflict closure and verified
+  ledger anchors. These do not certify execution, producer identity or correctness.
+  Full execution capture, preflight/link gates and cross-component interfaces are
+  still pending on the execution-control feature branch; no new release yet.
+
 ### Changed
 - Remove company branding from the README, documentation prose, API description,
   and documentation repository label while preserving copyright, attribution,

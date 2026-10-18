@@ -7,6 +7,7 @@ import json
 import math
 import os
 import re
+import sys
 import tempfile
 from collections.abc import Iterable
 from contextlib import contextmanager
@@ -15,10 +16,13 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-try:
-    import fcntl
-except ImportError:  # Windows
-    fcntl = None  # type: ignore[assignment]
+if sys.platform == "win32":
+    fcntl = None
+else:
+    try:
+        import fcntl
+    except ImportError:  # a non-POSIX Python without fcntl
+        fcntl = None  # type: ignore[assignment]
 
 try:
     import msvcrt

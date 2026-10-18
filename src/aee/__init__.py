@@ -6,8 +6,10 @@ Copyright (c) 2026 ElectroHire Inc.
 from aee._version import __version__ as __version__
 from aee.adapters.evaluator import EvaluatorAdapter, validate_evaluator_result
 from aee.challenge import StressTester
+from aee.context_handoff import ContextBudgetExceeded, build_context
 from aee.engine import AEEEngine, Assessment
 from aee.evidence_check import EvidenceFinding, EvidenceReport, check_evidence
+from aee.execution_scope import FreshnessReport, ScopeSnapshot, check_freshness, snapshot_scope
 from aee.gaps import GapEngine, GapEntry, GapRegister
 from aee.graph import ClaimGraph
 from aee.ledger import (
@@ -63,6 +65,7 @@ __all__ = [
     "ClaimStatus",
     "ClaimVerdict",
     "ConfidenceBand",
+    "ContextBudgetExceeded",
     "Disposition",
     "DispositionKind",
     "EvaluatorAdapter",
@@ -72,6 +75,7 @@ __all__ = [
     "EvidenceKind",
     "EvidenceReport",
     "FailureMode",
+    "FreshnessReport",
     "GapEngine",
     "GapEntry",
     "GapRegister",
@@ -88,6 +92,7 @@ __all__ = [
     "ReliabilityTable",
     "ReviewItem",
     "ReviewQueue",
+    "ScopeSnapshot",
     "ScoringEngine",
     "Severity",
     "SourceQuality",
@@ -99,11 +104,14 @@ __all__ = [
     "Verdict",
     "VerdictChange",
     "assessment_content_digest",
+    "build_context",
     "build_review_queue",
     "canonical_evidence_identity",
     "check_evidence",
+    "check_freshness",
     "normalize_claim_id",
     "normalize_source_identity",
+    "snapshot_scope",
     "source_identity",
     "validate_evaluator_result",
     "verdict_ceiling",
