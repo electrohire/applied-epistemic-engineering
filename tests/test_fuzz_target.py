@@ -25,3 +25,18 @@ def test_seed_corpus_and_deterministic_mutations() -> None:
             module.fuzz_one(bytes(candidate))
     for _ in range(100):
         module.fuzz_one(rng.randbytes(rng.randrange(128)))
+
+
+def test_execution_fuzz_ingestion_never_runs_the_recorded_command(monkeypatch) -> None:
+    import subprocess
+
+    spec = importlib.util.spec_from_file_location("bundle_target_no_execution", TARGET)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("fuzzed execution records must never launch a process")
+
+    monkeypatch.setattr(subprocess, "Popen", forbidden)
+    module.fuzz_one((TARGET.parent / "corpus/execution-json").read_bytes())

@@ -9,8 +9,8 @@
 - [ ] T003 Measure maintained-code line/branch coverage including subprocesses; record cross-platform/shell gaps without exclusions.
 
 - [x] T004 [US1] Test scoped freshness/error/forgery boundaries in tests/test_execution_scope.py then implement src/aee/execution_scope.py (45 local tests and100% module coverage recorded).
-- [ ] T005 [US1] Test explicit argv capture, exit/timeout/changed scope/log bounds/strict ingestion in tests/test_execution_evidence.py before implementing src/aee/execution_evidence.py.
-- [ ] T006 [US1] Integrate versioned execution artifacts and anchored HashChainLedger; verify actual report/test inventory and producer policy without declared-CI trust.
+- [x] T005 [US1] Test explicit argv capture, exit/timeout/changed scope/log bounds/strict ingestion in tests/test_execution_evidence.py before implementing src/aee/execution_evidence.py.
+- [ ] T006 [US1] Integrate versioned execution artifacts and anchored HashChainLedger; verify actual report/test inventory and producer policy without declared-CI trust. Core capture receipts, bounded JUnit, explicit digest policy and ledger are implemented/tested; CLI/agent/adapter provenance policy integration remains pending.
 - [ ] T007 [US2] Test requirement/test discovery, shared links, broken IDs, orphan tests and scoped human-approved methods; implement src/aee/verification_links.py and reuse gap identities.
 - [ ] T008 [US3] Test ambiguity, destructive authorization and missing/stale verification; implement src/aee/execution_preflight.py using links/evidence.
 - [x] T009 [US4] Test bounded status/stage/contradiction preservation and ledger pointers; implement src/aee/context_handoff.py.

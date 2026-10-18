@@ -1,0 +1,1 @@
+<testsuite tests="1"><properties><testcase classname="hidden" name="bad"><failure/></testcase></properties><testcase classname="test_sample" name="test_value"/></testsuite>

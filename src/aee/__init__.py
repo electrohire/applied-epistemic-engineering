@@ -9,6 +9,13 @@ from aee.challenge import StressTester
 from aee.context_handoff import ContextBudgetExceeded, build_context
 from aee.engine import AEEEngine, Assessment
 from aee.evidence_check import EvidenceFinding, EvidenceReport, check_evidence
+from aee.execution_evidence import (
+    ExecutionRecord,
+    append_execution_record,
+    capture_execution,
+    check_execution_applicability,
+)
+from aee.execution_reports import verify_test_report
 from aee.execution_scope import FreshnessReport, ScopeSnapshot, check_freshness, snapshot_scope
 from aee.gaps import GapEngine, GapEntry, GapRegister
 from aee.graph import ClaimGraph
@@ -74,6 +81,7 @@ __all__ = [
     "EvidenceFinding",
     "EvidenceKind",
     "EvidenceReport",
+    "ExecutionRecord",
     "FailureMode",
     "FreshnessReport",
     "GapEngine",
@@ -103,11 +111,14 @@ __all__ = [
     "Uncertainty",
     "Verdict",
     "VerdictChange",
+    "append_execution_record",
     "assessment_content_digest",
     "build_context",
     "build_review_queue",
     "canonical_evidence_identity",
+    "capture_execution",
     "check_evidence",
+    "check_execution_applicability",
     "check_freshness",
     "normalize_claim_id",
     "normalize_source_identity",
@@ -115,4 +126,5 @@ __all__ = [
     "source_identity",
     "validate_evaluator_result",
     "verdict_ceiling",
+    "verify_test_report",
 ]

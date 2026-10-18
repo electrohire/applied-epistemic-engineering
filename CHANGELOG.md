@@ -6,6 +6,15 @@ and [Semantic Versioning](https://semver.org/).
 ## Unreleased
 
 ### Added
+- Development execution records capture explicit argv, bounded binary logs,
+  exit/timeout/output-limit status, timestamps, scoped input hashes and fresh
+  report receipts. Imported records stay unverified by default. JUnit verification
+  requires matching receipts, unchanged scope, complete expected inventory and
+  an explicit host trust policy; a zero exit alone cannot pass. Records append to
+  the existing anchored ledger without authenticating a producer.
+- Extend the shared Atheris/portable fuzz target to strict execution-record and
+  JUnit ingestion, including malformed metadata regressions. Fuzzed commands
+  are never executed.
 - Development Python primitives for explicit scoped snapshots/freshness and
   bounded status-preserving context with dependency/conflict closure and verified
   ledger anchors. These do not certify execution, producer identity or correctness.

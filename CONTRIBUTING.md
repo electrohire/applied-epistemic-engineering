@@ -16,8 +16,10 @@ The ClusterFuzzLite workflow additionally runs coverage-guided Atheris fuzzing
 in its official Linux container on pull requests and main pushes. This container
 is supplemental testing; Linux, macOS, and Windows remain equally supported.
 
-The first input byte selects JSON (even) or Markdown (odd); the remaining bytes
-are the claim file. Invalid input may be rejected, but accepted input must be
+Input bytes0/1 select claim JSON/Markdown;2 selects strict execution-record JSON
+and3 selects bounded JUnit parsing. Other bytes retain even/odd claim routing.
+Execution fuzzing only ingests data and never runs the recorded command. The
+remaining bytes are the selected document. Invalid input may be rejected, but accepted input must be
 assessable without an unexpected exception or mutation of the original file.
 Preserve minimized crash inputs as regression tests when fixing a fuzz finding.
 
