@@ -31,3 +31,30 @@ retained. Actual collection→capture→JUnit→ledger→AEE/Evaluator evidence 
 .aee/execution-control-loop/implementation-capture-reports-03. The local verification
 is bound to the immediately observed transaction; no trusted CI or independent
 human acceptance is asserted. AEE composition remains iterate.
+
+## Discovery/link increment
+
+Current local suite:943passed,2optional axiomere skips. The five new modules have
+250focused cases,759statements and354branches, with100%line/branch coverage and
+zero exclusions in the current recorded audit. Ruff and strict Windows/Linux
+mypy pass. This is still not100%whole-repository or supported-platform coverage.
+
+Actual full-repository collection observed945test items. The self-use discovery
+and link check verifies those recorded identities under a narrow inventory
+observation requirement; it does not claim all product requirements are mapped
+or tests are adequate. Real pytest collection, byte/membership checks, process
+receipts, JUnit, anchored ledger and AEE/Evaluator ran under
+.aee/execution-control-loop/implementation-verification-links-06. All20ledger
+entries verify; composition consumes one actual result and remains iterate.
+
+Audit04 retained a real4151-character pytest ID that exposed a4096-character
+discovery bound inconsistent with execution's8192. The bound is now aligned and
+4151/8192/8193 regressions cover acceptance/refusal. Audit05 correctly stopped as
+stale when development changed scoped bytes during its execution. Audit06 ran
+against unchanged source. Prior audits are retained, not rewritten as passing.
+
+Portable fuzzing now ingests discovery records and proves recorded commands are
+not executed. Instrumented container fuzzing, real supported-platform CI, scoped
+human-approved methods, preflight, CLI/skills, shared evaluator contracts and
+extension orchestration remain pending. T007 remains open for those integration
+and approval boundaries; no release is published during baseline readiness.

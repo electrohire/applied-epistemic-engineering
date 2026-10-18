@@ -40,3 +40,4 @@ def test_execution_fuzz_ingestion_never_runs_the_recorded_command(monkeypatch) -
 
     monkeypatch.setattr(subprocess, "Popen", forbidden)
     module.fuzz_one((TARGET.parent / "corpus/execution-json").read_bytes())
+    module.fuzz_one((TARGET.parent / "corpus/test-discovery-json").read_bytes())

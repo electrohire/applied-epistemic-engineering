@@ -56,6 +56,12 @@ from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queu
 from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
 from aee.session import AEESession
 from aee.sources import normalize_source_identity, source_identity
+from aee.verification_links import (
+    TestDiscovery,
+    capture_test_discovery,
+    check_verification_links,
+    verify_test_discovery,
+)
 
 __all__ = [
     "DEFAULT_LEDGER_PATH",
@@ -108,6 +114,7 @@ __all__ = [
     "StageEvent",
     "StageEventKind",
     "StressTester",
+    "TestDiscovery",
     "Uncertainty",
     "Verdict",
     "VerdictChange",
@@ -117,14 +124,17 @@ __all__ = [
     "build_review_queue",
     "canonical_evidence_identity",
     "capture_execution",
+    "capture_test_discovery",
     "check_evidence",
     "check_execution_applicability",
     "check_freshness",
+    "check_verification_links",
     "normalize_claim_id",
     "normalize_source_identity",
     "snapshot_scope",
     "source_identity",
     "validate_evaluator_result",
     "verdict_ceiling",
+    "verify_test_discovery",
     "verify_test_report",
 ]

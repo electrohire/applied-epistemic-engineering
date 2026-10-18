@@ -50,8 +50,10 @@ def _file(root: Path, name: str) -> Path:
     current = root
     for part in PurePosixPath(name).parts:
         current = current / part
-        if current.is_symlink():
-            raise ValueError("symlinked scope components are refused")
+        if current.is_symlink() or (
+            current.exists() and getattr(current.lstat(), "st_file_attributes", 0) & 0x400
+        ):
+            raise ValueError("symlinked/reparse scope components are refused")
     resolved = current.resolve(strict=False)
     if not resolved.is_relative_to(root):
         raise ValueError("scope file escapes the project root")

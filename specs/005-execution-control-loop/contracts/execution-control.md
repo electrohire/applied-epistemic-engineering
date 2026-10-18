@@ -39,3 +39,33 @@ repeated receipts do not create identity proof or independent sources.
 Scope freshness binds explicitly included code/test/config bytes; callers must
 include relevant dependency/configuration inputs. It does not infer the complete
 runtime environment, prove inputs never changed transiently, or supply trusted time.
+
+## Receipt-backed discovery (development branch)
+
+TestDiscovery1.0 contains the actual collection ExecutionRecord, explicit managed
+directories and literal suffix policy, before/after file membership snapshots,
+and the path of its capture-bound JSON report. The report contains only
+schema_version1.0 and tests[{id,path}]. Collection must discover real test items;
+the API does not turn an agent-authored manifest into authoritative collection.
+Test IDs are opaque unique strings bounded to8192characters, matching execution
+record identities. Paths must be canonical and confined to managed source files.
+
+Verification re-walks the bounded managed tree and checks membership, hashes,
+captured input scope, actual process result and report receipt. New/orphan IDs and
+changed/renamed/deleted files cannot remain implicitly fresh. Symlink/reparse
+components, unreadable trees and unavailable post-collection membership cannot pass.
+The suffix/directory policy is explicit: other files and the runtime environment
+are not implicitly monitored. Concurrent/transient modifications still require
+caller-managed isolation; hashes alone cannot prove historical immutability.
+
+Trust pins authenticate the complete TestDiscovery digest via an independently
+established host policy or immediately observed transaction. Pinning only the inner
+command digest does not authenticate the declared directory policy. Ingestion
+does not execute commands. A collector's name or collected=true flag is not proof.
+
+check_verification_links accepts explicit accepted requirement IDs and many-to-many
+test links, allows shared tests, and reports missing/unknown requirements,
+broken IDs and orphan tests. Its pass means link integrity only; test execution,
+verification adequacy and requirement acceptance remain separate. Human-approved
+non-test methods need scoped authenticated approval, not a name/checkbox; this
+alternative and preflight/workflow integration are still pending.

@@ -6,6 +6,14 @@ and [Semantic Versioning](https://semver.org/).
 ## Unreleased
 
 ### Added
+- Development receipt-backed test discovery checks managed directory membership
+  and source bytes before/after explicit collection and again at ingestion. New,
+  renamed, deleted or changed tests invalidate cached inventory. Strict links
+  allow shared tests and flag missing requirements, unknown requirements, broken
+  test IDs and orphan tests. External host policy must authenticate the complete
+  discovery transaction; imported flags or a command digest cannot grant trust.
+  This checks link integrity, not execution, test adequacy or requirement acceptance.
+  Scoped human-approved alternatives and final workflow integration remain pending.
 - Development execution records capture explicit argv, bounded binary logs,
   exit/timeout/output-limit status, timestamps, scoped input hashes and fresh
   report receipts. Imported records stay unverified by default. JUnit verification
@@ -18,7 +26,7 @@ and [Semantic Versioning](https://semver.org/).
 - Development Python primitives for explicit scoped snapshots/freshness and
   bounded status-preserving context with dependency/conflict closure and verified
   ledger anchors. These do not certify execution, producer identity or correctness.
-  Full execution capture, preflight/link gates and cross-component interfaces are
+  Final execution integration, preflight gates and cross-component interfaces are
   still pending on the execution-control feature branch; no new release yet.
 
 ### Changed
