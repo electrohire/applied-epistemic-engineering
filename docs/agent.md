@@ -39,9 +39,10 @@ alone does not register a skill with every agent.
 ## Use through Spec Kit
 
 Ask the agent to initialize Spec Kit and install AEE for the project, preserving
-your existing work. The preferred catalog command is `specify extension add aee`
-for the project. For errors on an older installation, see the
-[troubleshooting guide](https://github.com/electrohire/spec-kit-aee/blob/main/DEVELOPMENT.md#troubleshooting-older-installations).
+your existing work. Follow the [one-time publisher catalog setup](https://github.com/electrohire/spec-kit-aee#installation),
+then use `specify extension add aee`. Current Specify releases keep the default
+community catalog discovery-only; upgrading alone does not enable installation
+by name. AEE provisions its engine and companion on first use.
 
 Spec Kit renders ten AEE skills from the adapter's command documents and four
 evaluator skills from the companion's commands into the active integration's

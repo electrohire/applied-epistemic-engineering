@@ -31,13 +31,13 @@ truth or correctness certificate; see [assurance boundaries](names-and-assurance
 
 ## Install in a Spec Kit project
 
-Install the adapter:
+First register the [ElectroHire publisher catalog](https://github.com/electrohire/spec-kit-aee#installation)
+once per project (or use an organization catalog containing AEE). The default
+community catalog is discovery-only, including in Specify 1.2.2. Then install by name:
 
 ```bash
 specify extension add aee
 ```
-
-
 
 Spec Kit's `requires.tools` metadata is informational, so the extension's runner installs its own
 dependencies on first use:
