@@ -197,3 +197,5 @@ Documentation and package metadata only. Engine behavior, scoring, and
 [1.0.2]: https://github.com/electrohire/applied-epistemic-engineering/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/electrohire/applied-epistemic-engineering/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/electrohire/applied-epistemic-engineering/releases/tag/v1.0.0
+
+- Add immutable benchmark build requests and audited exact-build release gating; preserve native CI/security controls and unpublished feature branches. No release or empirical improvement is asserted.

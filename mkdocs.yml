@@ -39,6 +39,7 @@ nav:
   - Reference:
       - Python API: api.md
       - Version policy: versioning.md
+      - Benchmarks and release gates: benchmarks.md
   - Security: security.md
 
 markdown_extensions:
