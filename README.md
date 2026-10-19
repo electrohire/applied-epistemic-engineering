@@ -221,3 +221,8 @@ repository's own Spec Kit/AEE installation.
 
 Designed and implemented by **ElectroHire Inc.** Copyright © 2026 ElectroHire Inc.
 Released under the [MIT License](LICENSE).
+
+
+## Benchmark evidence and releases
+
+[Established benchmarks and release gates](docs/benchmarks.md) explain the upstream suites, separate reliability/coding/economics findings and exact-build promotion. Current completed detector results are model-only; no AEE treatment benefit or token payback is established yet. Rebuilds queue content-bound requests; releases remain blocked without complete audited matched evidence.
