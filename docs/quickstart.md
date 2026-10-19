@@ -22,6 +22,10 @@ package yourself. Install the Spec Kit extension, which installs a compatible en
 (`applied-epistemic-engineering>=1.5.0,<2`, the latest available) and its other
 dependencies automatically on first use:
 
+First register the [ElectroHire publisher catalog](https://github.com/electrohire/spec-kit-aee#installation)
+once per project (or use an organization catalog containing AEE). The default
+community catalog is discovery-only, including in Specify 1.2.2. Then install by name:
+
 ```bash
 specify extension add aee
 ```

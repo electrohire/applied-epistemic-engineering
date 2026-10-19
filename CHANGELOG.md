@@ -5,6 +5,10 @@ and [Semantic Versioning](https://semver.org/).
 
 ## Unreleased
 
+- Document installation by name after one-time publisher catalog registration;
+  clarify that the current community catalog remains discovery-only and that
+  AEE provisions runtime dependencies on first use.
+
 ### Changed
 - Remove company branding from the README, documentation prose, API description,
   and documentation repository label while preserving copyright, attribution,
