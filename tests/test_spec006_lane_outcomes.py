@@ -583,3 +583,313 @@ def test_headline_outcomes_unchanged_on_representative_bundles() -> None:
     # Scores are the old engine's scores for these fixtures.
     assessment = AEEEngine().assess([_api_claim("R-SCORE")])
     assert assessment.scores["R-SCORE"].propagated_score == pytest.approx(0.85)
+
+
+# -- A4 basis types: every recorded act carries an explicit basis type ---------
+
+_TEST_HASH = "ab" * 32  # a SHA-256-shaped frozen-test hash (64 hex chars)
+
+
+def _verdict_args(basis: str, *, result: str = "pass", test_id: str = "AT-PC-1") -> list[str]:
+    return [
+        "--basis-type",
+        "test-verdict",
+        "--test-id",
+        test_id,
+        "--test-hash",
+        _TEST_HASH,
+        "--test-result",
+        result,
+        "--basis",
+        basis,
+    ]
+
+
+def _to_explained(bundle: Path, cid: str, explainer: str) -> None:
+    assert (
+        main(["stage", str(bundle), "--claim", cid, "--to", "checked", "--basis", "Assessed"]) == 0
+    )
+    assert (
+        main(
+            [
+                "ratify",
+                str(bundle),
+                "--claim",
+                cid,
+                "--status",
+                "supported",
+                "--basis",
+                "Evidence reviewed; the claim is ratified",
+                "--recorded-by",
+                explainer,
+            ]
+        )
+        == 0
+    )
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                cid,
+                "--to",
+                "explained",
+                "--basis",
+                "The explainer's exposition is on the claim record",
+            ]
+        )
+        == 0
+    )
+
+
+_QUOTED_PC1_BASIS = (
+    'Recorded acceptance run: "Measure p95 latency and observe a reading above 42 ms" passed'
+)
+
+
+def test_stage_accepted_via_test_verdict(tmp_path: Path) -> None:
+    # Accepted admits a recorded passing test verdict whose basis
+    # references the claim's own falsification test — no registered
+    # person required. The basis type and the run's identity are
+    # recorded on the act, in the bundle and in the ledger.
+    bundle = _positive_bundle(tmp_path)
+    ledger = tmp_path / "acts.jsonl"
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    # No --recorded-by at all: a test verdict is recorded by its
+    # runner, and its authority is the recorded run.
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--to",
+                "accepted",
+                *_verdict_args(_QUOTED_PC1_BASIS),
+                "--ledger",
+                str(ledger),
+            ]
+        )
+        == 0
+    )
+    row = _read(bundle)["claims"][0]
+    assert row["stage"] == "accepted"
+    acts = row["metadata"]["recorded_acts"]
+    # Every recorded act carries its basis type, human acts included.
+    assert [act["basis_type"] for act in acts] == ["human-act", "human-act", "test-verdict"]
+    verdict_act = acts[-1]
+    assert verdict_act["test_id"] == "AT-PC-1"
+    assert verdict_act["test_hash"] == _TEST_HASH
+    assert verdict_act["test_result"] == "pass"
+    assert verdict_act["to_stage"] == "accepted"
+    entries = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines()]
+    payload = entries[-1]["payload"]
+    assert entries[-1]["event_type"] == "stage_event"
+    assert payload["basis_type"] == "test-verdict"
+    assert payload["test_id"] == "AT-PC-1"
+    assert payload["test_hash"] == _TEST_HASH
+    assert payload["test_result"] == "pass"
+
+
+def test_stage_digested_via_test_verdict(tmp_path: Path) -> None:
+    # Digested admits the test-verdict basis too — the machinery
+    # does not hard-code a human-only path for either stage.
+    bundle = _positive_bundle(tmp_path)
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    verdict = _verdict_args(_QUOTED_PC1_BASIS)
+    assert main(["stage", str(bundle), "--claim", "PC-1", "--to", "accepted", *verdict]) == 0
+    assert main(["stage", str(bundle), "--claim", "PC-1", "--to", "digested", *verdict]) == 0
+    assert _read(bundle)["claims"][0]["stage"] == "digested"
+
+
+def test_stage_accepted_test_verdict_fail_refused(tmp_path: Path) -> None:
+    # A recorded run that failed settles nothing: exit 2, no write.
+    bundle = _positive_bundle(tmp_path)
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    before = bundle.read_bytes()
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--to",
+                "accepted",
+                *_verdict_args(_QUOTED_PC1_BASIS, result="fail"),
+            ]
+        )
+        == 2
+    )
+    assert bundle.read_bytes() == before
+
+
+def test_stage_accepted_test_verdict_bad_hash_refused(tmp_path: Path) -> None:
+    # A verdict that does not name the exact frozen test (no
+    # SHA-256 hash of it) is refused at exit 2.
+    bundle = _positive_bundle(tmp_path)
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    before = bundle.read_bytes()
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--to",
+                "accepted",
+                "--basis-type",
+                "test-verdict",
+                "--test-id",
+                "AT-PC-1",
+                "--test-hash",
+                "not-a-hash",
+                "--test-result",
+                "pass",
+                "--basis",
+                "A run happened",
+            ]
+        )
+        == 2
+    )
+    assert bundle.read_bytes() == before
+
+
+def test_stage_accepted_test_verdict_unreferenced_refused(tmp_path: Path) -> None:
+    # A passing run of a test the claim never named — and whose
+    # basis quotes none of the claim's own tests — cannot settle
+    # this claim: exit 2, no write.
+    bundle = _positive_bundle(tmp_path)
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    before = bundle.read_bytes()
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--to",
+                "accepted",
+                *_verdict_args("Some other suite passed", test_id="AT-OTHER"),
+            ]
+        )
+        == 2
+    )
+    assert bundle.read_bytes() == before
+
+
+def test_stage_accepted_test_verdict_named_in_falsification(tmp_path: Path) -> None:
+    # The other reference form: the claim's own falsification test
+    # names the acceptance test, so the recorded test-id matches
+    # it directly, with no quotation needed in the basis.
+    row = _claim_row("TV-1", "tv1", 42)
+    row["falsification_tests"] = [
+        "Acceptance test AT-TV-9: measure p95 latency and observe a reading above 42 ms"
+    ]
+    bundle = _write_bundle(tmp_path, [row])
+    _to_explained(bundle, "TV-1", EXPLAINER)
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "TV-1",
+                "--to",
+                "accepted",
+                *_verdict_args("Frozen acceptance suite run 3", test_id="AT-TV-9"),
+            ]
+        )
+        == 0
+    )
+    assert _read(bundle)["claims"][0]["stage"] == "accepted"
+
+
+def test_ratify_records_basis_type(tmp_path: Path) -> None:
+    # Ratify acts carry the basis type too: a test-verdict ratify
+    # records the test's identity and the run's result on the act.
+    bundle = _positive_bundle(tmp_path)
+    assert (
+        main(["stage", str(bundle), "--claim", "PC-1", "--to", "checked", "--basis", "Assessed"])
+        == 0
+    )
+    assert (
+        main(
+            [
+                "ratify",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--status",
+                "supported",
+                "--basis",
+                "The frozen acceptance suite passed on this artifact",
+                "--recorded-by",
+                "ci-runner",
+                "--basis-type",
+                "test-verdict",
+                "--test-id",
+                "AT-PC-1",
+                "--test-hash",
+                _TEST_HASH,
+                "--test-result",
+                "pass",
+            ]
+        )
+        == 0
+    )
+    event = _read(bundle)["claims"][0]["metadata"]["ratification_events"][-1]
+    assert event["basis_type"] == "test-verdict"
+    assert event["test_id"] == "AT-PC-1"
+    assert event["test_hash"] == _TEST_HASH
+    assert event["test_result"] == "pass"
+
+
+def test_recorded_acts_mixed_basis_paths_reach_headline_pass(tmp_path: Path) -> None:
+    # End to end with both basis types: PC-1 is accepted by a
+    # recorded test verdict, PC-2 by a named human act. With every
+    # other recorded step in place the headline outcome is pass —
+    # acceptance by test verdict is a full path, not a side door.
+    bundle = _positive_bundle(tmp_path)
+    _to_explained(bundle, "PC-1", EXPLAINERS["PC-1"])
+    _to_explained(bundle, "PC-2", EXPLAINERS["PC-2"])
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-1",
+                "--to",
+                "accepted",
+                *_verdict_args(_QUOTED_PC1_BASIS),
+            ]
+        )
+        == 0
+    )
+    assert (
+        main(
+            [
+                "stage",
+                str(bundle),
+                "--claim",
+                "PC-2",
+                "--to",
+                "accepted",
+                "--basis",
+                "Recorded human acceptance after explanation",
+                "--recorded-by",
+                EXPLAINERS["PC-2"],
+            ]
+        )
+        == 0
+    )
+    code, output = _assess_cli(tmp_path, bundle)
+    assert code == 0
+    value = _read(output)
+    assert value["outcome"] == "pass"
+    assert value["lanes"]["lane_1"]["outcome"] == "pass"

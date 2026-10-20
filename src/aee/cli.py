@@ -298,9 +298,40 @@ def build_parser() -> argparse.ArgumentParser:
     stage_cmd.add_argument(
         "--recorded-by",
         default=None,
-        help="Who records this act. Required for accepted/digested, where "
-        "the name must resolve to a person in the identity registry; "
-        "for checked it defaults to 'aee'",
+        help="Who records this act. For a human-act advance to "
+        "accepted/digested the name must resolve to a person in the "
+        "identity registry; for checked it defaults to 'aee'. A "
+        "test-verdict advance is recorded by its runner (default 'aee')",
+    )
+    stage_cmd.add_argument(
+        "--basis-type",
+        default="human-act",
+        help="The kind of basis the act rests on (Spec 006 A4, basis "
+        "types): 'human-act' (a named person's act; the default) or "
+        "'test-verdict' (a recorded run of a named, frozen acceptance "
+        "test, with --test-id, --test-hash, and --test-result). The "
+        "basis type is recorded on the act, in the bundle and in the "
+        "ledger. Accepted and digested admit either basis type",
+    )
+    stage_cmd.add_argument(
+        "--test-id",
+        default=None,
+        help="For --basis-type test-verdict: the named acceptance test "
+        "that was run (its identity in the project's test record)",
+    )
+    stage_cmd.add_argument(
+        "--test-hash",
+        default=None,
+        help="For --basis-type test-verdict: the SHA-256 (64 hex "
+        "characters) of the frozen test that was run, so the verdict "
+        "names the exact test, not just its title",
+    )
+    stage_cmd.add_argument(
+        "--test-result",
+        default=None,
+        help="For --basis-type test-verdict: the recorded run's result, "
+        "'pass' or 'fail'. Advancing to accepted or digested requires "
+        "'pass'",
     )
     stage_cmd.add_argument(
         "--identity-registry",
@@ -341,6 +372,29 @@ def build_parser() -> argparse.ArgumentParser:
         "--recorded-by",
         required=True,
         help="Who records this act; named on the ratification record",
+    )
+    ratify.add_argument(
+        "--basis-type",
+        default="human-act",
+        help="The kind of basis the act rests on (Spec 006 A4, basis "
+        "types): 'human-act' (the default) or 'test-verdict', which "
+        "also requires --test-id, --test-hash, and --test-result. "
+        "The basis type is recorded on the act",
+    )
+    ratify.add_argument(
+        "--test-id",
+        default=None,
+        help="For --basis-type test-verdict: the named acceptance test that was run",
+    )
+    ratify.add_argument(
+        "--test-hash",
+        default=None,
+        help="For --basis-type test-verdict: the SHA-256 (64 hex characters) of the frozen test",
+    )
+    ratify.add_argument(
+        "--test-result",
+        default=None,
+        help="For --basis-type test-verdict: the recorded run's result, 'pass' or 'fail'",
     )
     ratify.add_argument(
         "--ledger",
@@ -1028,6 +1082,92 @@ def _append_recorded_event(
     return ledger_path
 
 
+_BASIS_TYPES = ("human-act", "test-verdict")
+
+
+def _basis_record(args: argparse.Namespace, *, command: str) -> dict[str, Any]:
+    """Validate and build the basis-type record for a recorded act
+    (Spec 006 A4, basis types).
+
+    Every recorded act carries an explicit basis type. ``human-act``
+    is a named person's act (the default). ``test-verdict`` is a
+    recorded run of a named, frozen acceptance test: it must name
+    the test (--test-id), the exact frozen test (--test-hash, a
+    SHA-256), and the run's result (--test-result, pass or fail), so
+    the verdict in the record is inspectable — which test, which
+    version of it, and what happened when it ran. The returned dict
+    is recorded on the act, in the bundle and in the ledger alike.
+    """
+    basis_type = getattr(args, "basis_type", "human-act")
+    if basis_type not in _BASIS_TYPES:
+        valid = ", ".join(_BASIS_TYPES)
+        raise ValueError(
+            f"{command}: --basis-type value {basis_type!r} is not a "
+            f"basis type; valid basis types: {valid}"
+        )
+    record: dict[str, Any] = {"basis_type": basis_type}
+    if basis_type == "test-verdict":
+        test_id = getattr(args, "test_id", None)
+        test_hash = getattr(args, "test_hash", None)
+        test_result = getattr(args, "test_result", None)
+        if not isinstance(test_id, str) or not test_id.strip():
+            raise ValueError(
+                f"{command}: --basis-type test-verdict requires "
+                "--test-id naming the frozen acceptance test that was run"
+            )
+        if not isinstance(test_hash, str) or not re.fullmatch(
+            r"[0-9a-fA-F]{64}", test_hash.strip()
+        ):
+            raise ValueError(
+                f"{command}: --basis-type test-verdict requires "
+                "--test-hash as the frozen test's SHA-256 (64 hex "
+                f"characters); got {test_hash!r}"
+            )
+        if test_result not in {"pass", "fail"}:
+            raise ValueError(
+                f"{command}: --basis-type test-verdict requires "
+                f"--test-result 'pass' or 'fail'; got {test_result!r}"
+            )
+        record.update(
+            {
+                "test_id": test_id.strip(),
+                "test_hash": test_hash.strip().lower(),
+                "test_result": test_result,
+            }
+        )
+    return record
+
+
+def _require_test_verdict_reference(
+    claim: Claim, basis_rec: dict[str, Any], basis_text: str, *, command: str
+) -> None:
+    """A test verdict that settles a claim must be about that claim:
+    the run's test must reference one of the claim's own
+    falsification/acceptance tests — the test is named in one of
+    them, or the basis quotes one of them. A passing run of some
+    other claim's test, or of a test the claim never named, settles
+    nothing here."""
+    tests = [test for test in claim.falsification_tests if test.strip()]
+    if not tests:
+        raise ValueError(
+            f"{command}: claim {claim.id!r} carries no "
+            "falsification/acceptance test, so a test verdict has "
+            "nothing of the claim's own to reference; record the "
+            "acceptance test on the claim first, or record a human act"
+        )
+    test_id = str(basis_rec["test_id"]).lower()
+    if any(test_id in test.lower() for test in tests):
+        return
+    if any(test.strip() in basis_text for test in tests):
+        return
+    raise ValueError(
+        f"{command}: the test verdict (test {basis_rec['test_id']!r}) "
+        f"does not reference any of claim {claim.id!r}'s own "
+        "falsification/acceptance tests; name the test in one of the "
+        "claim's falsification_tests, or quote one of them in --basis"
+    )
+
+
 def _stage(args: argparse.Namespace) -> int:
     raw = _bundle_raw(args.bundle)
     registry = _registry_for(args.bundle, getattr(args, "identity_registry", None))
@@ -1044,6 +1184,7 @@ def _stage(args: argparse.Namespace) -> int:
         raise ValueError(
             "stage: --basis must not be empty; an advance without a stated basis is not auditable"
         )
+    basis_rec = _basis_record(args, command="stage")
     actor = args.recorded_by if args.recorded_by and args.recorded_by.strip() else "aee"
     if target == ClaimStage.EXPLAINED:
         # Spec 004 R1.2/R3: the explanation event is exposition
@@ -1062,58 +1203,97 @@ def _stage(args: argparse.Namespace) -> int:
                 item, registry, context=f"claim '{claim.id}' exposition evidence"
             )
     if target in {ClaimStage.ACCEPTED, ClaimStage.DIGESTED}:
-        # Acceptance and digestion are human acts: the recorded-by
-        # name must resolve to a person in the identity registry.
-        if not args.recorded_by or not args.recorded_by.strip():
-            raise ValueError(
-                f"stage: advancing claim {claim.id!r} to {target.value!r} "
-                "requires --recorded-by naming a person in the project "
-                "identity registry"
-            )
-        if registry is None:
-            raise ValueError(
-                f"stage: no identity registry is available to resolve "
-                f"--recorded-by {args.recorded_by!r}; supply a "
-                "bundle-adjacent identities.json or --identity-registry"
-            )
-        entry = registry.resolve(args.recorded_by)
-        if entry is None:
-            raise ValueError(
-                f"stage: --recorded-by {args.recorded_by!r} does not "
-                "resolve in the identity registry"
-            )
-        if entry.kind != IdentityKind.PERSON:
-            raise ValueError(
-                f"stage: --recorded-by {args.recorded_by!r} resolves to "
-                f"identity {entry.id!r} of kind {entry.kind.value!r}, not "
-                f"'person'; {target.value} is a human act and only a "
-                "named person can record it"
-            )
+        # Acceptance and digestion admit either basis type (Spec 006
+        # A4, basis types; the machinery does not hard-code a
+        # human-only path, so an acceptance model based on recorded
+        # test verdicts works with no change here):
+        # - human-act: the recorded-by name must resolve to a person
+        #   in the identity registry;
+        # - test-verdict: a recorded PASSING run of a named, frozen
+        #   acceptance test that references this claim's own
+        #   falsification/acceptance tests. The runner recording the
+        #   verdict need not be a registered person — the authority
+        #   of the act is the recorded run, not the runner.
+        if basis_rec["basis_type"] == "test-verdict":
+            if basis_rec["test_result"] != "pass":
+                raise ValueError(
+                    f"stage: a test verdict with result "
+                    f"{basis_rec['test_result']!r} cannot advance claim "
+                    f"{claim.id!r} to {target.value!r}; only a passing "
+                    "recorded run can"
+                )
+            _require_test_verdict_reference(claim, basis_rec, args.basis, command="stage")
+        else:
+            if not args.recorded_by or not args.recorded_by.strip():
+                raise ValueError(
+                    f"stage: advancing claim {claim.id!r} to {target.value!r} "
+                    "as a human act requires --recorded-by naming a person "
+                    "in the project identity registry (or record a "
+                    "test-verdict basis instead)"
+                )
+            if registry is None:
+                raise ValueError(
+                    f"stage: no identity registry is available to resolve "
+                    f"--recorded-by {args.recorded_by!r}; supply a "
+                    "bundle-adjacent identities.json or --identity-registry"
+                )
+            entry = registry.resolve(args.recorded_by)
+            if entry is None:
+                raise ValueError(
+                    f"stage: --recorded-by {args.recorded_by!r} does not "
+                    "resolve in the identity registry"
+                )
+            if entry.kind != IdentityKind.PERSON:
+                raise ValueError(
+                    f"stage: --recorded-by {args.recorded_by!r} resolves to "
+                    f"identity {entry.id!r} of kind {entry.kind.value!r}, not "
+                    f"'person'; a human act for {target.value} can only be "
+                    "recorded by a named person"
+                )
     previous = claim.stage
     timestamp = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     # Forward-only, recorded, with a basis: the model's own rule
     # (advance_stage raises ValueError — a clean exit 2 via main —
     # for a backward or stationary move).
     event = claim.advance_stage(target, author=actor, date=timestamp, basis=args.basis)
+    # The full act record, basis type included, lives on the claim so
+    # the choice of basis is visible in the bundle itself, not only
+    # in the ledger.
+    act_record: dict[str, Any] = {
+        "kind": "stage",
+        "to_stage": target.value,
+        "from_stage": previous.value,
+        "author": actor,
+        "date": timestamp,
+        "basis": args.basis,
+    }
+    act_record.update(basis_rec)
+    existing_acts = claim.metadata.get("recorded_acts")
+    acts: list[Any] = list(existing_acts) if isinstance(existing_acts, list) else []
+    acts.append(act_record)
+    claim.metadata["recorded_acts"] = acts
     _write_bundle_back(args.bundle, raw, claims)
+    stage_payload: dict[str, Any] = {
+        "claim_id": claim.id,
+        "bundle": args.bundle.as_posix(),
+        "from_stage": previous.value,
+        "to_stage": target.value,
+        "basis": args.basis,
+        "recorded_by": actor,
+        "stage_event": event.to_dict(),
+    }
+    stage_payload.update(basis_rec)
     ledger_path = _append_recorded_event(
         getattr(args, "ledger", None),
         args.bundle,
         event_type="stage_event",
-        payload={
-            "claim_id": claim.id,
-            "bundle": args.bundle.as_posix(),
-            "from_stage": previous.value,
-            "to_stage": target.value,
-            "basis": args.basis,
-            "recorded_by": actor,
-            "stage_event": event.to_dict(),
-        },
+        payload=stage_payload,
         actor=actor,
     )
     note = f"; recorded in ledger {ledger_path.as_posix()}" if ledger_path is not None else ""
     print(
-        f"stage: claim {claim.id} advanced from {previous.value} to {target.value} by {actor}{note}"
+        f"stage: claim {claim.id} advanced from {previous.value} to {target.value} by {actor} "
+        f"(basis type: {basis_rec['basis_type']}){note}"
     )
     return 0
 
@@ -1136,6 +1316,7 @@ def _ratify(args: argparse.Namespace) -> int:
         )
     if not args.recorded_by.strip():
         raise ValueError("ratify: --recorded-by must name who records this act")
+    basis_rec = _basis_record(args, command="ratify")
     if status == ClaimStatus.SUPPORTED and claim.stage == ClaimStage.CREATED:
         # Mirror of the stage table (aee.stage ALLOWED_STATUSES): at
         # stage 'created' the only reportable status is 'draft', so
@@ -1153,35 +1334,38 @@ def _ratify(args: argparse.Namespace) -> int:
     claim.status = status
     existing = claim.metadata.get("ratification_events")
     events: list[Any] = list(existing) if isinstance(existing, list) else []
-    events.append(
-        {
-            "status": status.value,
-            "previous_status": previous.value,
-            "author": args.recorded_by,
-            "date": timestamp,
-            "basis": args.basis,
-        }
-    )
+    ratify_event: dict[str, Any] = {
+        "status": status.value,
+        "previous_status": previous.value,
+        "author": args.recorded_by,
+        "date": timestamp,
+        "basis": args.basis,
+    }
+    ratify_event.update(basis_rec)
+    events.append(ratify_event)
     claim.metadata["ratification_events"] = events
     _write_bundle_back(args.bundle, raw, claims)
+    ratify_payload: dict[str, Any] = {
+        "claim_id": claim.id,
+        "bundle": args.bundle.as_posix(),
+        "from_status": previous.value,
+        "to_status": status.value,
+        "basis": args.basis,
+        "recorded_by": args.recorded_by,
+    }
+    ratify_payload.update(basis_rec)
     ledger_path = _append_recorded_event(
         getattr(args, "ledger", None),
         args.bundle,
         event_type="ratification",
-        payload={
-            "claim_id": claim.id,
-            "bundle": args.bundle.as_posix(),
-            "from_status": previous.value,
-            "to_status": status.value,
-            "basis": args.basis,
-            "recorded_by": args.recorded_by,
-        },
+        payload=ratify_payload,
         actor=args.recorded_by,
     )
     note = f"; recorded in ledger {ledger_path.as_posix()}" if ledger_path is not None else ""
     print(
         f"ratify: claim {claim.id} status changed from {previous.value} "
-        f"to {status.value} by {args.recorded_by}{note}"
+        f"to {status.value} by {args.recorded_by} "
+        f"(basis type: {basis_rec['basis_type']}){note}"
     )
     return 0
 

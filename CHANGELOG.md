@@ -32,11 +32,21 @@ and [Semantic Versioning](https://semver.org/).
   declared status. `aee stage` records a stage event with an actor,
   a basis, and a timestamp; advancing to `explained` requires
   explanation evidence by a named human, and advancing to `accepted`
-  or `digested` requires the recording person to be named in the
-  project identity registry. `aee ratify` records a status change
+  or `digested` on a human-act basis requires the recording person
+  to be named in the project identity registry. `aee ratify` records a status change
   and refuses `supported` for a claim still at stage `created`. Both
   write the bundle back atomically and append the act to the
   project's hash-chain ledger when one is present.
+- Every recorded act carries an explicit basis type (Spec 006):
+  `human-act` (a named person's act) or `test-verdict` (a recorded
+  run of a named, frozen acceptance test, with the test's identity,
+  the SHA-256 hash of the exact frozen test, and the run's result
+  recorded on the act). Advancing to `accepted` or `digested`
+  admits either basis type: a human act by a registered person, or
+  a passing test verdict that references the claim's own
+  falsification or acceptance tests. The basis type is recorded on
+  the act in the bundle and in the ledger, so the choice is visible
+  in the record.
 - `aee gate --require-lane1-pass` (Spec 006): exits 0 when lane 1
   passes, 1 when lane 1 is in the iterate family (`iterate`,
   `clarify`, `gather_evidence`, `abstain`), and 2 when lane 1 blocks

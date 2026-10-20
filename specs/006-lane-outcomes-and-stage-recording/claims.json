@@ -248,7 +248,7 @@
     },
     {
       "id": "TA-006-08",
-      "text": "The stage and ratify commands record the acts that move a claim: stage advances only forward through a recorded event with actor, basis, and timestamp, explained requires validated exposition by a named human, accepted and digested require a recorded-by name that resolves to a person in the identity registry, ratify refuses supported at stage created, both write the bundle atomically, ledger the event when a ledger is present, and refuse with exit 2 without a partial write.",
+      "text": "The stage and ratify commands record the acts that move a claim, and every recorded act carries an explicit basis type: stage advances only forward through a recorded event with actor, basis type, and timestamp, explained requires validated exposition by a named human, accepted and digested admit either a human act whose recorded-by name resolves to a person in the identity registry or a recorded passing test verdict (named frozen acceptance test, its SHA-256 hash, and the run's result recorded) that references the claim's own falsification or acceptance tests, ratify refuses supported at stage created, both write the bundle atomically, ledger the event when a ledger is present, and refuse with exit 2 without a partial write.",
       "kind": "requirement",
       "status": "draft",
       "boundary": [
@@ -269,7 +269,7 @@
       "assumptions": [],
       "alternatives": [],
       "falsification_tests": [
-        "Move a claim stage or status with either command without a recorded event, or show explained recorded without valid exposition, accepted recorded by an unregistered name, supported ratified at stage created, or a refused run leaving a changed bundle behind."
+        "Move a claim stage or status with either command without a recorded event carrying a basis type, or show explained recorded without valid exposition, accepted recorded by an unregistered name on a human act, accepted recorded on a failed or unreferenced test verdict or one missing the frozen test's identity or hash, supported ratified at stage created, or a refused run leaving a changed bundle behind."
       ],
       "uncertainty": "high",
       "severity": "high",

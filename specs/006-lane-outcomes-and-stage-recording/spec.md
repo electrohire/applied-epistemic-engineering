@@ -147,8 +147,8 @@ Two new commands make the recorded acts that the framework has always
 required, and that until now no shipped tool could perform:
 
 ```
-aee stage <bundle> --claim <id> --to <stage> --basis <text> [--recorded-by <name>] [--identity-registry <path>] [--ledger <path>]
-aee ratify <bundle> --claim <id> --status <status> --basis <text> --recorded-by <name> [--ledger <path>]
+aee stage <bundle> --claim <id> --to <stage> --basis <text> [--recorded-by <name>] [--basis-type <type>] [--test-id <id>] [--test-hash <sha256>] [--test-result <pass|fail>] [--identity-registry <path>] [--ledger <path>]
+aee ratify <bundle> --claim <id> --status <status> --basis <text> --recorded-by <name> [--basis-type <type>] [--test-id <id>] [--test-hash <sha256>] [--test-result <pass|fail>] [--ledger <path>]
 ```
 
 - `aee stage` loads the bundle strictly, advances the named claim's
@@ -177,14 +177,56 @@ Rules for `aee stage`, by target stage:
   claim is validated with the existing named-human rule against the
   project identity registry (the bundle-adjacent registry, or
   `--identity-registry`). No valid exposition, no advance.
-- `accepted` and `digested`: `--recorded-by` must name a person who
-  resolves in the identity registry. An unnamed actor, an unknown id,
-  or an id that resolves to a tool, a model, or a team is refused
-  with exit 2.
+- `accepted` and `digested`: either basis type can carry the act
+  (see "Basis types" below). As a human act, `--recorded-by` must
+  name a person who resolves in the identity registry — an unnamed
+  actor, an unknown id, or an id that resolves to a tool, a model,
+  or a team is refused with exit 2. As a test verdict, the recorded
+  run must have passed, and it must reference this claim's own
+  falsification/acceptance tests.
 
 Both commands refuse cleanly (message on stderr, exit 2) on any
 failed rule, unknown claim, or invalid value, and never partially
 write a bundle: the write happens only after every check has passed.
+
+#### Basis types (design note, 2026-10-20)
+
+Every recorded act carries an explicit **basis type**, recorded on
+the act in three places — the claim's own act record in the bundle,
+the stage/ratification event record, and the ledger entry — so the
+choice of basis is visible in the record afterwards, not just at the
+moment of the command:
+
+- `human-act` (the default): the act rests on a named person's act.
+  For `accepted` and `digested`, the name must resolve to a person
+  in the project identity registry, as above.
+- `test-verdict`: the act rests on a recorded run of a named, frozen
+  acceptance test against the artifact. The act records the test's
+  identity (`--test-id`), the exact frozen test (`--test-hash`, its
+  SHA-256), and the run's result (`--test-result`, `pass` or
+  `fail`). A verdict record missing any of the three is refused.
+
+`accepted` and `digested` deliberately admit **either** basis type:
+the machinery does not hard-code a human-only path. A test-verdict
+advance to either stage additionally requires that the run passed
+and that the verdict references the claim's own
+falsification/acceptance tests — the test is named in one of them,
+or the basis quotes one of them. A passing run of some other claim's
+test, or of a test the claim never named, settles nothing here. The
+runner who records a verdict need not be a registered person: the
+authority of the act is the recorded run, not the runner.
+
+`explained` is unchanged by the basis types: it keeps requiring
+exposition evidence by a named human, whichever basis type the act
+is recorded under — a test run cannot explain a claim.
+
+Why both paths exist: acceptance practice is moving toward
+pre-registered requirement tests passing on the delivered artifact,
+with human acts reserved for ambiguity and high-stakes gates. This
+spec does not settle which basis a given project must use for
+acceptance; it makes both recordable, inspectable, and refused under
+the same exit-2 contract, so the machinery works under either model
+without change.
 
 ### A5 — Versions and the before/after comparison
 
@@ -207,6 +249,15 @@ write a bundle: the write happens only after every check has passed.
   four of its five scores are genuinely below the threshold. The fix
   is proven by the positive control (A6), not by dressing this bundle
   up.
+- Release-gate battery (2026-10-20): the frozen-bundle comparison was
+  extended beyond this one bundle before any release — the
+  detector study's frozen assessment inputs (all five validation
+  runs) were re-scored under both engines alongside the cachetools
+  bundle, and the A6 controls were run as part of the battery. Full
+  tables and the verdict are recorded in `battery-before-after.md`:
+  headline outcomes and scores identical everywhere; the only
+  differences are the predicted lane-1 computations and the
+  methodology version string; no defects found.
 
 ### A6 — Controls
 
@@ -220,7 +271,13 @@ write a bundle: the write happens only after every check has passed.
   edit): record `checked`, ratify the status upward, record
   `explained`, and record `accepted` by a registered human. A fresh
   assessment then reaches headline `pass`. This whole path is an
-  automated test.
+  automated test. A second automated end-to-end test walks the same
+  path with the two claims accepted by different basis types — one
+  by a recorded passing test verdict, one by a named human act —
+  and also reaches headline `pass`; companion tests pin the
+  test-verdict refusals (a failed run, a verdict without the frozen
+  test's hash, and a verdict that references none of the claim's
+  own tests each exit 2 and write nothing).
 - **Negative controls.** (a) The known kill chain — a draft claim
   carrying twenty copies of one model self-report plus one human
   assertion — reaches `pass` in neither lane: duplicate evidence

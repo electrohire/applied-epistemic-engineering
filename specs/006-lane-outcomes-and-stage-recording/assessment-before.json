@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0",
   "methodology_version": "2.0",
-  "project": "spec-006",
+  "project": "project",
   "phase": "after_specify",
   "outcome": "iterate",
   "summary": "Assessed 10 claim(s); found 31 failure mode(s); 6 claim(s) below the 0.70 confidence threshold. Shared evidence: 2 supporting source(s) shared across 10 of 10 claim(s); the same evidence set supports multiple claims (FR-2.8, reporting only, no outcome effect in this phase). Draft cap: 6 draft claim(s) capped at gather_evidence/iterate (FR-2.3). Stage cap: 10 claim(s) below stage 'explained'; the outcome cannot be 'pass' (Spec 004 R1.4). Stage caps applied: 4 claim(s) reported below their author-declared status or in qualified form (Spec 004 R1.3). Not understood: 20 residual unknown(s) are recorded on this assessment (Spec 004 R5.2). Lane 1 (machine verification): outcome iterate; 4 claim(s) at or above the 0.70 threshold, 6 below. Lane 2 (human acceptance): stages by effective stage: created 10. Lane-2 lag: 10 claim(s) below explained; 4 stage-capped.",
-  "created_at": "2026-10-20T20:11:40.047176Z",
+  "created_at": "2026-10-20T20:54:13.680432Z",
   "claims": [
     {
       "id": "TA-006-01",
@@ -596,7 +596,7 @@
     },
     {
       "id": "TA-006-08",
-      "text": "The stage and ratify commands record the acts that move a claim: stage advances only forward through a recorded event with actor, basis, and timestamp, explained requires validated exposition by a named human, accepted and digested require a recorded-by name that resolves to a person in the identity registry, ratify refuses supported at stage created, both write the bundle atomically, ledger the event when a ledger is present, and refuse with exit 2 without a partial write.",
+      "text": "The stage and ratify commands record the acts that move a claim, and every recorded act carries an explicit basis type: stage advances only forward through a recorded event with actor, basis type, and timestamp, explained requires validated exposition by a named human, accepted and digested admit either a human act whose recorded-by name resolves to a person in the identity registry or a recorded passing test verdict (named frozen acceptance test, its SHA-256 hash, and the run's result recorded) that references the claim's own falsification or acceptance tests, ratify refuses supported at stage created, both write the bundle atomically, ledger the event when a ledger is present, and refuse with exit 2 without a partial write.",
       "kind": "requirement",
       "status": "draft",
       "boundary": [
@@ -620,7 +620,7 @@
       "assumptions": [],
       "alternatives": [],
       "falsification_tests": [
-        "Move a claim stage or status with either command without a recorded event, or show explained recorded without valid exposition, accepted recorded by an unregistered name, supported ratified at stage created, or a refused run leaving a changed bundle behind."
+        "Move a claim stage or status with either command without a recorded event carrying a basis type, or show explained recorded without valid exposition, accepted recorded by an unregistered name on a human act, accepted recorded on a failed or unreferenced test verdict or one missing the frozen test's identity or hash, supported ratified at stage created, or a refused run leaving a changed bundle behind."
       ],
       "uncertainty": "high",
       "severity": "high",
@@ -1371,7 +1371,7 @@
   ],
   "metadata": {
     "threshold": 0.7,
-    "input": "specs/006-lane-outcomes-and-stage-recording/claims-migrated.json",
+    "input": "claims-migrated.json",
     "ledger": {
       "mode": "disabled",
       "path": null
