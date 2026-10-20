@@ -14,6 +14,54 @@ and [Semantic Versioning](https://semver.org/).
   and documentation repository label while preserving copyright, attribution,
   and repository URLs.
 
+## [1.6.0] - 2026-10-20
+
+### Added
+
+- Lane 1 (machine verification) now has its own outcome (Spec 006).
+  It is computed from machine-checking facts only — failure records
+  and scores — and no longer copies the headline outcome. A bundle
+  whose checks all pass and whose scores all reach the threshold
+  reports lane 1 as `pass` even while its claims are still drafts or
+  early in their lifecycle; the headline still reports `iterate` for
+  that bundle, exactly as before. The assessment summary and the
+  evaluator result both carry the lane-1 outcome as its own value,
+  next to the lane-2 (human acceptance) state.
+- New commands `aee stage` and `aee ratify` (Spec 006): the recorded
+  acts that move a claim's lifecycle stage and change a claim's
+  declared status. `aee stage` records a stage event with an actor,
+  a basis, and a timestamp; advancing to `explained` requires
+  explanation evidence by a named human, and advancing to `accepted`
+  or `digested` requires the recording person to be named in the
+  project identity registry. `aee ratify` records a status change
+  and refuses `supported` for a claim still at stage `created`. Both
+  write the bundle back atomically and append the act to the
+  project's hash-chain ledger when one is present.
+- `aee gate --require-lane1-pass` (Spec 006): exits 0 when lane 1
+  passes, 1 when lane 1 is in the iterate family (`iterate`,
+  `clarify`, `gather_evidence`, `abstain`), and 2 when lane 1 blocks
+  or any integrity check refuses the file. The gate also recomputes
+  the recorded lane-1 outcome from the assessment's contents and
+  refuses a mismatch (exit 2), exactly as it already did for a
+  forged headline outcome.
+
+### Changed
+
+- `methodology_version` "2.0" → "2.1" for the lane-1 outcome above.
+  This is a reporting change only: the headline outcome and every
+  score are computed exactly as before, and the before/after
+  comparison on the frozen benchmark bundle (identical headline,
+  identical scores) is recorded in
+  `specs/006-lane-outcomes-and-stage-recording/before-after-cachetools.md`.
+
+### Fixed
+
+- The gate's empty-`not_understood` check now treats a draft-cap
+  record the way the engine's own statement generation does — as an
+  explanatory cap record, not an open item. A clean draft bundle's
+  assessment, whose statement is legitimately empty, was refused
+  (exit 2) instead of gating on its headline outcome.
+
 ## [1.5.3] - 2026-10-16
 
 ### Changed

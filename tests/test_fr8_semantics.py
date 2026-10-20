@@ -490,5 +490,8 @@ def test_threshold_is_inclusive_on_the_unrounded_score():
 
 def test_methodology_version_is_bumped():
     a = AEEEngine().assess([claim("M", [ev("a"), ev("b")])])
-    assert a.methodology_version == "2.0"
-    assert a.to_dict()["methodology_version"] == "2.0"
+    # "2.0" was the joint FR-8 + Spec 004 bump; Spec 006 bumped the
+    # methodology to "2.1" for the independently computed lane-1
+    # outcome (reporting semantics only — scores are unchanged).
+    assert a.methodology_version == "2.1"
+    assert a.to_dict()["methodology_version"] == "2.1"
