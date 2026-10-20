@@ -39,15 +39,17 @@ from aee.model import (
     EvidenceDirection,
     EvidenceKind,
     FailureMode,
+    IdentityKind,
     IdentityRegistry,
     Severity,
     SourceQuality,
     StageEvent,
     StageEventKind,
     Uncertainty,
+    normalize_claim_id,
     validate_exposition_evidence,
 )
-from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, lane_1_challenge_applies
 from aee.reliability import ReliabilityTable
 from aee.review import build_review_queue
 from aee.scoring import ClaimScore
@@ -261,6 +263,90 @@ def build_parser() -> argparse.ArgumentParser:
 
     gate = sub.add_parser("gate", help="Return a CI-friendly decision from an assessment")
     gate.add_argument("--input", type=Path, required=True)
+    gate.add_argument(
+        "--require-lane1-pass",
+        action="store_true",
+        help="Decide on lane 1 (machine verification) instead of the "
+        "headline (Spec 006 A3): exit 0 when the recomputed lane-1 "
+        "outcome is pass, 1 when it is iterate, clarify, "
+        "gather_evidence, or abstain, and 2 when it is block or any "
+        "integrity check refuses the file. All cross-checks, "
+        "including the lane-1 recomputation, run either way.",
+    )
+
+    stage_cmd = sub.add_parser(
+        "stage",
+        help="Record a stage advance event on one claim in a bundle "
+        "(Spec 006 A4): the recorded act that moves a claim's "
+        "lifecycle stage, written back atomically and appended to "
+        "the project ledger when one is present",
+    )
+    stage_cmd.add_argument("bundle", type=Path)
+    stage_cmd.add_argument("--claim", required=True, help="Claim id to advance")
+    stage_cmd.add_argument(
+        "--to",
+        required=True,
+        help="Target stage: created, checked, explained, accepted, or digested "
+        "(forward moves only; the model's recorded-event rule enforces it)",
+    )
+    stage_cmd.add_argument(
+        "--basis",
+        required=True,
+        help="The basis for the advance; recorded on the stage event (an "
+        "advance without a stated basis is not auditable and is refused)",
+    )
+    stage_cmd.add_argument(
+        "--recorded-by",
+        default=None,
+        help="Who records this act. Required for accepted/digested, where "
+        "the name must resolve to a person in the identity registry; "
+        "for checked it defaults to 'aee'",
+    )
+    stage_cmd.add_argument(
+        "--identity-registry",
+        type=Path,
+        help="Project-local identity registry JSON (default: a "
+        "bundle-adjacent identities.json beside the bundle, when present)",
+    )
+    stage_cmd.add_argument(
+        "--ledger",
+        type=Path,
+        help="Ledger to append the recorded event to (default: the "
+        f"default ledger {DEFAULT_LEDGER_PATH.as_posix()} beside the "
+        "bundle or under the working directory, when one is present)",
+    )
+
+    ratify = sub.add_parser(
+        "ratify",
+        help="Record a change to one claim's declared status in a bundle "
+        "(Spec 006 A4): the recorded act that lifts (or lowers) a "
+        "claim's author-declared posture, written back atomically and "
+        "appended to the project ledger when one is present",
+    )
+    ratify.add_argument("bundle", type=Path)
+    ratify.add_argument("--claim", required=True, help="Claim id to ratify")
+    ratify.add_argument(
+        "--status",
+        required=True,
+        help="New declared status: draft, supported, partially_supported, "
+        "unsupported, contradicted, unverifiable, or superseded. "
+        "'supported' is refused for a claim at stage 'created'",
+    )
+    ratify.add_argument(
+        "--basis",
+        required=True,
+        help="The basis for the status change; recorded with the act",
+    )
+    ratify.add_argument(
+        "--recorded-by",
+        required=True,
+        help="Who records this act; named on the ratification record",
+    )
+    ratify.add_argument(
+        "--ledger",
+        type=Path,
+        help="Ledger to append the recorded act to (same default as 'stage')",
+    )
 
     anchor = sub.add_parser(
         "anchor",
@@ -352,6 +438,10 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _priority(args)
         if args.command == "gate":
             return _gate(args)
+        if args.command == "stage":
+            return _stage(args)
+        if args.command == "ratify":
+            return _ratify(args)
         if args.command == "anchor":
             return _anchor(args)
         if args.command == "graph":
@@ -751,8 +841,349 @@ def _gate(args: argparse.Namespace) -> int:
     # finite numbers and whose digest serialisation refuses them.
     value = _load_json_strict(args.input, what="assessment")
     outcome = _gate_cross_check(value, source=args.input.as_posix())
+    if getattr(args, "require_lane1_pass", False):
+        # Spec 006 A3: the decision is lane 1's. The cross-check
+        # above has already recomputed lane 1 from the file and
+        # refused any mismatch, so this recomputation — the same
+        # pure function over the same validated contents — is the
+        # value the exit code now follows. The exit mapping is the
+        # headline's contract applied to lane 1: pass/warn 0, the
+        # iterate family (iterate, clarify, gather_evidence,
+        # abstain) 1, block 2.
+        lane_1 = _gate_lane_1_outcome(value, source=args.input.as_posix())
+        print(f"AEE gate: {outcome} (lane 1: {lane_1})")
+        return _exit_code(lane_1)
     print(f"AEE gate: {outcome}")
     return _exit_code(outcome)
+
+
+def _gate_lane_1_outcome(value: dict[str, Any], *, source: str) -> str:
+    """Recompute the lane-1 outcome from an assessment's contents
+    (Spec 006 A3), mirroring ``AEEEngine._lane_1_outcome`` over the
+    serialised record: the routing steps run over the unresolved
+    failures EXCLUDING the draft-cap records (the draft cap is
+    lane-2 state, and its records are its visible form), with no
+    draft branch and no stage rule; verdict demotion applies for
+    lane-1 reasons only (``lane_1_challenge_applies``), and an
+    ABSTAIN verdict demotes a pass to abstain. The caller
+    (_gate_cross_check) has already validated the file's structure;
+    this function reads only the validated pieces.
+    """
+    claims = value.get("claims") or []
+    scores = value.get("scores") or {}
+    metadata = value.get("metadata") or {}
+    threshold = float(metadata.get("threshold", 0.70))
+    failures: list[dict[str, Any]] = []
+    for claim in claims:
+        if isinstance(claim, dict) and isinstance(claim.get("failures"), list):
+            failures.extend(f for f in claim["failures"] if isinstance(f, dict))
+    unresolved = [
+        failure
+        for failure in failures
+        if not failure.get("resolved", False)
+        and failure.get("category") not in {"stage_cap", "verified_unexplained", "draft_cap"}
+    ]
+    below = any(
+        isinstance(score, dict)
+        and isinstance(score.get("propagated_score"), (int, float))
+        and float(score["propagated_score"]) < threshold
+        for score in scores.values()
+    )
+
+    def _severity(failure: dict[str, Any]) -> str:
+        return str(failure.get("severity", "")).lower()
+
+    def _category(failure: dict[str, Any]) -> str:
+        return str(failure.get("category", ""))
+
+    if any(_severity(failure) == "critical" for failure in unresolved):
+        recomputed = "block"
+    elif any(
+        _severity(failure) == "high" and _category(failure) == "contradiction"
+        for failure in unresolved
+    ):
+        recomputed = "clarify"
+    elif any(
+        _severity(failure) == "high"
+        and _category(failure) in {"missing_evidence", "unsupported_claim", "unverified_assertion"}
+        for failure in unresolved
+    ):
+        recomputed = "gather_evidence"
+    elif unresolved or below:
+        recomputed = "iterate"
+    else:
+        recomputed = "pass"
+    verdicts = value.get("verdicts")
+    if recomputed == "pass" and isinstance(verdicts, dict) and verdicts:
+        parsed: list[tuple[str, list[str]]] = []
+        for verdict in verdicts.values():
+            if not isinstance(verdict, dict):
+                continue
+            reasons_raw = verdict.get("reasons")
+            reasons = (
+                [str(reason) for reason in reasons_raw] if isinstance(reasons_raw, list) else []
+            )
+            parsed.append((str(verdict.get("verdict", "")).lower(), reasons))
+        if any(verdict_value == "abstain" for verdict_value, _ in parsed):
+            recomputed = "abstain"
+        elif any(
+            verdict_value == "challenge" and lane_1_challenge_applies(reasons)
+            for verdict_value, reasons in parsed
+        ):
+            recomputed = "iterate"
+    return recomputed
+
+
+# -- Spec 006 A4: recorded stage and status acts ---------------------------
+
+
+def _bundle_raw(path: Path) -> Any:
+    """The bundle file's parsed JSON, read strictly, for write-back.
+
+    Stage and ratify rewrite the bundle: the parsed top level is
+    retained so keys the commands do not own (a spec bundle's spec,
+    version, and date fields, for instance) survive the rewrite.
+    Only JSON bundles are writable — a Markdown bundle is an
+    extraction surface, not a record these commands amend.
+    """
+    if path.suffix.lower() != ".json":
+        raise ValueError(
+            f"{path.as_posix()} is not a JSON claims bundle; stage and "
+            "ratify amend JSON bundles only"
+        )
+    return _load_json_strict(path, what="bundle")
+
+
+def _registry_for(bundle: Path, explicit: Path | None) -> IdentityRegistry | None:
+    """The identity registry for a bundle: an explicit path wins;
+    otherwise a bundle-adjacent identities.json, when present — the
+    same discovery the loader performs (Spec 004 R3.2/OD-T4)."""
+    if explicit is not None:
+        return IdentityRegistry.from_path(str(explicit))
+    adjacent = bundle.parent / "identities.json"
+    if adjacent.is_file():
+        return IdentityRegistry.from_path(str(adjacent))
+    return None
+
+
+def _find_claim(claims: list[Claim], raw_id: str, *, command: str) -> Claim:
+    wanted = normalize_claim_id(raw_id)
+    matches = [claim for claim in claims if claim.id == wanted]
+    if not matches:
+        raise ValueError(f"{command}: no claim {raw_id!r} in this bundle")
+    if len(matches) > 1:
+        raise ValueError(
+            f"{command}: bundle contains duplicate claim id {wanted!r}; "
+            "refusing to amend an ambiguous record"
+        )
+    return matches[0]
+
+
+def _write_bundle_back(path: Path, raw: Any, claims: list[Claim]) -> None:
+    """Write the amended bundle atomically (temp file + rename, the
+    FR-5.2 discipline): a failed write never leaves a partial bundle
+    behind. Non-claims top-level keys are preserved from ``raw``."""
+    serialized = [claim.to_dict() for claim in claims]
+    if isinstance(raw, dict):
+        value: Any = dict(raw)
+        value["claims"] = serialized
+    elif isinstance(raw, list):
+        value = serialized
+    else:
+        value = {"schema_version": "1.0", "claims": serialized}
+    _atomic_write_text(path, _dumps(value, indent=2) + "\n")
+
+
+def _append_recorded_event(
+    explicit_ledger: Path | None,
+    bundle: Path,
+    *,
+    event_type: str,
+    payload: dict[str, Any],
+    actor: str,
+) -> Path | None:
+    """Append a recorded act to the project ledger, when one is present.
+
+    An explicit --ledger path is used as given (the append creates
+    it when absent, as the assess command's ledger is). Without one,
+    the default ledger location is used when the file already
+    exists — beside the bundle first (the bundle's own project),
+    then under the working directory: the act joins the project's
+    existing record, and no new ledger is invented for a project
+    that keeps none. Returns the ledger path used, or None when no
+    ledger was present.
+    """
+    ledger_path: Path | None = explicit_ledger
+    if ledger_path is None:
+        for candidate in (
+            bundle.parent / DEFAULT_LEDGER_PATH,
+            Path.cwd() / DEFAULT_LEDGER_PATH,
+        ):
+            if candidate.is_file():
+                ledger_path = candidate
+                break
+    if ledger_path is None:
+        return None
+    HashChainLedger(ledger_path).append(event_type, payload, actor=actor)
+    return ledger_path
+
+
+def _stage(args: argparse.Namespace) -> int:
+    raw = _bundle_raw(args.bundle)
+    registry = _registry_for(args.bundle, getattr(args, "identity_registry", None))
+    claims = load_claims(args.bundle, identity_registry=registry)
+    claim = _find_claim(claims, args.claim, command="stage")
+    try:
+        target = ClaimStage(args.to)
+    except ValueError:
+        valid = ", ".join(stage.value for stage in ClaimStage)
+        raise ValueError(
+            f"stage: --to value {args.to!r} is not a stage; valid stages: {valid}"
+        ) from None
+    if not args.basis.strip():
+        raise ValueError(
+            "stage: --basis must not be empty; an advance without a stated basis is not auditable"
+        )
+    actor = args.recorded_by if args.recorded_by and args.recorded_by.strip() else "aee"
+    if target == ClaimStage.EXPLAINED:
+        # Spec 004 R1.2/R3: the explanation event is exposition
+        # evidence by a named human. Every exposition item on the
+        # claim is validated with the existing named-human rule; no
+        # valid exposition, no advance.
+        exposition = [item for item in claim.evidence if item.kind == EvidenceKind.EXPOSITION]
+        if not exposition:
+            raise ValueError(
+                f"stage: claim {claim.id!r} cannot advance to 'explained': "
+                "it carries no exposition evidence (an explanation by a "
+                "named human, Spec 004 R3)"
+            )
+        for item in exposition:
+            validate_exposition_evidence(
+                item, registry, context=f"claim '{claim.id}' exposition evidence"
+            )
+    if target in {ClaimStage.ACCEPTED, ClaimStage.DIGESTED}:
+        # Acceptance and digestion are human acts: the recorded-by
+        # name must resolve to a person in the identity registry.
+        if not args.recorded_by or not args.recorded_by.strip():
+            raise ValueError(
+                f"stage: advancing claim {claim.id!r} to {target.value!r} "
+                "requires --recorded-by naming a person in the project "
+                "identity registry"
+            )
+        if registry is None:
+            raise ValueError(
+                f"stage: no identity registry is available to resolve "
+                f"--recorded-by {args.recorded_by!r}; supply a "
+                "bundle-adjacent identities.json or --identity-registry"
+            )
+        entry = registry.resolve(args.recorded_by)
+        if entry is None:
+            raise ValueError(
+                f"stage: --recorded-by {args.recorded_by!r} does not "
+                "resolve in the identity registry"
+            )
+        if entry.kind != IdentityKind.PERSON:
+            raise ValueError(
+                f"stage: --recorded-by {args.recorded_by!r} resolves to "
+                f"identity {entry.id!r} of kind {entry.kind.value!r}, not "
+                f"'person'; {target.value} is a human act and only a "
+                "named person can record it"
+            )
+    previous = claim.stage
+    timestamp = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    # Forward-only, recorded, with a basis: the model's own rule
+    # (advance_stage raises ValueError — a clean exit 2 via main —
+    # for a backward or stationary move).
+    event = claim.advance_stage(target, author=actor, date=timestamp, basis=args.basis)
+    _write_bundle_back(args.bundle, raw, claims)
+    ledger_path = _append_recorded_event(
+        getattr(args, "ledger", None),
+        args.bundle,
+        event_type="stage_event",
+        payload={
+            "claim_id": claim.id,
+            "bundle": args.bundle.as_posix(),
+            "from_stage": previous.value,
+            "to_stage": target.value,
+            "basis": args.basis,
+            "recorded_by": actor,
+            "stage_event": event.to_dict(),
+        },
+        actor=actor,
+    )
+    note = f"; recorded in ledger {ledger_path.as_posix()}" if ledger_path is not None else ""
+    print(
+        f"stage: claim {claim.id} advanced from {previous.value} to {target.value} by {actor}{note}"
+    )
+    return 0
+
+
+def _ratify(args: argparse.Namespace) -> int:
+    raw = _bundle_raw(args.bundle)
+    claims = load_claims(args.bundle)
+    claim = _find_claim(claims, args.claim, command="ratify")
+    try:
+        status = ClaimStatus(args.status)
+    except ValueError:
+        valid = ", ".join(member.value for member in ClaimStatus)
+        raise ValueError(
+            f"ratify: --status value {args.status!r} is not a status; valid statuses: {valid}"
+        ) from None
+    if not args.basis.strip():
+        raise ValueError(
+            "ratify: --basis must not be empty; a status change "
+            "without a stated basis is not auditable"
+        )
+    if not args.recorded_by.strip():
+        raise ValueError("ratify: --recorded-by must name who records this act")
+    if status == ClaimStatus.SUPPORTED and claim.stage == ClaimStage.CREATED:
+        # Mirror of the stage table (aee.stage ALLOWED_STATUSES): at
+        # stage 'created' the only reportable status is 'draft', so
+        # ratifying straight to 'supported' would state a settlement
+        # no recorded check has earned yet.
+        raise ValueError(
+            f"ratify: claim {claim.id!r} is at stage 'created' and "
+            "cannot be ratified to 'supported': at stage 'created' "
+            "the only reportable status is 'draft' (Spec 004 R1.3). "
+            "Record a checking event first (aee stage --to checked), "
+            "then ratify."
+        )
+    previous = claim.status
+    timestamp = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    claim.status = status
+    existing = claim.metadata.get("ratification_events")
+    events: list[Any] = list(existing) if isinstance(existing, list) else []
+    events.append(
+        {
+            "status": status.value,
+            "previous_status": previous.value,
+            "author": args.recorded_by,
+            "date": timestamp,
+            "basis": args.basis,
+        }
+    )
+    claim.metadata["ratification_events"] = events
+    _write_bundle_back(args.bundle, raw, claims)
+    ledger_path = _append_recorded_event(
+        getattr(args, "ledger", None),
+        args.bundle,
+        event_type="ratification",
+        payload={
+            "claim_id": claim.id,
+            "bundle": args.bundle.as_posix(),
+            "from_status": previous.value,
+            "to_status": status.value,
+            "basis": args.basis,
+            "recorded_by": args.recorded_by,
+        },
+        actor=args.recorded_by,
+    )
+    note = f"; recorded in ledger {ledger_path.as_posix()}" if ledger_path is not None else ""
+    print(
+        f"ratify: claim {claim.id} status changed from {previous.value} "
+        f"to {status.value} by {args.recorded_by}{note}"
+    )
+    return 0
 
 
 def _gate_not_understood_check(value: dict[str, Any], *, source: str) -> None:
@@ -776,12 +1207,20 @@ def _gate_not_understood_check(value: dict[str, Any], *, source: str) -> None:
         )
     if entries:
         return
+    # "Open items" here means the same thing the engine's own
+    # not_understood generation means (aee.engine._not_understood):
+    # the cap records — stage_cap, verified_unexplained, and the
+    # FR-2.3 draft_cap — are explanatory records the engine answers
+    # with the cap itself, not with a residual-unknowns entry, so a
+    # bundle whose only open records are draft caps legitimately
+    # carries an empty statement and must not be refused here
+    # (Spec 006 A3: the positive control is exactly that bundle).
     open_items = bool(value.get("stage_caps")) or any(
         isinstance(claim, dict)
         and any(
             isinstance(failure, dict)
             and not failure.get("resolved", False)
-            and failure.get("category") not in {"stage_cap", "verified_unexplained"}
+            and failure.get("category") not in {"stage_cap", "verified_unexplained", "draft_cap"}
             for failure in claim.get("failures", [])
             if isinstance(failure, dict)
         )
@@ -1021,6 +1460,25 @@ def _gate_cross_check(value: Any, *, source: str) -> str:
             f"gate: cross-check failed for {source}: stated outcome "
             f"{outcome!r} does not match the outcome {recomputed!r} "
             "recomputed from its scores, failures, and threshold"
+        )
+    # Spec 006 A3: the lane-1 outcome is cross-checked the same way.
+    # A file whose recorded lanes.lane_1.outcome disagrees with the
+    # lane-1 outcome recomputed from its own contents is refused
+    # exactly like a forged headline — the lane pair is part of the
+    # verdict, not decoration a file may restate at will. A file
+    # with no lanes record at all records no lane-1 outcome, which
+    # cannot match a recomputation and is refused on the same leg.
+    lanes = value.get("lanes")
+    recorded_lane_1: Any = None
+    if isinstance(lanes, dict) and isinstance(lanes.get("lane_1"), dict):
+        recorded_lane_1 = lanes["lane_1"].get("outcome")
+    lane_1_recomputed = _gate_lane_1_outcome(value, source=source)
+    if recorded_lane_1 != lane_1_recomputed:
+        raise ValueError(
+            f"gate: cross-check failed for {source}: recorded lane 1 "
+            f"outcome {recorded_lane_1!r} does not match the lane 1 "
+            f"outcome {lane_1_recomputed!r} recomputed from its "
+            "scores, failures, verdicts, and threshold (Spec 006 A3)"
         )
     _gate_ledger_check(value, metadata, source=source)
     return str(outcome)
