@@ -100,6 +100,13 @@ class EvaluatorAdapter:
                     "lane_1": assessment.lanes.get("lane_1", {}),
                     "lane_2": assessment.lanes.get("lane_2", {}),
                 },
+                # Spec 006 A2: the lane-1 outcome is forwarded as
+                # its own field, distinct from the blended headline
+                # outcome at the top of this result, so a consumer
+                # can read machine verification's verdict without
+                # unpacking the lane pair.
+                "lane_1_outcome": assessment.lanes.get("lane_1", {}).get("outcome"),
+                "headline_outcome": assessment.outcome,
                 "not_understood": list(assessment.not_understood),
                 "reported_statuses": dict(assessment.reported_statuses),
             },

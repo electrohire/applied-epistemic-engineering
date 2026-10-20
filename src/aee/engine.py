@@ -31,6 +31,7 @@ from aee.policy import (
     ClaimVerdict,
     Verdict,
     evaluate_policy,
+    lane_1_challenge_applies,
     machine_only_overrides,
     machine_only_reason,
 )
@@ -69,7 +70,10 @@ class Assessment:
     # together with Spec 004's model phases P0-P4, recorded in
     # specs/003-aee-red-team-remediation/implementation-fr8.md and
     # specs/004-framework-realignment/implementation-p4.md.
-    methodology_version: str = "2.0"
+    # "2.1" (Spec 006) adds the independently computed lane-1
+    # outcome: a reporting-semantics change only — scores and the
+    # headline outcome are computed exactly as under "2.0".
+    methodology_version: str = "2.1"
     metadata: dict[str, Any] = field(default_factory=dict)
     # Spec 004 R1.3: the per-claim status as REPORTED (capped by
     # stage) and the cap records that lowered it. The claims' own
@@ -274,6 +278,11 @@ class AEEEngine:
             ):
                 outcome = "iterate"
         not_understood = _not_understood(items, caps, failures, scores, self.threshold, metadata)
+        # Spec 006 A1: lane 1 has its own outcome, computed from
+        # lane-1 facts only (see _lane_1_outcome). It is computed
+        # here, after the policy verdicts exist, because verdicts can
+        # demote it — for lane-1 reasons only.
+        lane_1_outcome = self._lane_1_outcome(items, scores, verdicts)
         lanes = build_lanes(
             items,
             scores=scores,
@@ -285,7 +294,7 @@ class AEEEngine:
             },
             contested_attribution_ids=set(attribution_contests(items)),
             overrides=overrides,
-            outcome=outcome,
+            lane_1_outcome=lane_1_outcome,
             threshold=self.threshold,
         )
         digestion = _digestion_tracking(items, overrides)
@@ -491,23 +500,9 @@ class AEEEngine:
             # bundle as an input error (exit 2) — OD-2 implemented as
             # belt-and-braces; the owner may reverse the CLI half.
             return "block"
-        failures = outcome_failures
-        if any(failure.severity == Severity.CRITICAL for failure in failures):
-            return "block"
-        if any(
-            failure.severity == Severity.HIGH and failure.category == "contradiction"
-            for failure in failures
-        ):
-            return "clarify"
-        if any(
-            failure.severity == Severity.HIGH
-            and failure.category
-            in {"missing_evidence", "unsupported_claim", "unverified_assertion"}
-            for failure in failures
-        ):
-            return "gather_evidence"
-        if failures or any(score.propagated_score < self.threshold for score in scores.values()):
-            return "iterate"
+        routed = _route_outcome(outcome_failures, scores, self.threshold)
+        if routed is not None:
+            return routed
         if any(claim.status == ClaimStatus.DRAFT for claim in claims):
             # FR-2.3 draft cap (RT1-04): a bundle containing drafts
             # cannot pass, whatever the scores say — a draft is by
@@ -523,12 +518,97 @@ class AEEEngine:
             # Spec 004 R1.4: the bundle outcome inherits the stage
             # caps — `pass` is a settlement word, reported only when
             # every covered claim is at stage `explained` or beyond.
-            # P0 implements the conservative rule (the lane-qualified
-            # outcome form is P3/R6). Like the draft cap, this lives
-            # in the outcome layer and is reached only when nothing
-            # worse routed the outcome above.
+            # This headline rule is unchanged by Spec 006: the
+            # lane-qualified form R1.4 allows is computed separately
+            # as the lane-1 outcome (see _lane_1_outcome) and reported
+            # alongside this headline, never instead of it. Like the
+            # draft cap, this lives in the outcome layer and is
+            # reached only when nothing worse routed the outcome above.
             return "iterate"
         return "pass"
+
+    def _lane_1_outcome(
+        self,
+        claims: list[Claim],
+        scores: dict[str, ClaimScore],
+        verdicts: dict[str, ClaimVerdict] | None = None,
+    ) -> str:
+        """The lane-1 outcome (Spec 006 A1; Spec 004 R1.4/R6 lane form).
+
+        Lane 1 is machine verification, so its outcome is computed
+        from lane-1 facts only: failure records and scores, through
+        the same routing steps the headline uses (``_route_outcome``,
+        shared so the two cannot drift in the steps they share).
+        Two headline steps do NOT run here, because they are lane-2
+        (human-progress) state, not machine-checking facts:
+
+        - the FR-2.3 draft cap — a claim's declared draft status is
+          authoring state, so the draft branch is skipped and the
+          draft-cap failure records are excluded from the failure
+          set (they are the visible record of that same cap);
+        - the R1.4 stage rule — a claim's lifecycle stage is the
+          lane-2 record itself.
+
+        Policy verdicts demote lane 1 only for lane-1 reasons
+        (``aee.policy.lane_1_challenge_applies``): an ABSTAIN verdict
+        (no usable support, or model self-attestation only) is a
+        lane-1 fact and demotes a lane-1 pass to abstain; a
+        CHALLENGE demotes it to iterate only when at least one of
+        its reasons is a lane-1 reason; UNJUDGED never demotes lane
+        1 — it exists only because a claim is at stage ``created``.
+        """
+        if not claims:
+            # FR-1.1 applies per lane: an empty bundle blocks in
+            # lane 1 exactly as it blocks in the headline.
+            return "block"
+        lane_failures = [
+            failure
+            for claim in claims
+            for failure in claim.unresolved_failures
+            if failure.category not in _NON_OUTCOME_CATEGORIES and failure.category != "draft_cap"
+        ]
+        routed = _route_outcome(lane_failures, scores, self.threshold)
+        outcome = routed if routed is not None else "pass"
+        if outcome == "pass" and verdicts:
+            if any(verdict.verdict == Verdict.ABSTAIN for verdict in verdicts.values()):
+                outcome = "abstain"
+            elif any(
+                verdict.verdict == Verdict.CHALLENGE and lane_1_challenge_applies(verdict.reasons)
+                for verdict in verdicts.values()
+            ):
+                outcome = "iterate"
+        return outcome
+
+
+def _route_outcome(
+    failures: list[FailureMode],
+    scores: dict[str, ClaimScore],
+    threshold: float,
+) -> str | None:
+    """The routing steps lane 1 and the headline share (Spec 006 A1).
+
+    Returns the routed outcome, or None when no step routes — the
+    caller then applies its own remaining rules (the headline: the
+    draft cap and the stage rule; lane 1: none) before ``pass``.
+    Factored into one helper so the shared steps cannot drift apart
+    between the two outcomes.
+    """
+    if any(failure.severity == Severity.CRITICAL for failure in failures):
+        return "block"
+    if any(
+        failure.severity == Severity.HIGH and failure.category == "contradiction"
+        for failure in failures
+    ):
+        return "clarify"
+    if any(
+        failure.severity == Severity.HIGH
+        and failure.category in {"missing_evidence", "unsupported_claim", "unverified_assertion"}
+        for failure in failures
+    ):
+        return "gather_evidence"
+    if failures or any(score.propagated_score < threshold for score in scores.values()):
+        return "iterate"
+    return None
 
 
 def _shared_evidence_failures(items: list[Claim]) -> list[FailureMode]:
