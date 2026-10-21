@@ -1,0 +1,2761 @@
+{
+  "schema_version": "1.0",
+  "methodology_version": "2.0",
+  "project": "project",
+  "phase": "after_specify",
+  "outcome": "iterate",
+  "summary": "Assessed 16 claim(s); found 52 failure mode(s); 11 claim(s) below the 0.70 confidence threshold. Shared evidence: 3 supporting source(s) shared across 15 of 16 claim(s); the same evidence set supports multiple claims (FR-2.8, reporting only, no outcome effect in this phase). Draft cap: 10 draft claim(s) capped at gather_evidence/iterate (FR-2.3). Stage cap: 16 claim(s) below stage 'explained'; the outcome cannot be 'pass' (Spec 004 R1.4). Stage caps applied: 6 claim(s) reported below their author-declared status or in qualified form (Spec 004 R1.3). Not understood: 33 residual unknown(s) are recorded on this assessment (Spec 004 R5.2). Lane 1 (machine verification): outcome iterate; 5 claim(s) at or above the 0.70 threshold, 11 below. Lane 2 (human acceptance): stages by effective stage: created 16. Lane-2 lag: 16 claim(s) below explained; 6 stage-capped.",
+  "created_at": "2026-10-20T20:48:34.413462Z",
+  "claims": [
+    {
+      "id": "TA-007-01",
+      "text": "The claim model carries no acceptance mode: nothing in a bundle records whether a claim is to be accepted by a requirement test, by a named human oracle, or by a gate act, so every acceptance defaults to a recorded human act.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py Claim dataclass and Claim._FIELDS strict-load field set"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py Claim dataclass and Claim._FIELDS",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Claim fields cover text, posture, evidence, falsification tests, stage, and records of acts; no field names how the claim is to be accepted, and strict loading rejects unknown fields.",
+          "source_id": "code-read-main-8211643-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for acceptance_mode in src/aee, 2026-10-20",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Grep for acceptance_mode and 'acceptance mode' across src/aee returns zero hits.",
+          "source_id": "grep-src-aee-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show an acceptance-mode field on Claim, or an acceptance_mode value accepted by strict loading, in the current model."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r1",
+      "domain": "aee-framework",
+      "confidence": 0.8500000000000001,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-007-01-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-01",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-01-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-8211643-2026-10-20' (ref(s): src/aee/engine.py assessment record assembly and src/aee/model.py record types, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py Claim.advance_stage and recorded stage events, src/aee/model.py EvidenceKind (model.py:91-100)) is shared with claim(s) TA-007-02, TA-007-03, TA-007-04, TA-007-05 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-01-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-007-01",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-20' (ref(s): repository grep for acceptance_mode in src/aee, 2026-10-20, repository grep for test_verdict and test_hash in src/aee, 2026-10-20, repository grep for tripwire and held_out in src/aee, 2026-10-20) is shared with claim(s) TA-007-03, TA-007-04 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-01-STAGE-CAP",
+          "claim_id": "TA-007-01",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-02",
+      "text": "Stage advancement to accepted is gated on a named human for every claim alike: the framework has no recorded path by which a passing requirement test accepts a claim, even when the requirement is purely testable.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py stage machinery on main, and the Spec 006 A4 stage-command rules on branch spec006/lane-outcomes-stage-recording"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md section A4 (branch spec006/lane-outcomes-stage-recording)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "Spec 006's recorded stage command \u2014 the first shipped path for advancing a stage \u2014 requires, for accepted and digested, a --recorded-by name that resolves to a person in the identity registry; no test-verdict basis is admitted for any claim.",
+          "source_id": "spec-006-branch-read-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "src/aee/model.py Claim.advance_stage and recorded stage events",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "On main, stage moves only through recorded events whose basis is free text; nothing ties an advance to a test run, a test identity, or a verdict.",
+          "source_id": "code-read-main-8211643-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a shipped command or API by which a recorded test verdict advances a claim to accepted, on main or on the Spec 006 branch."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r4",
+      "domain": "aee-framework",
+      "confidence": 0.8945,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-007-02-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-007-02",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-007-02 may contradict TA-007-10",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-02-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-02",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-8211643-2026-10-20' (ref(s): src/aee/engine.py assessment record assembly and src/aee/model.py record types, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py Claim.advance_stage and recorded stage events, src/aee/model.py EvidenceKind (model.py:91-100)) is shared with claim(s) TA-007-01, TA-007-03, TA-007-04, TA-007-05 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-02-STAGE-CAP",
+          "claim_id": "TA-007-02",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-03",
+      "text": "A test result is not first-class evidence: the evidence kinds are observed, inferred, asserted, contradicted, unsupported, and exposition, and a claim's falsification tests are plain strings with no identity or content hash \u2014 so 'the frozen test passed' cannot be recorded in a form the engine can check against the test that was frozen.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py EvidenceKind and the Claim falsification_tests field"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py EvidenceKind (model.py:91-100)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "EvidenceKind has exactly six values \u2014 observed, inferred, asserted, contradicted, unsupported, exposition. None carries a test identity, a run record, or a verdict.",
+          "source_id": "code-read-main-8211643-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for test_verdict and test_hash in src/aee, 2026-10-20",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Grep for test_verdict, verdict_record, and test_hash across src/aee returns zero hits; falsification_tests load as a list of plain strings.",
+          "source_id": "grep-src-aee-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show an evidence kind or record type that carries a test identity and a verdict, or a content hash on a falsification test, in the current model."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r5",
+      "domain": "aee-framework",
+      "confidence": 0.8500000000000001,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-007-03-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-03",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-03-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-007-03",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-007-03 may contradict TA-007-07",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-03-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-03",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-8211643-2026-10-20' (ref(s): src/aee/engine.py assessment record assembly and src/aee/model.py record types, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py Claim.advance_stage and recorded stage events, src/aee/model.py EvidenceKind (model.py:91-100)) is shared with claim(s) TA-007-01, TA-007-02, TA-007-04, TA-007-05 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-03-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-007-03",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-20' (ref(s): repository grep for acceptance_mode in src/aee, 2026-10-20, repository grep for test_verdict and test_hash in src/aee, 2026-10-20, repository grep for tripwire and held_out in src/aee, 2026-10-20) is shared with claim(s) TA-007-01, TA-007-04 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-03-STAGE-CAP",
+          "claim_id": "TA-007-03",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-04",
+      "text": "The planning package the doctrine requires \u2014 a restatement, per-requirement acceptance modes, tripwires, a bounded-discretion envelope, and a 'does not establish' line per requirement \u2014 has no representation in a claim bundle, so none of it can be recorded, checked at a gate, or sealed in the ledger.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py bundle schema (Claim and bundle-level fields)"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/model.py Claim dataclass and Claim._FIELDS",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "No claim or bundle field carries a restatement, a tripwire set, a discretion envelope, or residual-risk lines; the bundle schema describes claims and their evidence only.",
+          "source_id": "code-read-main-8211643-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        },
+        {
+          "ref": "repository grep for tripwire and held_out in src/aee, 2026-10-20",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Grep for tripwire and held_out across src/aee returns zero hits.",
+          "source_id": "grep-src-aee-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show bundle fields carrying a restatement, a tripwire set, a discretion envelope, or per-requirement residual-risk lines in the current schema."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 0.8500000000000001,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-007-04-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-04",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-04-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-8211643-2026-10-20' (ref(s): src/aee/engine.py assessment record assembly and src/aee/model.py record types, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py Claim.advance_stage and recorded stage events, src/aee/model.py EvidenceKind (model.py:91-100)) is shared with claim(s) TA-007-01, TA-007-02, TA-007-03, TA-007-05 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-04-INDEPENDENCE-UNMODELED-2",
+          "claim_id": "TA-007-04",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'grep-src-aee-2026-10-20' (ref(s): repository grep for acceptance_mode in src/aee, 2026-10-20, repository grep for test_verdict and test_hash in src/aee, 2026-10-20, repository grep for tripwire and held_out in src/aee, 2026-10-20) is shared with claim(s) TA-007-01, TA-007-03 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-04-STAGE-CAP",
+          "claim_id": "TA-007-04",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-05",
+      "text": "Execution events have no home in the assessment record: there is no tripwire event and no assumption record, so why a run halted, and what the executor assumed along the way, cannot ride in the record a verdict ships with.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee assessment serialisation and failure/record categories on main"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/engine.py assessment record assembly and src/aee/model.py record types",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The assessment serialises claims, scores, verdicts, failure modes, dispositions, stage caps, lanes, and residual unknowns. No field records a halt event with a cause class, and no record type logs an executor assumption against a claim.",
+          "source_id": "code-read-main-8211643-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a tripwire event or an assumption record serialised in an assessment produced by the current engine."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r6",
+      "domain": "aee-framework",
+      "confidence": 0.6950000000000002,
+      "confidence_band": "medium",
+      "failures": [
+        {
+          "id": "AEE-TA-007-05-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-05",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-05-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-05",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'code-read-main-8211643-2026-10-20' (ref(s): src/aee/engine.py assessment record assembly and src/aee/model.py record types, src/aee/model.py Claim dataclass and Claim._FIELDS, src/aee/model.py Claim.advance_stage and recorded stage events, src/aee/model.py EvidenceKind (model.py:91-100)) is shared with claim(s) TA-007-01, TA-007-02, TA-007-03, TA-007-04 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-05-STAGE-CAP",
+          "claim_id": "TA-007-05",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-06",
+      "text": "Every claim in a plan bundle carries an acceptance mode \u2014 test, human_oracle, or gate \u2014 loaded strictly, and the assessment reports the mode beside the claim's stage and status.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/model.py claim model and strict loading; assessment serialisation"
+      ],
+      "depends_on": [
+        "TA-007-01"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R1, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Load a plan bundle whose claim names no acceptance mode, or an unknown one, under strict loading and show it accepted silently \u2014 or produce an assessment of a plan bundle that omits a claim's mode."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r1",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-06-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-06",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-06-NEGATION-CONFLICT-CHALLE",
+          "claim_id": "TA-007-06",
+          "challenge": "Negation conflict challenge",
+          "breakpoint": "TA-007-06 may contradict TA-007-13",
+          "severity": "medium",
+          "category": "contradiction",
+          "recovery_hint": "Confirm whether the claims share a boundary and preserve both pending review.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-06-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-06",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-06-DRAFT-CAP",
+          "claim_id": "TA-007-06",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-07",
+      "text": "A test-mode claim's acceptance test is frozen as an identified, hashed record: the planning record carries the test's identity and content hash, and any later change to the test shows up as a hash mismatch rather than passing as an edit.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "planning record on the claim; acceptance-time hash comparison"
+      ],
+      "depends_on": [
+        "TA-007-03"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R2, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Change a frozen test after the planning gate and show the change passing unnoticed \u2014 same recorded identity, no mismatch raised \u2014 in the acceptance record."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-07-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-07",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-07-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-07",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-07-DRAFT-CAP",
+          "claim_id": "TA-007-07",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-08",
+      "text": "Each frozen test is derived twice independently and proven able to fail before work begins: the planning record carries both derivations and the deliberate-violation run that turned the test red, and an unresolved divergence between the derivations blocks the planning gate.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "planning-gate validation over the planning record"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R2, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Produce a plan bundle that passed its planning gate with a single derivation, with no deliberate-violation (red) run recorded, or with an unresolved divergence between the two derivations."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 0.255625,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-08-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-08",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-08-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-08",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-08-DRAFT-CAP",
+          "claim_id": "TA-007-08",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-09",
+      "text": "Held-out acceptance checks are recorded by identity and hash only in every executor-visible record; their contents are not serialised into anything the executor can read before acceptance, and at acceptance they run and their verdicts join the record.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "planning record serialisation; acceptance run assembly"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R2 and R6, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a held-out check's contents in any bundle, plan, or log an executor reads before acceptance \u2014 or produce an acceptance record for a bundle whose held-out checks never ran and were never reported missing."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r2",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-09-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-09",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-09-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-09",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-09-DRAFT-CAP",
+          "claim_id": "TA-007-09",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-10",
+      "text": "The stage names are re-anchored to the doctrine's definitions \u2014 checked means a frozen test exists and has been shown able to fail, explained means the restatement was approved, accepted means the acceptance the plan assigned has happened \u2014 and an assessment reports any claim whose stage was advanced on another basis as a defect.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "stage-advance rules and assessment cross-checks (Spec 006 A3/A4 machinery, extended)"
+      ],
+      "depends_on": [
+        "TA-007-06",
+        "TA-007-07"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R4, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Advance a claim to checked with no frozen able-to-fail test, or to accepted with neither a passing frozen-test verdict (test mode) nor the assigned oracle or gate act, and show the assessment reporting it without a defect."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r4",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-10-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-10",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-10-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-10",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-11, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-10-DRAFT-CAP",
+          "claim_id": "TA-007-10",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-11",
+      "text": "A recorded act whose basis type is a test verdict \u2014 naming the frozen test's identity and hash, the run record, and the delivered artifact's identity \u2014 advances a test-mode claim to accepted; a test verdict never advances a human_oracle or gate claim.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "recorded-act machinery (Spec 006 A4 basis-typed acts, extended); identity registry validation"
+      ],
+      "depends_on": [
+        "TA-007-06",
+        "TA-007-07",
+        "TA-007-02"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R4 and R5, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Advance a human_oracle or gate claim to accepted on a test-verdict act, or a test-mode claim on a verdict whose test hash does not match the frozen hash, and show either recorded without refusal."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r4",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-11-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-11",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-11-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-11",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-12, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-11-DRAFT-CAP",
+          "claim_id": "TA-007-11",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-12",
+      "text": "Tripwire halts are first-class records: when execution halts, the assessment record carries the tripwire event with its class from the shared halt taxonomy \u2014 a premise, equipment, or integrity fault halts everything, while a model's own scored outcome ends only its own run \u2014 and no assessment produced after a tripwire halt reports a pass.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "assessment record assembly; outcome logic guard"
+      ],
+      "depends_on": [
+        "TA-007-05"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R3 and R6, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Halt an execution on a premise tripwire and show the resulting assessment reporting pass, or carrying no tripwire event."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r3",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-12-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-12",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-12-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-12",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-13, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-12-DRAFT-CAP",
+          "claim_id": "TA-007-12",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-13",
+      "text": "Every assumption the executor makes inside its discretion envelope is logged as a record on the affected claim, and an assumption that would change a test's outcome is treated as a tripwire halt, never as discretion.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "assumption record type; execution-time recording path"
+      ],
+      "depends_on": [
+        "TA-007-05"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R3, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Run an execution in which the executor records an outcome-changing assumption and continues without a tripwire halt, with the framework raising no defect."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r3",
+      "domain": "aee-framework",
+      "confidence": 0.255625,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-13-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-13",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-13-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-13",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-14, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-13-DRAFT-CAP",
+          "claim_id": "TA-007-13",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-14",
+      "text": "The acceptance report is a pair \u2014 what the tests established, and every requirement's 'does not establish' line carried verbatim from the plan \u2014 and a report missing the second half is flagged the way a missing residual-unknowns statement already is.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "acceptance report assembly; completeness checks (Spec 004 R5.3 precedent)"
+      ],
+      "depends_on": [
+        "TA-007-04"
+      ],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R6, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Produce an acceptance report that omits a requirement's 'does not establish' line and show it passing the framework's own completeness checks unflagged."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r6",
+      "domain": "aee-framework",
+      "confidence": 0.3806250000000001,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-14-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-14",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-14-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-14",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-15 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-14-DRAFT-CAP",
+          "claim_id": "TA-007-14",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-15",
+      "text": "Frozen things change only by amendment: a change to a frozen test, an acceptance mode, or a tripwire mid-execution is recorded only as a superseding amendment with its own approval act \u2014 never as an edit to the frozen record \u2014 and plan records carry their proportionality tier and, where used, the exploration-phase marker whose deliverable is a specification.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "bundle amendment/supersession records; plan-record fields"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/007-autonomous-execution-doctrine/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 007 R3 and R7, which this claim commits to test.",
+          "source_id": "spec-007-autonomous-execution-doctrine",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Edit a frozen test in place mid-execution and show the record accepting it without an amendment \u2014 or show a light-tier plan whose gate-mode requirement lost its human gate."
+      ],
+      "uncertainty": "high",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md#r3",
+      "domain": "aee-framework",
+      "confidence": 0.33062500000000006,
+      "confidence_band": "low",
+      "failures": [
+        {
+          "id": "AEE-TA-007-15-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-15",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-15-INDEPENDENCE-UNMODELED",
+          "claim_id": "TA-007-15",
+          "challenge": "Shared-evidence independence challenge",
+          "breakpoint": "Supporting evidence 'spec-007-autonomous-execution-doctrine' (ref(s): specs/007-autonomous-execution-doctrine/spec.md) is shared with claim(s) TA-007-06, TA-007-07, TA-007-08, TA-007-09, TA-007-10, TA-007-11, TA-007-12, TA-007-13, TA-007-14 and no independence is declared for it; the same evidence may be counted as independent corroboration in each claim",
+          "severity": "medium",
+          "category": "independence_unmodeled",
+          "recovery_hint": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-15-DRAFT-CAP",
+          "claim_id": "TA-007-15",
+          "challenge": "Draft outcome cap",
+          "breakpoint": "Claim status is draft: the assessment outcome is capped at gather_evidence/iterate and policy verdicts below accept regardless of score (Spec 003 FR-2.3); a human ratification (status change) lifts the cap",
+          "severity": "low",
+          "category": "draft_cap",
+          "recovery_hint": "Ratify the claim (change its status from draft) to lift the cap.",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    },
+    {
+      "id": "TA-007-16",
+      "text": "The autonomous-execution doctrine \u2014 work planned in full, approved once, then executed without intervention \u2014 was adopted by the owner on 2026-10-20, this spec is its formal write-up in the framework's spec system, and it is sequenced after Spec 006.",
+      "kind": "decision",
+      "status": "supported",
+      "boundary": [
+        "owner directive of 2026-10-20 in the AEE program chat; sequencing against Spec 006's branch"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "owner directive, AEE program chat, 2026-10-20",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "The owner adopted doctrine v2 and directed that the in-flight work be steered to it and that it be written up as a spec; Spec 006 (lane outcomes and stage recording) is the first implementation piece and this spec follows it.",
+          "source_id": "owner-directive-2026-10-20",
+          "independent_of": [],
+          "observed_at": null,
+          "content_hash": null
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show an owner directive superseding or withdrawing the 2026-10-20 adoption of the doctrine."
+      ],
+      "uncertainty": "low",
+      "severity": "medium",
+      "source_ref": "specs/007-autonomous-execution-doctrine/spec.md",
+      "domain": "aee-framework",
+      "confidence": 0.7725,
+      "confidence_band": "high",
+      "failures": [
+        {
+          "id": "AEE-TA-007-16-IRREDUCIBILITY-CHALLENGE",
+          "claim_id": "TA-007-16",
+          "challenge": "Irreducibility challenge",
+          "breakpoint": "Claim may contain multiple independently falsifiable propositions",
+          "severity": "medium",
+          "category": "coverage_gap",
+          "recovery_hint": "Split the claim into atomic propositions and link them explicitly.",
+          "resolved": false,
+          "disposition": null
+        },
+        {
+          "id": "AEE-TA-007-16-STAGE-CAP",
+          "claim_id": "TA-007-16",
+          "challenge": "Stage cap",
+          "breakpoint": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged); the cap lifts with a recorded checking event (an assessment run recorded as a stage event) (Spec 004 R1.3)",
+          "severity": "low",
+          "category": "stage_cap",
+          "recovery_hint": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+          "resolved": false,
+          "disposition": null
+        }
+      ],
+      "metadata": {},
+      "dispositions": [],
+      "stage": "created",
+      "stage_events": [],
+      "headline": false,
+      "role": null
+    }
+  ],
+  "scores": {
+    "TA-007-01": {
+      "claim_id": "TA-007-01",
+      "direct_score": 0.8500000000000001,
+      "propagated_score": 0.8500000000000001,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'src/aee/model.py Claim dataclass and Claim._FIELDS strict-load field set' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 2 unknown of 2 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    },
+    "TA-007-02": {
+      "claim_id": "TA-007-02",
+      "direct_score": 0.8945,
+      "propagated_score": 0.8945,
+      "band": "high",
+      "components": {
+        "evidence": 0.99,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 2 unknown of 2 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    },
+    "TA-007-03": {
+      "claim_id": "TA-007-03",
+      "direct_score": 0.8500000000000001,
+      "propagated_score": 0.8500000000000001,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'src/aee/model.py EvidenceKind and the Claim falsification_tests field' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 2 unknown of 2 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    },
+    "TA-007-04": {
+      "claim_id": "TA-007-04",
+      "direct_score": 0.8500000000000001,
+      "propagated_score": 0.8500000000000001,
+      "band": "high",
+      "components": {
+        "evidence": 1.0,
+        "independence": 1.0,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'src/aee/model.py bundle schema (Claim and bundle-level fields)' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 2 unknown of 2 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    },
+    "TA-007-05": {
+      "claim_id": "TA-007-05",
+      "direct_score": 0.6950000000000002,
+      "propagated_score": 0.6950000000000002,
+      "band": "medium",
+      "components": {
+        "evidence": 0.9,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'src/aee assessment serialisation and failure/record categories on main' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    },
+    "TA-007-06": {
+      "claim_id": "TA-007-06",
+      "direct_score": 0.33062500000000006,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'src/aee/model.py claim model and strict loading; assessment serialisation' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-07": {
+      "claim_id": "TA-007-07",
+      "direct_score": 0.33062500000000006,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'planning record on the claim; acceptance-time hash comparison' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-08": {
+      "claim_id": "TA-007-08",
+      "direct_score": 0.255625,
+      "propagated_score": 0.255625,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 0.5,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Falsification test 'Produce a plan bundle that passed its planning gate with a single derivation, with no deliberate-violation (red) run recorded, or with an unresolved divergence between the two derivations.' earns partial credit (FR-8.7): failed criteria: no checkable condition (no numeric bound, comparator, or observation/action term)",
+        "Boundary entry 'planning-gate validation over the planning record' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-09": {
+      "claim_id": "TA-007-09",
+      "direct_score": 0.33062500000000006,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'planning record serialisation; acceptance run assembly' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-10": {
+      "claim_id": "TA-007-10",
+      "direct_score": 0.3806250000000001,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Capped by weakest dependency at 0.331"
+      ]
+    },
+    "TA-007-11": {
+      "claim_id": "TA-007-11",
+      "direct_score": 0.3806250000000001,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Capped by weakest dependency at 0.331"
+      ]
+    },
+    "TA-007-12": {
+      "claim_id": "TA-007-12",
+      "direct_score": 0.33062500000000006,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "high",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'assessment record assembly; outcome logic guard' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-13": {
+      "claim_id": "TA-007-13",
+      "direct_score": 0.255625,
+      "propagated_score": 0.255625,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 0.5,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Falsification test 'Run an execution in which the executor records an outcome-changing assumption and continues without a tripwire halt, with the framework raising no defect.' earns partial credit (FR-8.7): failed criteria: no checkable condition (no numeric bound, comparator, or observation/action term)",
+        "Boundary entry 'assumption record type; execution-time recording path' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-14": {
+      "claim_id": "TA-007-14",
+      "direct_score": 0.3806250000000001,
+      "propagated_score": 0.3806250000000001,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-15": {
+      "claim_id": "TA-007-15",
+      "direct_score": 0.33062500000000006,
+      "propagated_score": 0.33062500000000006,
+      "band": "low",
+      "components": {
+        "evidence": 0.23750000000000004,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 0.5,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "draft",
+        "uncertainty": "high",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "No observed supporting evidence",
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Boundary entry 'bundle amendment/supersession records; plan-record fields' earns partial credit (FR-8.7): failed criteria: names no scope or limit (no scope term or numeric bound)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)"
+      ]
+    },
+    "TA-007-16": {
+      "claim_id": "TA-007-16",
+      "direct_score": 0.7725,
+      "propagated_score": 0.7725,
+      "band": "high",
+      "components": {
+        "evidence": 0.95,
+        "independence": 0.5,
+        "falsifiability": 1.0,
+        "boundary": 1.0,
+        "contradiction_penalty": 0
+      },
+      "declared_state": {
+        "status": "supported",
+        "uncertainty": "low",
+        "severity": "medium",
+        "conflicts_with": []
+      },
+      "propagation": {
+        "status": "propagated",
+        "cycle_component": []
+      },
+      "notes": [
+        "Fewer than two independent supporting sources",
+        "Independence basis: inferred-from-references (distinct references counted as independent; may overstate independence when references share an origin)",
+        "Freshness penalty 0.100 on the supporting set: 0 fresh, 0 recent, 0 stale, 1 unknown of 1 item(s); unknown freshness counts as stale (FR-8.6)",
+        "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+      ]
+    }
+  },
+  "verdicts": {},
+  "recoveries": [
+    {
+      "failure_id": "AEE-TA-007-01-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-01-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-007-01",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-01-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-01",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-02-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-02",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-02-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-007-02",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-007-03-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-03",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-03-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-007-03",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-03-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-03",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-03-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-007-03",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-007-04-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-04-INDEPENDENCE-UNMODELED-2",
+      "claim_id": "TA-007-04",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-04-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-04",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-05-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-05",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-05-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-05",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-06-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-06",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-06-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-06",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-06-NEGATION-CONFLICT-CHALLE",
+      "claim_id": "TA-007-06",
+      "strategy": "resolve_contradiction",
+      "action": "Confirm whether the claims share a boundary and preserve both pending review.",
+      "priority": 3,
+      "verification": "Both positions remain recorded; discriminating evidence resolves or scopes them."
+    },
+    {
+      "failure_id": "AEE-TA-007-07-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-07",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-07-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-07",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-08-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-08",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-08-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-08",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-09-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-09",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-09-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-09",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-10-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-10",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-10-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-10",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-11-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-11",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-11-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-11",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-12-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-12",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-12-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-12",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-13-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-13",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-13-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-13",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-14-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-14",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-14-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-14",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-15-INDEPENDENCE-UNMODELED",
+      "claim_id": "TA-007-15",
+      "strategy": "clarify",
+      "action": "Declare independent_of between the evidence items, or record that the corroboration is shared.",
+      "priority": 3,
+      "verification": "Independence between the shared evidence items is declared, or the shared corroboration is recorded as shared."
+    },
+    {
+      "failure_id": "AEE-TA-007-15-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-15",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-16-IRREDUCIBILITY-CHALLENGE",
+      "claim_id": "TA-007-16",
+      "strategy": "decompose",
+      "action": "Split the claim into atomic propositions and link them explicitly.",
+      "priority": 3,
+      "verification": "Every resulting claim contains one independently falsifiable proposition."
+    },
+    {
+      "failure_id": "AEE-TA-007-01-STAGE-CAP",
+      "claim_id": "TA-007-01",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-02-STAGE-CAP",
+      "claim_id": "TA-007-02",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-03-STAGE-CAP",
+      "claim_id": "TA-007-03",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-04-STAGE-CAP",
+      "claim_id": "TA-007-04",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-05-STAGE-CAP",
+      "claim_id": "TA-007-05",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-06-DRAFT-CAP",
+      "claim_id": "TA-007-06",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-07-DRAFT-CAP",
+      "claim_id": "TA-007-07",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-08-DRAFT-CAP",
+      "claim_id": "TA-007-08",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-09-DRAFT-CAP",
+      "claim_id": "TA-007-09",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-10-DRAFT-CAP",
+      "claim_id": "TA-007-10",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-11-DRAFT-CAP",
+      "claim_id": "TA-007-11",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-12-DRAFT-CAP",
+      "claim_id": "TA-007-12",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-13-DRAFT-CAP",
+      "claim_id": "TA-007-13",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-14-DRAFT-CAP",
+      "claim_id": "TA-007-14",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-15-DRAFT-CAP",
+      "claim_id": "TA-007-15",
+      "strategy": "define_falsifier",
+      "action": "Ratify the claim (change its status from draft) to lift the cap.",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    },
+    {
+      "failure_id": "AEE-TA-007-16-STAGE-CAP",
+      "claim_id": "TA-007-16",
+      "strategy": "define_falsifier",
+      "action": "Record the stage event that lifts the cap: a recorded checking event (an assessment run recorded as a stage event).",
+      "priority": 4,
+      "verification": "A concrete observation that would refute the claim is documented."
+    }
+  ],
+  "metadata": {
+    "threshold": 0.7,
+    "input": "claims-migrated.json",
+    "ledger": {
+      "mode": "disabled",
+      "path": null
+    },
+    "engine_version": "1.5.3"
+  },
+  "reported_statuses": {
+    "TA-007-01": "draft",
+    "TA-007-02": "draft",
+    "TA-007-03": "draft",
+    "TA-007-04": "draft",
+    "TA-007-05": "draft",
+    "TA-007-06": "draft",
+    "TA-007-07": "draft",
+    "TA-007-08": "draft",
+    "TA-007-09": "draft",
+    "TA-007-10": "draft",
+    "TA-007-11": "draft",
+    "TA-007-12": "draft",
+    "TA-007-13": "draft",
+    "TA-007-14": "draft",
+    "TA-007-15": "draft",
+    "TA-007-16": "draft"
+  },
+  "stage_caps": [
+    {
+      "claim_id": "TA-007-01",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    },
+    {
+      "claim_id": "TA-007-02",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    },
+    {
+      "claim_id": "TA-007-03",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    },
+    {
+      "claim_id": "TA-007-04",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    },
+    {
+      "claim_id": "TA-007-05",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    },
+    {
+      "claim_id": "TA-007-16",
+      "stage": "created",
+      "author_status": "supported",
+      "reported_status": "draft",
+      "verdict_ceiling": "unjudged",
+      "qualified_supported": false,
+      "note": "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+      "lifting_event": "a recorded checking event (an assessment run recorded as a stage event)"
+    }
+  ],
+  "not_understood": [
+    "TA-007-01: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-02: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-03: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-04: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-05: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-16: Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)",
+    "TA-007-01: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-02: open challenges this assessment does not resolve: contradiction, independence_unmodeled.",
+    "TA-007-03: open challenges this assessment does not resolve: contradiction, coverage_gap, independence_unmodeled.",
+    "TA-007-04: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-05: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-05: propagated score 0.695 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-06: open challenges this assessment does not resolve: contradiction, coverage_gap, independence_unmodeled.",
+    "TA-007-06: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-07: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-07: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-08: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-08: propagated score 0.256 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-09: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-09: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-10: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-10: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-11: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-11: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-12: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-12: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-13: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-13: propagated score 0.256 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-14: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-14: propagated score 0.381 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-15: open challenges this assessment does not resolve: coverage_gap, independence_unmodeled.",
+    "TA-007-15: propagated score 0.331 is below the 0.70 threshold - the claim is not established by its evidence as recorded.",
+    "TA-007-16: open challenges this assessment does not resolve: coverage_gap."
+  ],
+  "lanes": {
+    "lane_1": {
+      "label": "machine verification",
+      "outcome": "iterate",
+      "threshold": 0.7,
+      "claims_at_or_above_threshold": 5,
+      "claims_below_threshold": 11
+    },
+    "lane_2": {
+      "label": "human acceptance",
+      "stage_counts": {
+        "created": 16,
+        "checked": 0,
+        "explained": 0,
+        "accepted": 0,
+        "digested": 0
+      },
+      "claims_below_explained": 16,
+      "exposition_covered_claims": 0,
+      "exposition_missing_claims": 16,
+      "verified_unexplained_claims": 0,
+      "stage_capped_claims": 6,
+      "attribution_contested_claims": 0
+    },
+    "per_claim": {
+      "TA-007-01": {
+        "lane_1": {
+          "score": 0.8500000000000001,
+          "direct_score": 0.8500000000000001,
+          "author_status": "supported",
+          "at_or_above_threshold": true
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-02": {
+        "lane_1": {
+          "score": 0.8945,
+          "direct_score": 0.8945,
+          "author_status": "supported",
+          "at_or_above_threshold": true
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-03": {
+        "lane_1": {
+          "score": 0.8500000000000001,
+          "direct_score": 0.8500000000000001,
+          "author_status": "supported",
+          "at_or_above_threshold": true
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-04": {
+        "lane_1": {
+          "score": 0.8500000000000001,
+          "direct_score": 0.8500000000000001,
+          "author_status": "supported",
+          "at_or_above_threshold": true
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-05": {
+        "lane_1": {
+          "score": 0.6950000000000002,
+          "direct_score": 0.6950000000000002,
+          "author_status": "supported",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-06": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.33062500000000006,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-07": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.33062500000000006,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-08": {
+        "lane_1": {
+          "score": 0.255625,
+          "direct_score": 0.255625,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-09": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.33062500000000006,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-10": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.3806250000000001,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-11": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.3806250000000001,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-12": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.33062500000000006,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-13": {
+        "lane_1": {
+          "score": 0.255625,
+          "direct_score": 0.255625,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-14": {
+        "lane_1": {
+          "score": 0.3806250000000001,
+          "direct_score": 0.3806250000000001,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-15": {
+        "lane_1": {
+          "score": 0.33062500000000006,
+          "direct_score": 0.33062500000000006,
+          "author_status": "draft",
+          "at_or_above_threshold": false
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": false,
+          "cap_reasons": [],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      },
+      "TA-007-16": {
+        "lane_1": {
+          "score": 0.7725,
+          "direct_score": 0.7725,
+          "author_status": "supported",
+          "at_or_above_threshold": true
+        },
+        "lane_2": {
+          "stage": "created",
+          "stored_stage": "created",
+          "stage_capped": true,
+          "cap_reasons": [
+            "Stage cap (Spec 004 R1.3): claim at stage 'created' may not report status 'supported'; reported as 'draft' (policy verdict ceiling: unjudged)"
+          ],
+          "exposition": false,
+          "explainers": [],
+          "verified_unexplained": false,
+          "attribution_contested": false
+        }
+      }
+    }
+  },
+  "digestion": {
+    "TA-007-01": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-02": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-03": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-04": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-05": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-06": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-07": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-08": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-09": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-10": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-11": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-12": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-13": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-14": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-15": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    },
+    "TA-007-16": {
+      "stage": "created",
+      "exposition_present": false,
+      "explainers": []
+    }
+  }
+}
