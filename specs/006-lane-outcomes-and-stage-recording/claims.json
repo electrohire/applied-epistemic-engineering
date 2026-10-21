@@ -1,0 +1,340 @@
+{
+  "spec": "006-lane-outcomes-and-stage-recording",
+  "schema_version": "1.0",
+  "version": "0.1.0",
+  "date": "2026-10-20",
+  "claims": [
+    {
+      "id": "TA-006-01",
+      "text": "The lane-1 outcome reported in an assessment is a copy of the headline outcome, passed in as a finished value; no code computes a lane-1 outcome from lane-1 facts.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/lanes.py build_lanes and its single call site in src/aee/engine.py on main at 8211643"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/lanes.py build_lanes (outcome parameter)",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "build_lanes receives outcome as a parameter and places it verbatim at lanes.lane_1.outcome; per-claim lane-1 score facts exist but no lane-1 outcome logic exists.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        },
+        {
+          "ref": "src/aee/engine.py assess call to build_lanes",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "The engine calls build_lanes with outcome set to the already-demoted headline outcome, so lane 1 can never differ from the headline.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show code that computes a lane-1 outcome from failures and scores separately from the headline outcome."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a1",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-02",
+      "text": "A bundle whose machine checking is fully clean still cannot reach headline pass while any claim is a draft or below the explained stage, because the outcome logic routes both states to iterate after every machine check has passed.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/engine.py AEEEngine._outcome decision steps on main at 8211643"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/engine.py _outcome draft and stage steps",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "After the failure and score steps, any draft claim returns iterate (the draft cap), and any claim below stage explained returns iterate (the stage rule).",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        },
+        {
+          "ref": "src/aee/engine.py _draft_cap_failures and stage.py module note",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Draft-cap failures are outcome-bearing by design, and the stage module records that the lane-qualified outcome form was deferred and never built.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a bundle with a draft claim or a claim below stage explained, clean machine checks, and all scores at or above 0.70 that reaches headline pass."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#the-problem-in-plain-words",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-03",
+      "text": "No shipped path can move a claim stage or change a claim declared status: the stage-advance method has no callers in the shipped source, no command records a stage event, and a claim status is set only when a bundle is loaded.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/model.py Claim.advance_stage, src/aee/cli.py command set, on main at 8211643"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "repository grep for advance_stage callers in src",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "advance_stage is defined on Claim and exercised only by tests; no shipped source file calls it.",
+          "source_id": "grep-src-aee-2026-10-20"
+        },
+        {
+          "ref": "src/aee/cli.py build_parser subcommand set",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "The command set is assess, verify-evidence, validate, migrate, challenge, priority, verify-ledger, gate, anchor, graph, gaps, review, demo; no stage or status command exists.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show a shipped command or source caller that advances a claim stage or changes a loaded claim declared status through a recorded act."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#the-problem-in-plain-words",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-04",
+      "text": "The gate recomputes only the headline outcome from an assessment file and never reads the lanes record, so a forged lane-1 outcome in the file is not detected.",
+      "kind": "observation",
+      "status": "supported",
+      "boundary": [
+        "src/aee/cli.py _gate_cross_check on main at 8211643"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "src/aee/cli.py _gate_cross_check",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "artifact",
+          "description": "The cross-check recomputes the headline from claims, scores, summary counts, threshold, verdicts, stage caps, and the ledger; the word lanes does not appear in the gate path.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        },
+        {
+          "ref": "tests/test_outcome_integrity.py gate tests",
+          "kind": "observed",
+          "direction": "supports",
+          "source_quality": "test",
+          "description": "Every gate forgery test targets the headline outcome, scores, or the ledger; none forges a lane value, because the gate has no lane check to catch it.",
+          "source_id": "code-read-main-8211643-2026-10-20"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show the gate reading lanes.lane_1.outcome and refusing a file whose recorded lane-1 outcome disagrees with a recomputation."
+      ],
+      "uncertainty": "low",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a3",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-05",
+      "text": "Lane 1 outcome is computed from lane-1 facts only (failure records with the draft-cap records excluded, and claim scores), running the shared decision steps and excluding the draft cap and the stage rule, so a clean draft bundle at stage created can report lane 1 pass while its headline stays iterate.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/engine.py outcome logic and src/aee/lanes.py lane assembly"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Run the positive control bundle (two independent sources, all scores at or above 0.70, claims draft at stage created) and show lane 1 reporting anything other than pass, or the headline reporting anything other than iterate."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a1",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-06",
+      "text": "Every surface that states the headline also states the lane pair distinctly: the assessment record lanes.lane_1.outcome carries the lane-1 value, the assess summary lane lines state lane 1 and lane 2 together, and the evaluator adapter forwards lane_1_outcome as its own field.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/engine.py summary assembly, src/aee/cli.py assess, src/aee/adapters/evaluator.py"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Produce an assessment through the CLI or the evaluator adapter whose summary or metadata states the headline without a distinct lane-1 outcome beside the lane-2 state."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a2",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-07",
+      "text": "The gate recomputes lanes.lane_1.outcome from the assessment file contents and refuses a mismatch with exit 2, and with --require-lane1-pass it exits 0 when lane 1 passes, 1 when lane 1 is iterate, clarify, gather_evidence, or abstain, and 2 when lane 1 blocks or any integrity check refuses.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/cli.py gate command and its cross-check"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Forge lanes.lane_1.outcome in a real assessment file and show the gate accepting it, or show --require-lane1-pass returning an exit code outside the table stated in Spec 006 A3 for a recomputed lane-1 outcome."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a3",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-08",
+      "text": "The stage and ratify commands record the acts that move a claim, and every recorded act carries an explicit basis type: stage advances only forward through a recorded event with actor, basis type, and timestamp, explained requires validated exposition by a named human, accepted and digested admit either a human act whose recorded-by name resolves to a person in the identity registry or a recorded passing test verdict (named frozen acceptance test, its SHA-256 hash, and the run's result recorded) that references the claim's own falsification or acceptance tests, ratify refuses supported at stage created, both write the bundle atomically, ledger the event when a ledger is present, and refuse with exit 2 without a partial write.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "src/aee/cli.py stage and ratify commands; src/aee/model.py Claim.advance_stage"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Move a claim stage or status with either command without a recorded event carrying a basis type, or show explained recorded without valid exposition, accepted recorded by an unregistered name on a human act, accepted recorded on a failed or unreferenced test verdict or one missing the frozen test's identity or hash, supported ratified at stage created, or a refused run leaving a changed bundle behind."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a4",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-09",
+      "text": "The controls hold end to end: the kill chain of twenty copies of one model self-report plus one human assertion reaches pass in neither lane, an empty bundle blocks in both lanes, and a draft bundle with clean machine checking reaches headline pass after only the recorded stage and ratify acts and a human exposition are added.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "Engine assessment and gate behavior on the control bundles named in Spec 006 A6"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show the kill-chain bundle passing in either lane, an empty bundle passing either lane check, or the positive control still unable to reach headline pass after the recorded acts complete."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a6",
+      "domain": "aee-framework"
+    },
+    {
+      "id": "TA-006-10",
+      "text": "Headline outcomes and per-claim scores are unchanged in meaning by this work: the frozen cachetools study bundle and representative control bundles produce identical headline outcomes and identical scores under the old and new engines, while methodology_version moves to 2.1 and the package version to 1.6.0 with a plain-language changelog entry.",
+      "kind": "requirement",
+      "status": "draft",
+      "boundary": [
+        "Before and after runs recorded in specs/006-lane-outcomes-and-stage-recording/before-after-cachetools.md"
+      ],
+      "depends_on": [],
+      "conflicts_with": [],
+      "evidence": [
+        {
+          "ref": "specs/006-lane-outcomes-and-stage-recording/spec.md",
+          "kind": "asserted",
+          "direction": "supports",
+          "source_quality": "primary",
+          "description": "Requirement stated in Spec 006, which this claim commits to test.",
+          "source_id": "spec-006-lane-outcomes-and-stage-recording"
+        }
+      ],
+      "assumptions": [],
+      "alternatives": [],
+      "falsification_tests": [
+        "Show any representative bundle whose headline outcome or per-claim score changes between the old engine on main and the new engine, other than the newly computed lane-1 outcome itself."
+      ],
+      "uncertainty": "high",
+      "severity": "high",
+      "source_ref": "specs/006-lane-outcomes-and-stage-recording/spec.md#a5",
+      "domain": "aee-framework"
+    }
+  ]
+}

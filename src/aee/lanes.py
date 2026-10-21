@@ -11,7 +11,9 @@ says so wherever the lane-1 result is stated.
 
 Everything here is derived from records the assessment already
 carries (scores, stage caps, failure modes); this module computes
-nothing new about the claims themselves.
+nothing new about the claims themselves. The lane-1 outcome it
+carries is computed by the engine from lane-1 facts only (Spec 006
+A1) — it is no longer a copy of the headline outcome.
 """
 
 from __future__ import annotations
@@ -34,7 +36,7 @@ def build_lanes(
     verified_unexplained_claim_ids: set[str],
     contested_attribution_ids: set[str],
     overrides: dict[str, ClaimStage],
-    outcome: str,
+    lane_1_outcome: str,
     threshold: float,
 ) -> dict[str, Any]:
     """Assemble the lane pair for one assessment.
@@ -42,7 +44,9 @@ def build_lanes(
     ``caps`` / ``overrides`` give effective stages and their
     reasons; ``verified_unexplained_claim_ids`` and
     ``contested_attribution_ids`` come from the failure records and
-    the decomposition pass respectively.
+    the decomposition pass respectively. ``lane_1_outcome`` is the
+    engine's independently computed lane-1 outcome (Spec 006 A1) —
+    this module reports it; it does not derive it from the headline.
     """
     caps_by_claim: dict[str, list[StageCap]] = {}
     for cap in caps:
@@ -98,7 +102,7 @@ def build_lanes(
     return {
         "lane_1": {
             "label": LANE_1_LABEL,
-            "outcome": outcome,
+            "outcome": lane_1_outcome,
             "threshold": threshold,
             "claims_at_or_above_threshold": at_or_above,
             "claims_below_threshold": len(scores) - at_or_above,

@@ -23,8 +23,10 @@ same caps from the serialized record.
 
 The bundle outcome inherits the caps (R1.4): ``pass`` is reported
 only when every covered claim is at stage ``explained`` or beyond.
-Lane-qualified outcomes (R6) are P3; P0 implements the conservative
-rule and says so.
+The lane-qualified form R1.4 allows (a lane-1 outcome computed from
+machine-checking facts only, reported beside the headline) is
+implemented by Spec 006 in ``aee.engine`` (``_lane_1_outcome``); the
+headline rule here is unchanged by it.
 """
 
 from __future__ import annotations

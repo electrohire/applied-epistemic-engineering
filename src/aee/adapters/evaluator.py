@@ -9,7 +9,7 @@ from typing import Any, NoReturn
 
 from aee._version import __version__
 from aee.engine import Assessment
-from aee.model import Claim, Evidence, Severity
+from aee.model import Claim, Evidence, EvidenceKind, Severity
 from aee.schemas import evaluator_result_schema_path
 
 _ALLOWED_PHASES = {
@@ -42,6 +42,31 @@ _FINDING_KINDS = {
     "other",
 }
 
+# Spec 006 D1: translation from the engine's evidence kinds to the
+# evaluator contract's evidence-ref kinds. The contract vocabulary
+# (shipped evaluator v1.1.2) predates the engine's `exposition` kind
+# (Spec 004 R3.1: a named human's recorded explanation of a claim).
+# The five shared kinds translate as themselves. `exposition`
+# translates to `asserted`: the item IS an assertion — a statement by
+# a named human, on the record — and `asserted` is the plainest kind
+# the contract offers for a statement a party stands behind, carrying
+# none of the weight of `observed` or `inferred`, so the translation
+# can never make the evidence look stronger than it is. (Exposition's
+# extra requirement — the explainer must be a named human — only adds
+# weight the contract cannot express; it never removes any.) Nothing
+# is dropped and nothing is silently relabelled: the finding keeps
+# the ref, the original kind stays in the composed result's own claim
+# record (state.aee.claims), and every translation applied is named
+# in metadata.evidence_kind_translations.
+_EVIDENCE_KIND_TO_CONTRACT: dict[EvidenceKind, str] = {
+    EvidenceKind.OBSERVED: "observed",
+    EvidenceKind.INFERRED: "inferred",
+    EvidenceKind.ASSERTED: "asserted",
+    EvidenceKind.CONTRADICTED: "contradicted",
+    EvidenceKind.UNSUPPORTED: "unsupported",
+    EvidenceKind.EXPOSITION: "asserted",
+}
+
 
 class EvaluatorAdapter:
     """Translate a rich AEE assessment into the shared evaluator envelope."""
@@ -58,8 +83,20 @@ class EvaluatorAdapter:
     ) -> dict[str, Any]:
         phase = _normalize_phase(assessment.phase)
         findings: list[dict[str, Any]] = []
+        translations: list[dict[str, str]] = []
+        seen_translations: set[tuple[str, str, str]] = set()
         for claim in assessment.claims:
-            findings.extend(self._findings_for_claim(claim))
+            claim_findings, claim_translations = self._findings_for_claim(claim)
+            findings.extend(claim_findings)
+            for translation in claim_translations:
+                key = (
+                    translation["ref"],
+                    translation["engine_kind"],
+                    translation["contract_kind"],
+                )
+                if key not in seen_translations:
+                    seen_translations.add(key)
+                    translations.append(translation)
         target_phase = _target_phase(assessment.outcome, phase)
         result = {
             "schema_version": "1.0",
@@ -100,8 +137,22 @@ class EvaluatorAdapter:
                     "lane_1": assessment.lanes.get("lane_1", {}),
                     "lane_2": assessment.lanes.get("lane_2", {}),
                 },
+                # Spec 006 A2: the lane-1 outcome is forwarded as
+                # its own field, distinct from the blended headline
+                # outcome at the top of this result, so a consumer
+                # can read machine verification's verdict without
+                # unpacking the lane pair.
+                "lane_1_outcome": assessment.lanes.get("lane_1", {}).get("outcome"),
+                "headline_outcome": assessment.outcome,
                 "not_understood": list(assessment.not_understood),
                 "reported_statuses": dict(assessment.reported_statuses),
+                # Spec 006 D1: every evidence-kind translation applied
+                # to this result's findings (see
+                # _EVIDENCE_KIND_TO_CONTRACT). Always present — empty
+                # when nothing was translated — so the translations,
+                # including the zero case, are countable from the
+                # composed result alone.
+                "evidence_kind_translations": translations,
             },
             "state": {
                 "aee": {
@@ -115,10 +166,19 @@ class EvaluatorAdapter:
         validate_evaluator_result(result)
         return result
 
-    def _findings_for_claim(self, claim: Claim) -> list[dict[str, Any]]:
+    def _findings_for_claim(
+        self, claim: Claim
+    ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
         findings: list[dict[str, Any]] = []
+        translations: list[dict[str, str]] = []
         for failure in claim.unresolved_failures:
             kind = failure.category if failure.category in _FINDING_KINDS else "other"
+            evidence_refs: list[dict[str, str]] = []
+            for item in claim.evidence:
+                ref, translation = self._evidence_ref(item)
+                evidence_refs.append(ref)
+                if translation is not None:
+                    translations.append(translation)
             findings.append(
                 {
                     "id": failure.id,
@@ -126,7 +186,7 @@ class EvaluatorAdapter:
                     "kind": kind,
                     "subject": claim.source_ref or claim.id,
                     "description": failure.breakpoint[:500],
-                    "evidence_refs": [self._evidence_ref(item) for item in claim.evidence],
+                    "evidence_refs": evidence_refs,
                     "provenance_refs": [
                         item for item in [claim.source_ref, *claim.depends_on] if item
                     ],
@@ -135,14 +195,30 @@ class EvaluatorAdapter:
                     "rationale": failure.challenge[:500],
                 }
             )
-        return findings
+        return findings, translations
 
     @staticmethod
-    def _evidence_ref(evidence: Evidence) -> dict[str, str]:
-        item = {"ref": evidence.ref, "kind": evidence.kind.value}
+    def _evidence_ref(
+        evidence: Evidence,
+    ) -> tuple[dict[str, str], dict[str, str] | None]:
+        """One contract evidence ref, plus its translation record.
+
+        The second element is None when the engine kind is already a
+        contract kind; otherwise it names the translation applied, so
+        the caller can put it on the composed record (Spec 006 D1).
+        """
+        contract_kind = _EVIDENCE_KIND_TO_CONTRACT[evidence.kind]
+        item = {"ref": evidence.ref, "kind": contract_kind}
         if evidence.description:
             item["description"] = evidence.description[:500]
-        return item
+        translation = None
+        if contract_kind != evidence.kind.value:
+            translation = {
+                "ref": evidence.ref,
+                "engine_kind": evidence.kind.value,
+                "contract_kind": contract_kind,
+            }
+        return item, translation
 
 
 _SEVERITIES = {"critical", "high", "medium", "low", "info"}

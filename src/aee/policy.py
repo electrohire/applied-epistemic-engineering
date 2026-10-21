@@ -82,6 +82,33 @@ def verdict_ceiling(stage: ClaimStage) -> str:
     return VERDICT_CEILING[stage]
 
 
+def lane_1_challenge_applies(reasons: list[str]) -> bool:
+    """Whether a CHALLENGE verdict demotes lane 1 (Spec 006 A1).
+
+    Lane 1 is machine verification; lane 2 is human progress. A policy
+    verdict can rest on either lane's facts, and only the lane-1
+    reasons may demote the lane-1 outcome:
+
+    - the draft cap (reasons starting ``draft claim:``) is authoring
+      state — lane 2;
+    - a stage ceiling (reasons starting ``stage cap``) is lifecycle
+      state — lane 2.
+
+    A challenge whose reasons are all lane-2 reasons does not demote
+    lane 1. Any other reason (contested evidence, a failure-aware
+    demotion, too few independent sources, a score below the
+    threshold) is a lane-1 fact and does. A challenge with no recorded
+    reasons is treated as applying: an unexplained demotion is never
+    silently dropped. Shared by the engine (verdict objects) and the
+    CLI gate (serialised verdicts) so the two cannot drift.
+    """
+    if not reasons:
+        return True
+    return any(
+        not reason.strip().lower().startswith(("draft claim:", "stage cap")) for reason in reasons
+    )
+
+
 # Kind weights mirror aee.scoring._KIND_WEIGHTS for the sign test in
 # corroboration_sources (positive contribution vs zero/negative). The
 # scoring module owns the magnitudes; only the sign matters here, and
