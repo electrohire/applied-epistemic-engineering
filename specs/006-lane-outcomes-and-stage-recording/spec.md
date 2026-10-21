@@ -334,6 +334,52 @@ control tests in `tests/test_spec006_lane_outcomes.py` and by the
 before/after comparison in `before-after-cachetools.md`, not by
 re-scoring this bundle.
 
+## Deviation D1 (2026-10-20): the evaluator adapter and the exposition kind
+
+Found by the Phase D integration proof, after the battery above was
+recorded. A claim carrying exposition evidence (the named-human
+explanation the `explained` stage requires) AND an open failure
+could not be composed into an evaluator result at all: the adapter
+emitted the engine's evidence kind `exposition` verbatim into
+`findings[].evidence_refs[].kind`, the shipped evaluator contract
+(v1.1.2) allows only `observed`, `inferred`, `asserted`,
+`contradicted`, and `unsupported` in that position, and composition
+refused the result — the run's evaluator result came back null and
+the extension runner reported failure (exit 2), even though the
+assessment itself was written and ledgered correctly. PR #63's
+original description disclosed this as a pre-existing known
+limitation left for the contract's own update; this deviation
+supersedes that disclosure — the fix is engine-side, in the adapter,
+and needs no contract change.
+
+The fix translates evidence kinds at the adapter boundary
+(`_EVIDENCE_KIND_TO_CONTRACT` in `src/aee/adapters/evaluator.py`).
+The five kinds the engine shares with the contract translate as
+themselves. `exposition` translates to `asserted`: the item is a
+statement by a named human, on the record — an assertion — and
+`asserted` is the plainest kind the contract offers for a statement
+a party stands behind, carrying none of the weight of `observed` or
+`inferred`, so the translation can never make the evidence look
+stronger than it is. Nothing is dropped and nothing is silently
+relabelled: the finding keeps the evidence ref, the original kind
+stays visible in the composed result's own claim record
+(`state.aee.claims`, keyed by the same ref), and every translation
+applied is named in `metadata.evidence_kind_translations` — always
+present, empty when nothing was translated, so the translations,
+including the zero case, are countable from the composed result
+alone.
+
+Proof: the regression test
+`test_engine_adapter.test_evaluator_adapter_translates_exposition_evidence_refs`
+fails on the pre-fix code with the recorded schema error and passes
+after; the Phase D scenario (two in-progress claims carrying
+exposition evidence, each with an open failure) was re-run end to
+end — the pre-fix branch refuses the evaluator output with the same
+error, the fixed branch writes a result that validates against the
+shipped evaluator v1.1.2 schema and composes through the shipped
+v1.1.2 composer with no invalid results. The battery addendum in
+`battery-before-after.md` (2026-10-20) records the retest.
+
 ## Claims
 
 `claims.json` holds ten claims (TA-006-01 to TA-006-10): four

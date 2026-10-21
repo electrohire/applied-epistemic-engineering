@@ -115,3 +115,50 @@ unchanged where scores genuinely fall short), and the methodology
 version string moved. Headline outcomes and per-claim scores are
 identical on every frozen bundle. No difference is unexplained, and
 no defect was found.
+
+## Addendum (2026-10-20): deviation D1 — fix and retest
+
+The battery above stands as recorded; this addendum is appended,
+not merged into it. After the battery ran, the Phase D integration
+proof found a defect the battery's bundles did not exercise: a
+claim carrying exposition evidence AND an open failure could not
+be composed into an evaluator result — the adapter emitted the
+engine kind `exposition` into `findings[].evidence_refs[].kind`,
+which the shipped evaluator contract (v1.1.2) does not allow, so
+the run's evaluator result came back null and the extension runner
+reported failure (exit 2) even though the assessment was written
+and ledgered correctly. The defect is pre-existing (verified on
+the baseline engine and on this branch before the fix, with the
+identical error: `schema validation failed at
+findings.0.evidence_refs.1.kind: 'exposition' is not one of
+['observed', 'inferred', 'asserted', 'contradicted',
+'unsupported']`).
+
+Fix (engine-side, adapter only; see spec.md, "Deviation D1"): the
+adapter translates evidence kinds into the contract vocabulary —
+the five shared kinds as themselves, `exposition` as `asserted` —
+keeps every ref, keeps the original kind visible in the composed
+result's own claim record (`state.aee.claims`), and names every
+translation in `metadata.evidence_kind_translations`.
+
+Retest, on the exact Phase D scenario (two in-progress claims
+carrying exposition evidence by named humans, each with an open
+failure — one stage cap, one draft cap), through the shipped
+engine + evaluator v1.1.2 pair:
+
+- Pre-fix branch: the assessment is written; the evaluator output
+  is refused with the error above and no evaluator result exists.
+- Fixed branch: the evaluator result is written, is non-null, and
+  validates with zero errors against the shipped evaluator v1.1.2
+  schema; the shipped v1.1.2 composer accepts it
+  (`invalid_results` empty, evaluator count 1) and composes it to
+  `iterate` — the bundle's honest in-progress outcome — carrying
+  both findings with the translated refs.
+- Suite: 715 passed, 4 skipped (714 baseline + the new regression
+  test, `test_engine_adapter.test_evaluator_adapter_translates_exposition_evidence_refs`,
+  which fails on the pre-fix code with the recorded error);
+  ruff and strict mypy clean.
+
+No frozen bundle, score, or outcome in the battery above changes:
+the fix touches only the adapter's translation of evidence kinds
+into the contract envelope.

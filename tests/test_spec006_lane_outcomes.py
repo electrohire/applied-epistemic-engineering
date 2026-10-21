@@ -165,11 +165,14 @@ def test_positive_control_gate_exit_codes(tmp_path: Path) -> None:
 
 
 def test_evaluator_adapter_forwards_lane_1_outcome_distinctly(tmp_path: Path) -> None:
-    # No exposition item here: the evaluator contract's evidence-ref
-    # kinds predate the exposition kind, so a claim carrying both an
-    # exposition item and an open failure cannot be expressed in a
-    # finding — a pre-existing adapter limit on main, unchanged by
-    # Spec 006 and outside its scope.
+    # No exposition item here — this fixture's subject is lane
+    # forwarding, not evidence translation. (Composition of a claim
+    # carrying both an exposition item and an open failure was the
+    # pre-existing adapter limit recorded in PR #63; it is fixed by
+    # the Spec 006 D1 deviation — the adapter now translates the
+    # exposition kind to the contract kind `asserted` and names the
+    # translation on the result — and is covered by
+    # test_engine_adapter.test_evaluator_adapter_translates_exposition_evidence_refs.)
     assessment = AEEEngine().assess([_api_claim("EV-1")])
     result = EvaluatorAdapter().to_evaluator_result(assessment)
     assert result["outcome"] == "iterate"  # the blended headline
