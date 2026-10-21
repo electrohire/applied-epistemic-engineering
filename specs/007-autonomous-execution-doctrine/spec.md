@@ -147,7 +147,7 @@ No statuses were inflated to chase a PASS. This is the BEFORE record; any after-
 
 - Any task list or implementation (this spec is claims, requirements, and a plan only).
 - Changes to scoring weights, thresholds, or lane computation (Specs 003 and 006 territory, standing).
-- The benchmark's stop-policy decision itself (an owner decision, pending separately); this spec adopts its halt *taxonomy* as shared vocabulary, not its outcome.
+- The benchmark's stop-policy decision itself (an owner decision, ruled 2026-10-20: Option B with a nil-review checkpoint); this spec adopts its halt *taxonomy* as shared vocabulary, not its outcome.
 - Engine changes on Spec 006's branch; this spec's implementation waits for 006 to merge.
 
 ## Appendix A — The adopted doctrine, mapped to this spec
