@@ -39,7 +39,7 @@ jobs:
           path: dist/
       - name: Publish only the exact benchmark-approved distributions
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.RELEASE_CREDENTIAL }}
           COMPONENT_REPOSITORY: ${{ github.repository }}
           RELEASE_TAG: ${{ inputs.release_tag }}
           CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate_sha }}
