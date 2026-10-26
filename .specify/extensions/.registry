@@ -2,13 +2,14 @@
   "schema_version": "1.0",
   "extensions": {
     "aee": {
-      "version": "1.2.0",
+      "version": "1.5.2",
       "source": "local",
-      "manifest_hash": "sha256:b0fccb5b583ad013a77ff089032bc7f7b84e5986ab84b46dac5d429701bdf4a8",
+      "manifest_hash": "sha256:975f7a70d87f28cfca3df1fae2ae57d5c966482cfe69a6ab6f5575d06fcbd848",
       "enabled": true,
       "priority": 10,
       "registered_commands": {},
       "registered_skills": [
+        "speckit-aee-draft-claims",
         "speckit-aee-assess",
         "speckit-aee-challenge",
         "speckit-aee-trace",
@@ -19,12 +20,12 @@
         "speckit-aee-route-evidence",
         "speckit-aee-report-savings"
       ],
-      "installed_at": "2026-10-09T01:56:22.098815+00:00"
+      "installed_at": "2026-10-16T20:53:26.904475+00:00"
     },
     "evaluator": {
-      "version": "1.0.0",
+      "version": "1.1.2",
       "source": "local",
-      "manifest_hash": "sha256:c00fb63c4bf7b852f368d1e937a42b4d52e8439df9909096a987186f4718d577",
+      "manifest_hash": "sha256:dc1c1967df23b88efc90047d19ab53d1e8d5f4156f8c3f2a40dc7f52792a751c",
       "enabled": true,
       "priority": 10,
       "registered_commands": {},
@@ -34,7 +35,7 @@
         "speckit-evaluator-report",
         "speckit-evaluator-route"
       ],
-      "installed_at": "2026-10-09T01:56:37.128601+00:00"
+      "installed_at": "2026-10-16T20:53:28.873541+00:00"
     }
   }
 }

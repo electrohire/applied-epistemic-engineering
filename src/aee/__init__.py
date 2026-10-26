@@ -21,6 +21,7 @@ from aee.model import (
     BundleValidationError,
     Claim,
     ClaimKind,
+    ClaimStage,
     ClaimStatus,
     ConfidenceBand,
     Disposition,
@@ -29,14 +30,19 @@ from aee.model import (
     EvidenceDirection,
     EvidenceKind,
     FailureMode,
+    IdentityEntry,
+    IdentityKind,
+    IdentityRegistry,
     Severity,
     SourceQuality,
+    StageEvent,
+    StageEventKind,
     Uncertainty,
     normalize_claim_id,
 )
-from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict
+from aee.policy import AssessmentPolicy, ClaimVerdict, Verdict, verdict_ceiling
 from aee.recovery import RecoveryOperator, RecoveryProposal, RecoveryStrategy
-from aee.reliability import ReliabilityTable, SourceRecord
+from aee.reliability import ProvenanceAnchor, ReliabilityTable, SourceRecord
 from aee.review import ReviewItem, ReviewQueue, VerdictChange, build_review_queue
 from aee.scoring import ClaimScore, ScoringEngine, canonical_evidence_identity
 from aee.session import AEESession
@@ -53,6 +59,7 @@ __all__ = [
     "ClaimGraph",
     "ClaimKind",
     "ClaimScore",
+    "ClaimStage",
     "ClaimStatus",
     "ClaimVerdict",
     "ConfidenceBand",
@@ -69,8 +76,12 @@ __all__ = [
     "GapEntry",
     "GapRegister",
     "HashChainLedger",
+    "IdentityEntry",
+    "IdentityKind",
+    "IdentityRegistry",
     "LedgerAnchor",
     "LedgerVerification",
+    "ProvenanceAnchor",
     "RecoveryOperator",
     "RecoveryProposal",
     "RecoveryStrategy",
@@ -81,6 +92,8 @@ __all__ = [
     "Severity",
     "SourceQuality",
     "SourceRecord",
+    "StageEvent",
+    "StageEventKind",
     "StressTester",
     "Uncertainty",
     "Verdict",
@@ -93,4 +106,5 @@ __all__ = [
     "normalize_source_identity",
     "source_identity",
     "validate_evaluator_result",
+    "verdict_ceiling",
 ]

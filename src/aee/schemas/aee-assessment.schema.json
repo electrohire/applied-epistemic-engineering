@@ -75,6 +75,121 @@
       "additionalProperties": {
         "$ref": "#/$defs/verdict"
       }
+    },
+    "lanes": {
+      "type": "object"
+    },
+    "not_understood": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "digestion": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "stage",
+          "exposition_present",
+          "explainers"
+        ],
+        "properties": {
+          "stage": {
+            "type": "string"
+          },
+          "exposition_present": {
+            "type": "boolean"
+          },
+          "explainers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "reported_statuses": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "draft",
+          "supported",
+          "partially_supported",
+          "unsupported",
+          "contradicted",
+          "unverifiable",
+          "superseded"
+        ]
+      }
+    },
+    "stage_caps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "stage",
+          "author_status",
+          "reported_status",
+          "verdict_ceiling"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "created",
+              "checked",
+              "explained",
+              "accepted",
+              "digested"
+            ]
+          },
+          "author_status": {
+            "enum": [
+              "draft",
+              "supported",
+              "partially_supported",
+              "unsupported",
+              "contradicted",
+              "unverifiable",
+              "superseded"
+            ]
+          },
+          "reported_status": {
+            "enum": [
+              "draft",
+              "supported",
+              "partially_supported",
+              "unsupported",
+              "contradicted",
+              "unverifiable",
+              "superseded"
+            ]
+          },
+          "verdict_ceiling": {
+            "enum": [
+              "unjudged",
+              "challenge",
+              "accept"
+            ]
+          },
+          "qualified_supported": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string"
+          },
+          "lifting_event": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "$defs": {
@@ -96,7 +211,8 @@
             "inferred",
             "asserted",
             "contradicted",
-            "unsupported"
+            "unsupported",
+            "exposition"
           ]
         },
         "direction": {
@@ -255,7 +371,9 @@
         "status",
         "boundary",
         "evidence",
-        "uncertainty"
+        "uncertainty",
+        "stage",
+        "stage_events"
       ],
       "properties": {
         "id": {
@@ -384,6 +502,34 @@
           "items": {
             "$ref": "#/$defs/disposition"
           }
+        },
+        "headline": {
+          "type": "boolean"
+        },
+        "role": {
+          "enum": [
+            "statement-fidelity",
+            "evidence-verification",
+            "novelty",
+            "attribution",
+            "significance",
+            null
+          ]
+        },
+        "stage": {
+          "enum": [
+            "created",
+            "checked",
+            "explained",
+            "accepted",
+            "digested"
+          ]
+        },
+        "stage_events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage_event"
+          }
         }
       },
       "additionalProperties": false
@@ -457,6 +603,26 @@
           },
           "additionalProperties": false
         },
+        "declared_state": {
+          "type": "object"
+        },
+        "propagation": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "enum": [
+                "propagated",
+                "suppressed_cycle"
+              ]
+            },
+            "cycle_component": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
         "notes": {
           "type": "array",
           "items": {
@@ -524,7 +690,8 @@
           "enum": [
             "accept",
             "challenge",
-            "abstain"
+            "abstain",
+            "unjudged"
           ]
         },
         "reasons": {
@@ -532,6 +699,35 @@
           "items": {
             "type": "string"
           }
+        }
+      },
+      "additionalProperties": false
+    },
+    "stage_event": {
+      "type": "object",
+      "required": [
+        "kind",
+        "basis"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "created",
+            "checked",
+            "explained",
+            "accepted",
+            "digested"
+          ]
+        },
+        "author": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
         }
       },
       "additionalProperties": false

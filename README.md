@@ -2,17 +2,45 @@
 
 [![CI](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml/badge.svg)](https://github.com/electrohire/applied-epistemic-engineering/actions/workflows/codeql.yml)
-[![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/electrohire/applied-epistemic-engineering/badge)](https://securityscorecards.dev/viewer/?uri=github.com/electrohire/applied-epistemic-engineering)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15598/badge)](https://www.bestpractices.dev/en/projects/15598)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/applied-epistemic-engineering.svg)](https://pypi.org/project/applied-epistemic-engineering/)
+[![Documentation](https://readthedocs.org/projects/applied-epistemic-engineering/badge/?version=latest)](https://applied-epistemic-engineering.readthedocs.io/en/latest/)
+
+OpenSSF Best Practices Passing criteria: 100% met (self-assessment, verified 2026-10-16).
 
 An evidence-centered Python toolkit for turning important claims into inspectable engineering
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
 falsification tests, recovery work, and decision history explicit.
 
-This is an original, ground-up ElectroHire implementation. Its result model aligns directly with
-ElectroHire's Spec Kit Evaluator Contract while the domain engine remains independently packaged.
+The result model aligns directly with the Spec Kit Evaluator Contract while the
+domain engine remains independently packaged.
+
+## Choose your interface
+
+- **CLI or Python:** install `applied-epistemic-engineering`, then use `aee` or
+  `from aee import AEESession`.
+- **Agent:** give your agent the maintained
+  [standalone SKILL.md](https://github.com/electrohire/applied-epistemic-engineering/tree/main/src/aee/skills/applied-epistemic-engineering)
+  and ask it to inspect your claims and evidence in ordinary language. The agent
+  handles commands and setup; no Spec Kit is required. The packaged skill is
+  included from engine 1.5.3.
+- **Spec Kit:** install extension ID `aee`, then ask the project's agent to use
+  its installed AEE skills. The extension provisions the engine and evaluator.
+
+See [CLI, agent, and Spec Kit](https://applied-epistemic-engineering.readthedocs.io/en/latest/agent/)
+for discovery, installation, example requests, and dependency boundaries.
 
 ## Why it exists
+
+Use AEE to challenge an agent's “done” claim against real test artifacts, keep
+uncertainty visible across agent handoffs, review conflicting findings, and focus
+the next evidence-gathering step. Separating assertions from observations and
+preserving source identity can help expose unsupported claims in agent loops;
+it is not a guaranteed hallucination detector. See
+[use cases and evaluation](https://applied-epistemic-engineering.readthedocs.io/en/latest/use-cases/)
+for concrete workflows, limitations, and how to measure improvement.
 
 Ordinary validation asks whether an artifact is formatted correctly. AEE asks harder questions:
 
@@ -27,11 +55,37 @@ Ordinary validation asks whether an artifact is formatted correctly. AEE asks ha
 The library does not call a confidence number “truth.” Every score is a transparent decision aid
 derived from recorded evidence and explicit rules.
 
-## Installation
+## Names and installation
+
+The **PyPI distribution** is `applied-epistemic-engineering`. It installs the
+**Python module** `aee` (`from aee import AEESession`) and the **engine CLI** `aee`
+(`aee --version`). The separate `spec-kit-aee` repository provides a Spec Kit
+extension whose **extension ID** is also `aee`. These names identify different
+layers; do not install this engine with `pip install aee`.
 
 ```bash
-pip install applied-epistemic-engineering
+python -m pip install applied-epistemic-engineering
 ```
+
+Requires Python 3.11 or later; tested on Linux, macOS, and Windows with Python 3.11, 3.12,
+and 3.13.
+
+Using [Spec Kit](https://github.com/github/spec-kit)? You don't need to install this
+package yourself. Install the Spec Kit extension, which installs a compatible engine
+(`applied-epistemic-engineering>=1.5.0,<2`, the latest available) and its other
+dependencies automatically on first use:
+
+First register the [ElectroHire publisher catalog](https://github.com/electrohire/spec-kit-aee#installation)
+once per project (or use an organization catalog containing AEE). The default
+community catalog is discovery-only, including in Specify 1.2.2. Then install by name:
+
+```bash
+specify extension add aee
+```
+
+
+
+`spec-kit-aee` is the independently versioned adapter, installed by Spec Kit.
 
 For development:
 
@@ -123,11 +177,23 @@ runner describe identical semantics (ledger by default, same default path,
 
 ## Architecture
 
-| Layer | Responsibility |
-|---|---|
-| `aee` Python package | Claims, evidence, scoring, challenge, recovery, graph, ledger |
-| [`spec-kit-aee`](https://github.com/electrohire/spec-kit-aee) | Spec Kit commands, hooks, and artifact discovery |
-| [`spec-kit-evaluator`](https://github.com/electrohire/spec-kit-evaluator) | Shared result envelope, composition, reports, and model routing |
+| Component | Install name / access name | Responsibility |
+|---|---|---|
+| Python engine | PyPI: `applied-epistemic-engineering`; import and CLI: `aee` | Claims, evidence, scoring, challenge, recovery, graph, ledger |
+| [`spec-kit-aee`](https://github.com/electrohire/spec-kit-aee) | GitHub archive; Spec Kit extension ID: `aee` | Spec Kit commands, hooks, and artifact discovery |
+| [`spec-kit-evaluator`](https://github.com/electrohire/spec-kit-evaluator) | GitHub archive; Spec Kit extension ID: `evaluator` | Shared result envelope, composition, reports, and model routing |
+
+## What AEE can establish
+
+AEE does not certify truth, compliance, safety, or general correctness. It records
+claims, the evidence and checks supporting them, remaining uncertainty, and what
+would change the decision. Records can be mistaken. A passing gate establishes
+acceptance by the configured rules; a valid hash chain establishes continuity of
+the retained records, not their truth. Formal proof tools can establish precisely
+stated properties under explicit assumptions, but AEE is not a theorem prover or
+an independent certification authority. See
+[names and assurance boundaries](https://applied-epistemic-engineering.readthedocs.io/en/latest/names-and-assurance/)
+for the distinctions and requirements for stronger, bounded assurance claims.
 
 ## Core principles
 
@@ -141,13 +207,22 @@ runner describe identical semantics (ledger by default, same default path,
 
 ## Documentation
 
-Full documentation is configured for Read the Docs at
+Full documentation is published on Read the Docs at
 [applied-epistemic-engineering.readthedocs.io](https://applied-epistemic-engineering.readthedocs.io).
-Users adopting AEE from another implementation can follow the [migration guide](docs/migration.md).
 How the engine, extension, and catalog versions relate is specified in the
-[version policy](docs/versioning.md).
+[version policy](https://github.com/electrohire/applied-epistemic-engineering/blob/main/docs/versioning.md).
+
+GitHub `main` and RTD `latest` can include unreleased documentation corrections.
+RTD `stable` and the PyPI README reflect the tagged/uploaded release; a Git push
+does not update PyPI metadata. See [development setup](https://github.com/electrohire/applied-epistemic-engineering/blob/main/DEVELOPMENT.md) for this
+repository's own Spec Kit/AEE installation.
 
 ## Ownership and license
 
 Designed and implemented by **ElectroHire Inc.** Copyright © 2026 ElectroHire Inc.
 Released under the [MIT License](LICENSE).
+
+
+## Benchmark evidence and releases
+
+[Established benchmarks and release gates](docs/benchmarks.md) explain the upstream suites, separate reliability/coding/economics findings and exact-build promotion. Current completed detector results are model-only; no AEE treatment benefit or token payback is established yet. Rebuilds queue content-bound requests; releases remain blocked without complete audited matched evidence.

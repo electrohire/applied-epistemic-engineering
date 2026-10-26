@@ -42,7 +42,7 @@ def test_caller_metadata_cannot_override_the_stamp() -> None:
 def test_cli_assessment_carries_the_stamp(tmp_path: Path) -> None:
     bundle = tmp_path / "claims.json"
     bundle.write_text(
-        json.dumps({"claims": [{"id": "CLM-V", "text": "A claim"}]}),
+        json.dumps({"claims": [{"id": "CLM-V", "text": "A claim", "stage": "created"}]}),
         encoding="utf-8",
     )
     out = tmp_path / "assessment.json"
@@ -67,5 +67,8 @@ def test_methodology_version_is_a_distinct_field() -> None:
     value = assessment.to_dict()
     # Separately versioned: methodology changes bump this constant on
     # their own schedule; it is not the engine version in disguise.
-    assert value["methodology_version"] == "1.0"
+    # Spec 003 FR-8.2: bumped to "2.0" by the joint FR-8 + Spec 004
+    # methodology change; the value is only ever changed by a
+    # recorded methodology bump, never silently.
+    assert value["methodology_version"] == "2.0"
     assert assessment.methodology_version != value["metadata"]["engine_version"]

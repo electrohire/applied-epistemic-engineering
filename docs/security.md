@@ -23,3 +23,18 @@ The core library does not contact a model. Host applications that add model-back
 SHA-256 chaining detects local history mutation. It is not a digital signature, trusted timestamp,
 identity proof, or truth oracle. See the [ledger guide](ledger.md).
 
+## Development checks
+
+CI runs the Python suite on Linux, macOS, and Windows with Python 3.11–3.13,
+alongside Ruff, mypy, and CodeQL. ClusterFuzzLite adds coverage-guided fuzzing
+of claim loading, structural validation, assessment, and graph generation.
+The same target and seed corpus also run as portable regression tests.
+
+The [OpenSSF Best Practices assessment](https://www.bestpractices.dev/en/projects/15598)
+meets 100% of the Passing criteria as of 2026-10-16, including maintainer
+attestations about secure-development knowledge and report responses. This
+self-assessed badge is not an independent security certification. Scorecard
+process findings, including repository age and
+independent review history, are tracked separately from code vulnerabilities.
+Passing tests or a favorable score cannot establish that all vulnerabilities
+have been eliminated.

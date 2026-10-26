@@ -34,7 +34,7 @@ Accept an optional reporting window in hours (default 168).
 Run the policy helper:
 
 ```bash
-python .specify/extensions/aee/scripts/python/aee_token_economy.py report --hours <N>
+python .specify/extensions/aee/scripts/python/aee_token_economy.py report --hours "<N>"
 ```
 
 The helper degrades gracefully: a missing tool yields `n/a` with a reason,
@@ -42,12 +42,20 @@ never a zero and never an estimate.
 
 ## Report format
 
-```text
-Token savings report (measured only)
-- RTK: used=<yes|no|n/a> saved=<measured tokens or n/a> source=`rtk gain`
-- Headroom: used=<yes|no|n/a> saved=<measured tokens or n/a> source=`headroom perf --hours N`
-- Combined: <sum or n/a>
+The helper prints JSON; report its values verbatim, per channel:
+
+```json
+{
+  "rtk": {"used": true, "saved_tokens": 1234, "source": "rtk gain --format json"},
+  "headroom": {"used": false, "saved_tokens": "n/a", "reason": "headroom not installed"},
+  "combined_saved_tokens": "n/a",
+  "policy": "…"
+}
 ```
+
+`used` is a JSON boolean (`true`/`false`, never `yes|no|n/a`); `saved_tokens`
+is a measured number or the string `"n/a"` with a `reason`. `combined_saved_tokens`
+is the sum only when both channels measured, otherwise `"n/a"`.
 
 Save the report under `.specify/extensions/aee/reports/` when it belongs to a
 feature workflow. Include the commands used as evidence. Do not print raw

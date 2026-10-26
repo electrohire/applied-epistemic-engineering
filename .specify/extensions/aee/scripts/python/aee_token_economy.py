@@ -13,13 +13,24 @@ The three wrapped tools are external runtimes with their own upstreams:
 
 Path-safety helpers mirror scripts/python/run_aee.py so this adapter stays
 runnable standalone.
+
+RT3 hardening: the token-router is executed code, so discovery is
+confined to the project root / its parent (an out-of-domain
+TOKEN_ROUTER_HOME is ignored), router ranges are strictly typed, and
+the route record names the router path + SHA-256. `shell` runs in the
+project root under a timeout and redacts secret-looking argv values
+from telemetry — it is a telemetry wrapper, not a sandbox (see
+docs/token-economy.md). `route` refuses files over a byte cap instead
+of loading them whole.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -31,6 +42,10 @@ DEFAULT_WINDOW = 8
 DEFAULT_MAX_OUTPUT_LINES = 160
 DEFAULT_HEADROOM_HOURS = 168
 ROUTER_TIMEOUT_SECONDS = 300
+# route refuses files above this size rather than loading them whole
+# into memory (RT3-18); operators slice oversized logs first.
+ROUTE_MAX_FILE_BYTES = 256 * 1024 * 1024
+SHELL_TIMEOUT_SECONDS = 600
 
 EVIDENCE_POLICY = (
     "Router output is not evidence. The local router selects lines; it never "
@@ -45,19 +60,27 @@ SAVINGS_POLICY = (
     "unavailable."
 )
 
-# Basename fragments that fail closed: routing secrets would put them in
-# model context. This list is intentionally conservative.
+# Name fragments that fail closed: routing secrets would put them in
+# model context. Matching is done per path component (not just the
+# basename), with underscores normalized to hyphens, so a secret-bearing
+# directory or an underscore spelling cannot smuggle a file past the
+# guard (RT3-06). This list is intentionally conservative.
 _SECRET_FRAGMENTS = (
     ".env",
     ".pem",
     ".key",
-    "id_rsa",
-    "id_ed25519",
+    "id-rsa",
+    "id-ed25519",
     "credentials",
     "secret",
     "service-account",
     "private-key",
 )
+
+# Suffixes that mark a component as secret-bearing wherever they sit in
+# the path, including compound names such as "tls.key.bak" handled by
+# the fragment check above and plain "server.pem" handled here.
+_SECRET_SUFFIXES = (".pem", ".key", ".p12", ".pfx", ".jks", ".keystore")
 
 
 def parser() -> argparse.ArgumentParser:
@@ -79,6 +102,12 @@ def parser() -> argparse.ArgumentParser:
     route.add_argument("--max-direct-lines", type=int, default=DEFAULT_MAX_DIRECT_LINES)
     route.add_argument("--window", type=int, default=DEFAULT_WINDOW)
     route.add_argument("--max-output-lines", type=int, default=DEFAULT_MAX_OUTPUT_LINES)
+    route.add_argument(
+        "--max-file-bytes",
+        type=int,
+        default=ROUTE_MAX_FILE_BYTES,
+        help="refuse to route files larger than this (default: %(default)s)",
+    )
 
     report = sub.add_parser("report", help="Measured-only savings report.")
     report.add_argument("--hours", type=int, default=DEFAULT_HEADROOM_HOURS)
@@ -90,6 +119,13 @@ def parser() -> argparse.ArgumentParser:
         "--telemetry",
         type=Path,
         default=Path(".specify/extensions/aee/telemetry/shell-calls.jsonl"),
+    )
+    shell.add_argument(
+        "--timeout",
+        type=int,
+        default=SHELL_TIMEOUT_SECONDS,
+        help="seconds before the wrapped command is killed "
+        "(default: %(default)s)",
     )
     shell.add_argument("argv", nargs=argparse.REMAINDER)
     return root
@@ -115,6 +151,11 @@ def main(argv: list[str] | None = None) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _inside_any(path: Path, bases: tuple[Path, ...]) -> bool:
+    resolved = path.resolve(strict=False)
+    return any(resolved == base or base in resolved.parents for base in bases)
+
+
 def _find_token_router(root: Path) -> Path | None:
     """Locate the optional token-router backend without vendoring it.
 
@@ -122,11 +163,21 @@ def _find_token_router(root: Path) -> Path | None:
     sibling checkout), never on the caller's working directory — the
     tool accepts --project-root, so results must not depend on where
     the agent happens to invoke it from.
+
+    The router is executed with this interpreter, so discovery is a
+    trust decision: an env-supplied TOKEN_ROUTER_HOME is honored only
+    when it resolves inside the same trust domain as the built-in
+    candidates (the project root or its parent). An out-of-domain
+    router home is ignored — routing falls back deterministically
+    rather than executing arbitrary out-of-root code (RT3-10).
     """
-    env_home = os.environ.get("TOKEN_ROUTER_HOME")
+    trusted = (root.resolve(strict=False), root.parent.resolve(strict=False))
     candidates: list[Path] = []
+    env_home = os.environ.get("TOKEN_ROUTER_HOME")
     if env_home:
-        candidates.append(Path(env_home) / "scripts" / "router.py")
+        env_candidate = Path(env_home) / "scripts" / "router.py"
+        if _inside_any(env_candidate, trusted):
+            candidates.append(env_candidate)
     candidates.append(root / "token-router" / "scripts" / "router.py")
     candidates.append(root.parent / "token-router" / "scripts" / "router.py")
     for candidate in candidates:
@@ -169,8 +220,23 @@ def _status(root: Path, args: argparse.Namespace) -> int:
 
 
 def _looks_like_secret(path: Path) -> bool:
-    lowered = path.name.lower()
-    return any(fragment in lowered for fragment in _SECRET_FRAGMENTS)
+    """Fail-closed name check over EVERY component of the path.
+
+    The basename alone is not enough: `credentials/notes.log` and
+    `private_key.log` both routed secret slices before this check
+    looked at directory components and normalized `_` to `-`
+    (RT3-06). The check is name-based by design — it cannot detect
+    secret *content* under an innocuous name; see
+    commands/speckit.aee.route-evidence.md for the residual risk.
+    """
+    for part in path.parts:
+        lowered = part.lower()
+        normalized = lowered.replace("_", "-")
+        if any(fragment in normalized for fragment in _SECRET_FRAGMENTS):
+            return True
+        if lowered.endswith(_SECRET_SUFFIXES):
+            return True
+    return False
 
 
 def _route(root: Path, args: argparse.Namespace) -> int:
@@ -186,7 +252,22 @@ def _route(root: Path, args: argparse.Namespace) -> int:
     except ValueError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 2
-    lines = source.read_text(encoding="utf-8", errors="replace").splitlines()
+    # Byte cap BEFORE any read (RT3-18): the file used to be loaded
+    # whole via read_text().splitlines(), so a multi-GB log exhausted
+    # memory before the line gates ever ran. Under the cap the file
+    # is streamed line by line instead of split from one giant string.
+    size = source.stat().st_size
+    if size > args.max_file_bytes:
+        print(
+            f"refused: {args.file} is {size} bytes, over the route "
+            f"byte cap ({args.max_file_bytes} bytes); slice the file "
+            "first (for example split or tail) and route a bounded "
+            "piece.",
+            file=sys.stderr,
+        )
+        return 2
+    with source.open(encoding="utf-8", errors="replace") as handle:
+        lines = [line.rstrip("\n") for line in handle]
     total = len(lines)
     record: dict = {
         "file": source.relative_to(root).as_posix(),
@@ -217,6 +298,13 @@ def _route(root: Path, args: argparse.Namespace) -> int:
             if router is None
             else "ollama unavailable for the token-router backend"
         )
+    if backend == "token-router" and router is not None:
+        # Name the exact code that was executed, with its hash, so a
+        # route decision can be audited back to a router build (RT3-10).
+        record["router"] = {
+            "path": str(router),
+            "sha256": hashlib.sha256(router.read_bytes()).hexdigest(),
+        }
     ranges = _clamp_ranges(ranges, total, args.max_output_lines)
     if not ranges:
         record["action"] = "no_matches"
@@ -285,7 +373,11 @@ def _router_backend(
             if (
                 isinstance(item, (list, tuple))
                 and len(item) == 2
-                and all(isinstance(v, int) for v in item)
+                # Strict int check (RT3-10): bool is an int subclass,
+                # so JSON [[true, 3]] used to be accepted as start=1.
+                and all(
+                    isinstance(v, int) and not isinstance(v, bool) for v in item
+                )
             ):
                 ranges.append((item[0], item[1]))
     return ranges
@@ -467,6 +559,51 @@ def _report(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
+# Argv redaction for shell telemetry (RT3-09). Commands routinely
+# carry tokens and passwords as arguments; the telemetry record used
+# to store them verbatim. Values under a secret-named key, the value
+# following a secret-named flag, and known token shapes are replaced
+# with the marker below. Redaction is a telemetry hygiene measure,
+# not a guarantee: operators must still keep secrets out of argv.
+_REDACTED = "«redacted»"
+_SECRET_KEY = re.compile(
+    r"(?i)(token|secret|password|passwd|api[-_]?key|access[-_]?key|"
+    r"auth|credential|private[-_]?key)"
+)
+_SECRET_ASSIGNMENT = re.compile(
+    r"^(?P<key>[^=:\s]*?(?:token|secret|password|passwd|api[-_]?key|"
+    r"access[-_]?key|auth|credential)[^=:\s]*?)(?P<sep>[=:])",
+    re.IGNORECASE,
+)
+_TOKEN_SHAPE = re.compile(
+    r"^(AKIA[0-9A-Z]{16}|gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|"
+    r"sk-[A-Za-z0-9_-]{16,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN)"
+)
+
+
+def _redact_argv(command: list[str]) -> list[str]:
+    redacted: list[str] = []
+    redact_next = False
+    for arg in command:
+        if redact_next:
+            redacted.append(_REDACTED)
+            redact_next = False
+            continue
+        assignment = _SECRET_ASSIGNMENT.match(arg)
+        if assignment and len(arg) > assignment.end():
+            redacted.append(f"{assignment.group('key')}{assignment.group('sep')}{_REDACTED}")
+            continue
+        if _TOKEN_SHAPE.match(arg):
+            redacted.append(_REDACTED)
+            continue
+        if arg.startswith("--") and _SECRET_KEY.search(arg) and "=" not in arg:
+            redacted.append(arg)
+            redact_next = True
+            continue
+        redacted.append(arg)
+    return redacted
+
+
 def _shell(root: Path, args: argparse.Namespace) -> int:
     command = args.argv[1:] if args.argv[:1] == ["--"] else args.argv
     if not command:
@@ -481,29 +618,54 @@ def _shell(root: Path, args: argparse.Namespace) -> int:
     except ValueError as exc:
         print(f"refused: {exc}", file=sys.stderr)
         return 2
+    # Trust model (RT3-09): this wrapper is telemetry, not a sandbox.
+    # It confines the working directory to the project root and bounds
+    # the command's lifetime; it does not restrict what the command
+    # itself may read or write. See docs/token-economy.md.
+    timed_out = False
     try:
-        completed = subprocess.run(command, capture_output=True, check=False)
+        completed = subprocess.run(
+            command,
+            capture_output=True,
+            check=False,
+            cwd=root,
+            timeout=args.timeout,
+        )
+        stdout, stderr, exit_code = completed.stdout, completed.stderr, completed.returncode
+    except subprocess.TimeoutExpired as exc:
+        timed_out = True
+        stdout = exc.stdout or b""
+        stderr = exc.stderr or b""
+        exit_code = None
+        print(
+            f"refused: command timed out after {args.timeout} seconds "
+            "and was killed",
+            file=sys.stderr,
+        )
     except OSError as exc:
         print(f"refused: cannot execute {command[0]!r}: {exc}", file=sys.stderr)
         return 2
-    sys.stdout.buffer.write(completed.stdout)
-    sys.stderr.buffer.write(completed.stderr)
+    sys.stdout.buffer.write(stdout)
+    sys.stderr.buffer.write(stderr)
     record = {
         "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
-        "command": command,
+        "command": _redact_argv(command),
+        "cwd": root.as_posix(),
         "rtk_available": rtk_available,
-        "stdout_bytes": len(completed.stdout),
-        "stderr_bytes": len(completed.stderr),
-        "exit_code": completed.returncode,
+        "stdout_bytes": len(stdout),
+        "stderr_bytes": len(stderr),
+        "exit_code": exit_code,
+        "timed_out": timed_out,
         "note": (
             "Shell-output filtering is handled by rtk tool hooks "
             "(`rtk init -g`) when installed; this wrapper records telemetry "
-            "only. Savings remain measured via `rtk gain`."
+            "only. Savings remain measured via `rtk gain`. argv values "
+            "that look like secrets are redacted in this record."
         ),
     }
     with telemetry.open("a", encoding="utf-8") as handle:
         handle.write(json.dumps(record) + "\n")
-    return completed.returncode
+    return 2 if timed_out else exit_code
 
 
 # ---------------------------------------------------------------------------
@@ -527,7 +689,10 @@ def _safe_output(root: Path, value: Path) -> Path:
     _reject_symlink_chain(root, candidate)
     candidate.parent.mkdir(parents=True, exist_ok=True)
     _reject_symlink_chain(root, candidate)
-    return candidate
+    # Return the RESOLVED path (RT3-17), mirroring run_aee.py: the
+    # unresolved candidate left a check-then-use window between this
+    # validation and the later write.
+    return candidate.resolve(strict=False)
 
 
 def _require_inside(root: Path, candidate: Path) -> None:

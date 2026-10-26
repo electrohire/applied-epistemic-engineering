@@ -399,3 +399,105 @@ def test_generate_evidence_file_is_a_named_error(matrix_file: Path, tmp_path: Pa
     evidence_file.write_text("{}", encoding="utf-8")
     with pytest.raises(ValueError, match="not a directory"):
         GapEngine().generate(matrix_file, evidence_file)
+
+
+# -- FR-5.11 evidence confinement (follow-on T512/T513) --
+# Probe-inversion: before FR-5.11 the evidence walk followed
+# symlinks, so a passing result file placed OUTSIDE the evidence
+# root closed gaps as if it were in-tree evidence. These tests pin
+# the refusal (and that in-root links stay legitimate).
+
+
+def _outside_passing_file(tmp_path: Path) -> Path:
+    """A passing evidence file that lives outside any evidence root."""
+    path = tmp_path / "outside" / "results.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(
+        json.dumps({"results": [{"test_id": "T-API-001", "status": "pass"}]}),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_symlinked_evidence_file_escaping_root_is_refused(
+    matrix_file: Path, tmp_path: Path
+) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    link = evidence / "linked.json"
+    link.symlink_to(_outside_passing_file(tmp_path))
+    with pytest.raises(ValueError, match="escapes the evidence root") as excinfo:
+        GapEngine().generate(matrix_file, evidence)
+    # The offender is named, with its resolved target.
+    assert "linked.json" in str(excinfo.value)
+    assert "outside" in str(excinfo.value)
+
+
+def test_symlinked_evidence_directory_escaping_root_is_refused(
+    matrix_file: Path, tmp_path: Path
+) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "linked-dir").symlink_to(
+        _outside_passing_file(tmp_path).parent, target_is_directory=True
+    )
+    with pytest.raises(ValueError, match="escapes the evidence root") as excinfo:
+        GapEngine().generate(matrix_file, evidence)
+    assert "linked-dir" in str(excinfo.value)
+
+
+def test_out_of_root_link_refuses_the_whole_run(matrix_file: Path, tmp_path: Path) -> None:
+    # A legitimate in-root pass does not rescue a run that also
+    # carries an escaping link: no register is generated from
+    # partially trusted evidence.
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "real.json").write_text(
+        json.dumps({"results": [{"test_id": "T-DB-001", "status": "pass"}]}),
+        encoding="utf-8",
+    )
+    (evidence / "linked.json").symlink_to(_outside_passing_file(tmp_path))
+    with pytest.raises(ValueError, match="escapes the evidence root"):
+        GapEngine().generate(matrix_file, evidence)
+
+
+def test_symlinked_evidence_inside_root_still_closes_gaps(
+    matrix_file: Path, tmp_path: Path
+) -> None:
+    evidence = tmp_path / "evidence"
+    real_dir = evidence / "real"
+    real_dir.mkdir(parents=True)
+    (real_dir / "results.json").write_text(
+        json.dumps({"results": [{"test_id": "T-API-001", "status": "pass"}]}),
+        encoding="utf-8",
+    )
+    # A file link and a directory link, both resolving inside the
+    # root, are legitimate evidence.
+    (evidence / "alias.json").symlink_to(real_dir / "results.json")
+    (evidence / "alias-dir").symlink_to(real_dir, target_is_directory=True)
+    register = GapEngine().generate(matrix_file, evidence)
+    closed = {e.test_id for e in register.closed_gaps}
+    assert "T-API-001" in closed
+
+
+def test_in_root_symlink_cycle_does_not_loop(matrix_file: Path, tmp_path: Path) -> None:
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "loop").symlink_to(evidence, target_is_directory=True)
+    register = GapEngine().generate(matrix_file, evidence)
+    assert register.closed_count == 0
+
+
+def test_cli_gaps_refuses_escaping_evidence_with_exit_2(
+    matrix_file: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    from aee.cli import main
+
+    evidence = tmp_path / "evidence"
+    evidence.mkdir()
+    (evidence / "linked.json").symlink_to(_outside_passing_file(tmp_path))
+    rc = main(["gaps", "--matrix", str(matrix_file), "--evidence", str(evidence)])
+    assert rc == 2
+    err = capsys.readouterr().err
+    assert "linked.json" in err
+    assert "escapes the evidence root" in err

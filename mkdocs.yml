@@ -2,7 +2,7 @@ site_name: Applied Epistemic Engineering
 site_description: Evidence-centered claim engineering for Python and Spec Kit.
 site_url: https://applied-epistemic-engineering.readthedocs.io
 repo_url: https://github.com/electrohire/applied-epistemic-engineering
-repo_name: electrohire/applied-epistemic-engineering
+repo_name: applied-epistemic-engineering
 edit_uri: edit/main/docs/
 
 theme:
@@ -27,14 +27,19 @@ theme:
 nav:
   - Home: index.md
   - Getting Started: quickstart.md
-  - Foundations: concepts.md
-  - Scoring: scoring.md
-  - Ledger: ledger.md
-  - Version policy: versioning.md
-  - Porting from the Epistemic Ledger: porting-from-epistemic-ledger.md
-  - Spec Kit Integration: spec-kit.md
-  - Migration guide: migration.md
-  - Python API: api.md
+  - Guides:
+      - CLI, agent, and Spec Kit: agent.md
+      - Use cases and agent loops: use-cases.md
+      - Spec Kit integration: spec-kit.md
+  - Concepts:
+      - Foundations: concepts.md
+      - Names and assurance boundaries: names-and-assurance.md
+      - Scoring: scoring.md
+      - Ledger: ledger.md
+  - Reference:
+      - Python API: api.md
+      - Version policy: versioning.md
+      - Benchmarks and release gates: benchmarks.md
   - Security: security.md
 
 markdown_extensions:
@@ -43,7 +48,11 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.highlight
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 
 plugins:
   - search

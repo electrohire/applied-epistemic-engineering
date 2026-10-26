@@ -9,6 +9,7 @@ real features once they are reachable here.
 import json
 
 from aee.cli import main
+from aee.ledger import HashChainLedger
 from aee.reliability import ReliabilityTable
 
 
@@ -23,6 +24,7 @@ def strong_claim(claim_id="A", sources=("S1", "S2")):
         "id": claim_id,
         "text": "Latency is below 100 ms",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [
@@ -34,6 +36,17 @@ def strong_claim(claim_id="A", sources=("S1", "S2")):
                 "direction": "supports",
             }
             for source in sources
+        ]
+        # Spec 004 R5.1 (P2): plus a human-paced item, so the
+        # machine-only gate does not cap this corroborated fixture.
+        + [
+            {
+                "ref": f"review-{claim_id}",
+                "source_id": f"{claim_id}-reviewer",
+                "kind": "observed",
+                "source_quality": "primary",
+                "direction": "supports",
+            }
         ],
     }
 
@@ -71,7 +84,11 @@ def test_assess_policy_accepts_corroborated_claim(tmp_path) -> None:
 
 
 def test_assess_policy_single_source_challenges(tmp_path) -> None:
-    code, value = run_assess(tmp_path, [strong_claim(sources=("S1",))], "--policy")
+    single = strong_claim(sources=("S1",))
+    # The shared fixture appends a human-paced item (Spec 004 R5.1);
+    # this test is about ONE source, so slice back to it.
+    single["evidence"] = single["evidence"][:1]
+    code, value = run_assess(tmp_path, [single], "--policy")
     assert value["verdicts"]["A"]["verdict"] == "challenge"
     assert code == 1  # outcome demoted to iterate: soft exit
 
@@ -93,15 +110,22 @@ def test_assess_policy_threshold_overrides(tmp_path) -> None:
 
 
 def test_assess_reliability_blends_scores(tmp_path) -> None:
-    table = ReliabilityTable()
+    # FR-3.6/FR-3.7: the resolver's records are anchored in a
+    # hash-chained ledger, and the CLI canonises the file's
+    # history only when the run's ledger is the one the anchors
+    # resolve against. The same file under --no-ledger stays
+    # provisional and blends nothing.
+    ledger_path = tmp_path / "resolutions.jsonl"
+    table = ReliabilityTable(ledger=HashChainLedger(ledger_path))
     for _ in range(5):
-        table.record("M", 1.0, True, provenance="test-resolver")
+        table.record_resolution("M", 1.0, True, provenance="test-resolver")
     table_path = tmp_path / "reliability.json"
     table_path.write_text(json.dumps(table.to_dict()), encoding="utf-8")
     model_claim = {
         "id": "A",
         "text": "The model says latency is fine",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["p95 in production"],
         "falsification_tests": ["Observe p95 at or above 100 ms"],
         "evidence": [
@@ -115,7 +139,27 @@ def test_assess_reliability_blends_scores(tmp_path) -> None:
         ],
     }
     _, plain = run_assess(tmp_path, [model_claim])
-    _, blended = run_assess(tmp_path, [model_claim], "--reliability", str(table_path))
+    _, unbound = run_assess(tmp_path, [model_claim], "--reliability", str(table_path))
+    assert unbound["scores"]["A"]["direct_score"] == plain["scores"]["A"]["direct_score"]
+    assert not any("measured reliability" in note for note in unbound["scores"]["A"]["notes"])
+    bound_output = tmp_path / "assessment-bound.json"
+    code = main(
+        [
+            "assess",
+            "--input",
+            write_claims(tmp_path, [model_claim]),
+            "--output",
+            str(bound_output),
+            "--ledger",
+            str(ledger_path),
+            "--reliability",
+            str(table_path),
+        ]
+    )
+    # Soft exit 1: the blend lifts the claim but it still does not
+    # pass — a successful assess run, not an input error (2).
+    assert code == 1
+    blended = json.loads(bound_output.read_text(encoding="utf-8"))
     assert blended["scores"]["A"]["direct_score"] > plain["scores"]["A"]["direct_score"]
     notes = blended["scores"]["A"]["notes"]
     assert any("measured reliability" in note for note in notes)

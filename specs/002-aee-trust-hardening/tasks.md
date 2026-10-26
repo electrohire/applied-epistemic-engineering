@@ -78,9 +78,9 @@
 
 ## FR-8b — Axiomere anchoring (separate, later, non-blocking) [engine or extension]
 
-- [ ] T804 [engine] Optional anchor command depositing the assessment SHA-256 into an Axiomere `.axmr` ledger via the `axiomere` Python package; graceful "anchor unavailable" when the package is absent.
-- [ ] T805 [engine] Anchor receipt (ledger path, event/snapshot id, checkpoint root) recorded as `metadata.anchor`.
-- [ ] T806 [engine] Verification test: receipt hash matches the assessment and verifies via the axiomere package's own `verify_file`.
+- [x] T804 [engine] Optional anchor command depositing the assessment SHA-256 into an Axiomere `.axmr` ledger via the `axiomere` Python package; graceful "anchor unavailable" when the package is absent.
+- [x] T805 [engine] Anchor receipt (ledger path, event/snapshot id, checkpoint root) recorded as `metadata.anchor`.
+- [x] T806 [engine] Verification test: receipt hash matches the assessment and verifies via the axiomere package's own `verify_file`.
 
 ## Close-out
 

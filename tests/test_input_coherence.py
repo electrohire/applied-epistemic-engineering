@@ -105,8 +105,8 @@ def test_load_errors_name_row_index_and_claim_id(tmp_path: Path) -> None:
     bundle = _bundle(
         tmp_path,
         [
-            {"id": "CLM-OK", "text": "fine"},
-            {"id": "CLM-BAD", "text": "t", "confidence": "0.9"},
+            {"id": "CLM-OK", "text": "fine", "stage": "created"},
+            {"id": "CLM-BAD", "text": "t", "confidence": "0.9", "stage": "created"},
         ],
     )
     with pytest.raises(BundleValidationError) as excinfo:
@@ -166,7 +166,7 @@ def test_duplicate_keys_refused_in_assessment_for_gate(
 def test_duplicate_keys_refused_in_reliability_file(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    bundle = _bundle(tmp_path, [{"id": "CLM-1", "text": "t"}])
+    bundle = _bundle(tmp_path, [{"id": "CLM-1", "text": "t", "stage": "created"}])
     reliability = _write(tmp_path, '{"sources": {}, "sources": {}}', name="reliability.json")
     assert (
         main(
@@ -209,8 +209,8 @@ def test_p05_case_variant_ids_are_one_identity(tmp_path: Path) -> None:
     bundle = _bundle(
         tmp_path,
         [
-            {"id": "clm-1", "text": "lower"},
-            {"id": "CLM-1", "text": "upper", "depends_on": ["clm-1"]},
+            {"id": "clm-1", "text": "lower", "stage": "created"},
+            {"id": "CLM-1", "text": "upper", "depends_on": ["clm-1"], "stage": "created"},
         ],
     )
     claims = load_claims(bundle)
@@ -227,13 +227,19 @@ def test_p05_unicode_nfc_nfd_ids_are_one_identity(tmp_path: Path) -> None:
     nfc = "CLM-\u00c4"  # precomposed U+00C4
     nfd = "CLM-A\u0308"  # A + combining diaeresis U+0308
     assert nfc != nfd
-    bundle = _bundle(tmp_path, [{"id": nfc, "text": "a"}, {"id": nfd, "text": "b"}])
+    bundle = _bundle(
+        tmp_path,
+        [
+            {"id": nfc, "text": "a", "stage": "created"},
+            {"id": nfd, "text": "b", "stage": "created"},
+        ],
+    )
     claims = load_claims(bundle)
     assert [claim.id for claim in claims] == ["CLM-\u00c4", "CLM-\u00c4"]
 
 
 def test_p05_whitespace_id_normalised() -> None:
-    assert Claim.from_dict({"id": " CLM-9 ", "text": "t"}).id == "CLM-9"
+    assert Claim.from_dict({"id": " CLM-9 ", "text": "t", "stage": "created"}).id == "CLM-9"
 
 
 def test_p05_session_add_claim_uses_the_same_identity() -> None:
@@ -275,7 +281,8 @@ def test_p06_bom_no_longer_deletes_first_claim(tmp_path: Path) -> None:
 def test_p06_bom_prefixed_json_bundle_loads(tmp_path: Path) -> None:
     path = tmp_path / "bom.json"
     path.write_bytes(
-        b"\xef\xbb\xbf" + json.dumps({"claims": [{"id": "CLM-1", "text": "t"}]}).encode()
+        b"\xef\xbb\xbf"
+        + json.dumps({"claims": [{"id": "CLM-1", "text": "t", "stage": "created"}]}).encode()
     )
     assert [claim.id for claim in load_claims(path)] == ["CLM-1"]
 
@@ -322,6 +329,7 @@ _AS_OF_BUNDLE = [
         "id": "CLM-1",
         "text": "proposition one holds",
         "status": "supported",
+        "stage": "accepted",
         "boundary": ["lab"],
         "falsification_tests": ["check it"],
         "evidence": [
@@ -451,6 +459,7 @@ def test_republished_verified_status_is_never_trusted() -> None:
     forged = {
         "id": "CLM-1",
         "text": "t",
+        "stage": "created",
         "evidence": [
             {"ref": "data.bin", "content_hash": "deadbeef", "content_hash_status": "verified"}
         ],
@@ -477,6 +486,7 @@ def test_assess_verify_evidence_cli_marks_verified(
                 "id": "CLM-1",
                 "text": "t",
                 "status": "supported",
+                "stage": "accepted",
                 "evidence": [
                     {
                         "ref": "data.bin",
@@ -520,6 +530,7 @@ def test_p13_reorder_keeps_per_id_scores_and_outcome(tmp_path: Path) -> None:
             "id": f"CLM-{i}",
             "text": f"proposition number {i} holds",
             "status": "draft",
+            "stage": "created",
             "boundary": ["lab"],
             "falsification_tests": ["check"],
             "evidence": [

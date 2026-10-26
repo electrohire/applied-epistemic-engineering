@@ -1065,10 +1065,174 @@
       "status": "draft",
       "text": "After FR-8 lands, the engine documentation states plainly that the weakest-link propagation cap is conditional on author-declared dependencies, cross-references the dependency scaffolding in Spec 002 FR-6.3, and claims no in-engine detection of omitted dependencies for RT1-22.",
       "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine reliability canonisation in src/aee/reliability.py (follow-on to RT-003-23)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-3 addendum (FR-3.6/FR-3.7/FR-3.8), which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Provenance-authority suite: three self-asserted records (provenance='attacker-self-report') and three allow_unattributed records both leave reliability() None with the MODEL blend at the 0.20 static prior; thirty accumulated self-asserted records canonise no more than three; unanchored observe_claim credit is likewise provisional only.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_reliability_provenance.py (engine branch impl/003-fr3-provenance-authority)",
+          "source_id": "fr3-provenance-suite-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "RT1-07 probe re-run against the fixed engine: the p4b E2/E3 constructions (any provenance string; allow_unattributed) that returned reliability 1.0 and blend 0.60 before the fix now return reliability None, provisional 0.5 (capped), and blend (0.20, None).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "RT1 probe p4 sections E-G / p4b sections E1-E3, re-run 2026-10-12 (before: 1.0 / 0.60; after: None / 0.20 static)",
+          "source_id": "closeout-probe-rerun-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "Three or more self-asserted records with perfect predictions yielding a non-None reliability(), a blended weight different from the static prior, or canonisation of a legacy-loaded source without anchored records."
+      ],
+      "id": "RT-003-36",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "supported",
+      "text": "After the FR-3 provenance-authority follow-on lands, a source recorded only with self-asserted provenance (direct record() with any caller-supplied string, the allow_unattributed compatibility path, or legacy-loaded records) never reaches measured reliability: reliability() returns None and blended_weight leaves the static prior standing, no matter how many such records accumulate (inverts the RT1-07 direct-minting residual left open on RT-003-23).",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine reliability canonisation in src/aee/reliability.py (follow-on to RT-003-23)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-3 addendum (FR-3.6/FR-3.7/FR-3.8), which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Anchored-path suite: record_resolution/observe_claim_resolution canonise at the probe's original numbers when earned (three anchored perfect records: reliability 1.0, MODEL blend 0.20 -> 0.60); forged digests, payload mismatches (source/prediction/outcome), wrong event types, replayed anchors, and anchors on a tampered chain are all refused with nothing recorded.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_reliability_provenance.py (engine branch impl/003-fr3-provenance-authority)",
+          "source_id": "fr3-provenance-suite-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Honest-table control preserved on the anchored path with identical observations: lab reliability 0.79 -> blended TEST 0.895; M 1.0 -> blended MODEL 0.60 (tests/test_reliability_validation.py::test_honest_table_control_values_unchanged, migrated per FR-3.8).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_reliability_validation.py; tests/test_reliability.py (engine branch impl/003-fr3-provenance-authority)",
+          "source_id": "fr3-provenance-suite-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "Anchored honest records failing to reproduce the control values, or a bogus, payload-mismatched, or already-consumed anchor being accepted for canonisation-grade credit."
+      ],
+      "id": "RT-003-37",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "supported",
+      "text": "Canonisation-grade credit is earned only through engine-verified anchors: observations recorded against hash-chained ledger resolution entries that resolve in the table's bound ledger, on a chain that verifies, with payloads matching the recorded observation, accumulate anchored credit toward the cold-start guard; a bogus, mismatched, or replayed anchor is refused, and the FR-3 honest-table control values hold exactly on the anchored path (lab 0.79 to blended TEST 0.895; M 1.0 to blended MODEL 0.60).",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine reliability canonisation in src/aee/reliability.py (follow-on to RT-003-23)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-3 addendum (FR-3.6/FR-3.7/FR-3.8), which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Label and load-path suite: serialised records expose credit_status/canonised/provisional_reliability plus anchored tallies and digests; a loaded table canonises only after its digests resolve against a consumer-bound ledger (from_dict(ledger=...) or verify_anchors); unresolvable or fabricated digests are loud BundleValidationErrors naming the source; inconsistent anchored fields are refused at load.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_reliability_provenance.py (engine branch impl/003-fr3-provenance-authority)",
+          "source_id": "fr3-provenance-suite-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Legacy behaviour pinned: a pre-FR-3 table loads with the legacy provenance marker and full provisional history (0.79 raw) but zero anchored credit, reliability() None, provisional capped at 0.5, credit_status 'provisional'. CLI assess binds its resolved ledger when loading --reliability, and the same anchored file under --no-ledger blends nothing (tests/test_cli_policy.py).",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_reliability_validation.py::test_legacy_table_loads_with_defaulted_provenance_and_credit; tests/test_cli_policy.py::test_assess_reliability_blends_scores",
+          "source_id": "fr3-provenance-suite-2026-10-12",
+          "source_quality": "test"
+        }
+      ],
+      "falsification_tests": [
+        "A provisional reliability above the 0.5 cap in emitted output, a provisional value altering a blended weight, a legacy-loaded source canonising without anchored records, or a table file canonising on anchor digests no bound ledger can resolve."
+      ],
+      "id": "RT-003-38",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-3",
+      "status": "supported",
+      "text": "Self-asserted reliability history remains visible but provisional, capped, and labeled: serialised records expose their credit status, anchored tallies, anchor digests, and a provisional reliability capped at 0.5 that never feeds blended_weight; legacy tables load with the legacy provenance marker and zero canonisation until anchored records exist, and a loaded table's claimed anchors activate canonisation only after they resolve against a consumer-bound ledger (an unresolvable digest is a loud error naming the source).",
+      "uncertainty": "high"
+    },
+    {
+      "boundary": [
+        "engine gaps evidence discovery in src/aee/gaps.py (follow-on to RT-003-25)"
+      ],
+      "evidence": [
+        {
+          "description": "Requirement stated in Spec 003 FR-5 addendum (FR-5.11), which this claim commits to test.",
+          "direction": "supports",
+          "kind": "asserted",
+          "ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+          "source_id": "spec-003-aee-red-team-remediation",
+          "source_quality": "primary"
+        },
+        {
+          "description": "Confinement suite: a symlinked evidence file and a symlinked evidence directory escaping the root are each refused with the offender and its resolved target named; the refusal is total (a legitimate in-root pass in the same tree does not rescue the run, no register is generated); in-root file and directory symlinks still close gaps; an in-root symlink cycle cannot loop the walk; the CLI exits 2 naming the offender.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "tests/test_gaps.py (engine branch impl/gaps-evidence-confinement)",
+          "source_id": "fr5-gaps-confinement-suite-2026-10-12",
+          "source_quality": "test"
+        },
+        {
+          "description": "Companion construction re-run 2026-10-12, verbatim: an evidence file outside the root, symlinked into the tree with a passing result for the matrix's only test, closed its gap under the pre-fix engine (closed: 1, open: 0); under the fixed engine the identical tree is refused — 'evidence entry escapes the evidence root via symlink: evidence/linked.json -> outside/results.json' — and no register is generated.",
+          "direction": "supports",
+          "kind": "observed",
+          "ref": "FR-5.11 probe construction (evidence/linked.json -> outside/results.json), re-run 2026-10-12 (before: gap closed; after: refused, offender named)",
+          "source_id": "gaps-confinement-probe-2026-10-12",
+          "source_quality": "artifact"
+        }
+      ],
+      "falsification_tests": [
+        "A symlinked evidence file or directory under --evidence resolving outside the evidence root whose passing results close a gap, or a gaps run that succeeds over any out-of-root symlinked evidence entry without naming it."
+      ],
+      "id": "RT-003-39",
+      "kind": "prediction",
+      "severity": "high",
+      "source_ref": "specs/003-aee-red-team-remediation/spec.md#fr-5",
+      "status": "supported",
+      "text": "After the FR-5.11 gaps evidence-confinement follow-on lands, `aee gaps` never treats evidence outside the --evidence tree as in-tree evidence: any symlink in the evidence tree whose resolved target lies outside the resolved evidence root refuses the run with a clean input error (exit 2) naming each offending entry, no register is generated, and no gap closes on out-of-root evidence; symlinks resolving inside the evidence root and ordinary in-tree evidence close gaps exactly as before (closes the engine-side companion item to the extension's RT3 gaps pre-flight confinement).",
+      "uncertainty": "high"
     }
   ],
   "date": "2026-10-12",
   "schema_version": "1.0",
   "spec": "003-aee-red-team-remediation",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

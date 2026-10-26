@@ -32,7 +32,8 @@
           "source_quality": "tertiary",
           "description": "A tests/ ref declared tertiary; derived quality is test (acceptance case c)"
         }
-      ]
+      ],
+      "stage": "accepted"
     }
   ]
 }

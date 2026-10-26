@@ -143,11 +143,40 @@
             "high",
             "insufficient_evidence"
           ]
+        },
+        "headline": {
+          "type": "boolean"
+        },
+        "role": {
+          "enum": [
+            "statement-fidelity",
+            "evidence-verification",
+            "novelty",
+            "attribution",
+            "significance",
+            null
+          ]
+        },
+        "stage": {
+          "enum": [
+            "created",
+            "checked",
+            "explained",
+            "accepted",
+            "digested"
+          ]
+        },
+        "stage_events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stage_event"
+          }
         }
       },
       "required": [
         "id",
-        "text"
+        "text",
+        "stage"
       ],
       "type": "object"
     },
@@ -222,7 +251,8 @@
             "inferred",
             "asserted",
             "contradicted",
-            "unsupported"
+            "unsupported",
+            "exposition"
           ]
         },
         "observed_at": {
@@ -307,6 +337,35 @@
         "challenge"
       ],
       "type": "object"
+    },
+    "stage_event": {
+      "type": "object",
+      "required": [
+        "kind",
+        "basis"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "created",
+            "checked",
+            "explained",
+            "accepted",
+            "digested"
+          ]
+        },
+        "author": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string"
+        },
+        "basis": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
     }
   },
   "$id": "https://electrohire.com/schemas/aee-claim-bundle-1.0.json",

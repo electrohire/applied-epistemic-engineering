@@ -52,6 +52,10 @@ def test_required_tools_unchanged(manifest: dict) -> None:
     tools = _tools(manifest)
     assert tools["python"]["required"] is True
     assert tools["aee"]["required"] is True
+    # Spec 005 supersedes the RT3-04-era declaration: the evaluator
+    # extension is a required companion — AEE's results are composed
+    # through the common evaluator so every evaluator's output is
+    # handled consistently, and the runner's assess enforces it.
     assert tools["spec-kit-evaluator"]["required"] is True
 
 
@@ -131,6 +135,46 @@ def test_route_refuses_secret_filenames(tmp_path: Path, capsys) -> None:
             ["--project-root", str(tmp_path), "route", "--file", name]
         )
         assert code == 2, f"secret-looking file {name!r} must be refused"
+
+
+@pytest.mark.parametrize(
+    "rel_path",
+    [
+        # RT3-06 bypasses: the secret signal lives in a directory
+        # component or in an underscore spelling, never the basename
+        # fragment list the old guard checked.
+        "credentials/notes.log",
+        "secrets/notes.log",
+        "private_key.log",
+        "service_account.json",
+        ".env.local",
+        "certs/server.pem",
+        "keys/backup.p12",
+    ],
+)
+def test_route_refuses_secret_path_components(
+    tmp_path: Path, capsys, rel_path: str
+) -> None:
+    target = tmp_path / rel_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    lines = [f"filler line {i}" for i in range(1, 401)]
+    lines[199] = "TOPSECRET-VALUE-12345 needle"
+    target.write_text("\n".join(lines), encoding="utf-8")
+    code = aee_token_economy.main(
+        [
+            "--project-root",
+            str(tmp_path),
+            "route",
+            "--file",
+            rel_path,
+            "--query",
+            "TOPSECRET",
+        ]
+    )
+    assert code == 2, f"secret-looking path {rel_path!r} must be refused"
+    captured = capsys.readouterr()
+    assert "TOPSECRET-VALUE-12345" not in captured.out
+    assert "refused" in captured.err
 
 
 def test_route_refuses_paths_outside_root(tmp_path: Path, capsys) -> None:
