@@ -15,6 +15,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from aee.verified_write import (
+    SafeWriteError,
+    append_bytes_verified,
+    verify_bytes_on_disk,
+)
+
 try:
     import fcntl
 except ImportError:  # Windows
@@ -346,10 +352,12 @@ class HashChainLedger:
         }
         entry["entry_hash"] = _entry_hash(entry)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        with self.path.open("a", encoding="utf-8", newline="\n") as handle:
-            handle.write(_canonical(entry) + "\n")
-            handle.flush()
-            os.fsync(handle.fileno())
+        # Verified append (fleet standard, 2026-10-28): the line is
+        # fsynced and read back at its exact offset before the append
+        # is believed. A silent partial write rolls back to the
+        # pre-append size and raises SafeWriteError instead of leaving
+        # a torn tail standing as a successful append.
+        append_bytes_verified(self.path, (_canonical(entry) + "\n").encode("utf-8"))
         try:
             self._write_anchor_for(entries + 1, str(entry["entry_hash"]), resolved_anchor)
         except Exception:
@@ -477,6 +485,12 @@ class HashChainLedger:
                 os.fsync(handle.fileno())
             os.replace(temporary, anchor_path)
             _fsync_directory(anchor_path.parent)
+            # Read-back verification (fleet standard, 2026-10-28): the
+            # anchor commits the chain head, so a rename that landed
+            # torn or empty must fail loudly here, not at the next
+            # verify() as a phantom truncation.
+            if not verify_bytes_on_disk(anchor_path, content.encode("utf-8")):
+                raise SafeWriteError(f"anchor write to {anchor_path} failed read-back verification")
         finally:
             if temporary.exists():
                 temporary.unlink()

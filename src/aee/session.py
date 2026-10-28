@@ -10,6 +10,7 @@ from aee.engine import AEEEngine, Assessment
 from aee.extract import duplicate_key_hook
 from aee.ledger import HashChainLedger
 from aee.model import Claim, ClaimKind, Evidence, normalize_claim_id
+from aee.verified_write import write_text_verified
 
 
 class AEESession:
@@ -78,9 +79,11 @@ class AEESession:
             "phase": self.phase,
             "claims": [claim.to_dict() for claim in self.claims.values()],
         }
-        self.state_file.write_text(
-            json.dumps(value, indent=2, allow_nan=False) + "\n", encoding="utf-8"
-        )
+        # Verified write (fleet standard, 2026-10-28): the state file
+        # is a claims bundle; a silent partial write would reload as
+        # corrupted claims, so the save must verify by read-back or
+        # raise SafeWriteError.
+        write_text_verified(self.state_file, json.dumps(value, indent=2, allow_nan=False) + "\n")
 
     def load(self) -> int:
         if self.state_file is None or not self.state_file.exists():

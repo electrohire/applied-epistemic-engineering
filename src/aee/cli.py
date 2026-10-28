@@ -8,7 +8,6 @@ import math
 import os
 import re
 import sys
-import tempfile
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -54,6 +53,7 @@ from aee.reliability import ReliabilityTable
 from aee.review import build_review_queue
 from aee.scoring import ClaimScore
 from aee.stage import reported_status_for
+from aee.verified_write import SafeWriteError, write_text_verified
 
 
 def _parse_as_of(raw: str) -> datetime:
@@ -506,7 +506,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             return _review(args)
         if args.command == "demo":
             return _demo()
-    except (ValueError, KeyError, AttributeError, TypeError, OSError) as exc:
+    except (
+        ValueError,
+        KeyError,
+        AttributeError,
+        TypeError,
+        OSError,
+        SafeWriteError,
+    ) as exc:
+        # SafeWriteError (2026-10-28): a verified write that failed on
+        # every path is an error like the OSError it replaces — clean
+        # message, exit 2, and (for assess) no ledger entry, because
+        # the artifact write precedes the append.
         print(f"Error: {exc}", file=sys.stderr)
         return 2
     except (RecursionError, OverflowError) as exc:
@@ -878,7 +889,7 @@ def _anchor(args: argparse.Namespace) -> int:
         return 2
     value["metadata"]["anchor"] = receipt
     target = args.output if args.output is not None else args.input
-    target.write_text(_dumps(value, indent=2) + "\n", encoding="utf-8")
+    _atomic_write_text(target, _dumps(value, indent=2) + "\n")
     print(
         "AEE anchor: deposited assessment SHA-256 "
         f"{receipt['assessment_sha256'][:16]}... in {receipt['ledger']} "
@@ -2140,19 +2151,16 @@ def _atomic_write_text(path: Path, text: str) -> None:
     directory + rename, so a failed or interrupted write never leaves
     a truncated artifact behind. The rename does not follow a symlink
     at the final path component: it replaces the link itself, so a
-    symlinked output can never truncate its target (RT2-H4)."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        dir=path.parent, prefix=path.name + ".", suffix=".tmp"
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
-            handle.write(text)
-        os.replace(temporary, path)
-    except BaseException:
-        temporary.unlink(missing_ok=True)
-        raise
+    symlinked output can never truncate its target (RT2-H4).
+
+    Since the 2026-10-28 fleet verified-writes retrofit this is the
+    shared verified write (aee.verified_write): the temp write is
+    fsynced before the rename, the renamed file is read back and
+    hash-compared, and a write that cannot be verified raises
+    SafeWriteError instead of leaving a silent partial artifact.
+    The rename semantics above are unchanged (os.replace throughout).
+    """
+    write_text_verified(path, text)
 
 
 def _write_or_print(value: dict[str, object], output: Path | None) -> None:
