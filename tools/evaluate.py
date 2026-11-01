@@ -76,6 +76,11 @@ def check_expectation(exp: dict[str, Any]) -> tuple[bool, str]:
             ok,
             f"{exp['part']}/{exp['whole']}={computed:.2f}% vs stated {exp['stated_percent']}%",
         )
+    if kind == "series_ratio":
+        series = exp["series"]
+        computed = sum(series) / series[-1]
+        ok = abs(computed - exp["stated_ratio"]) <= exp["tolerance"]
+        return ok, f"sum(series)/last={computed:.3f} vs stated {exp['stated_ratio']}"
     return False, f"unknown expectation kind {kind!r}"
 
 

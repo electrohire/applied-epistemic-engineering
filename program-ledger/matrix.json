@@ -260,6 +260,32 @@
       "kind": "observation",
       "stage": "checked",
       "status": "supported"
+    },
+    {
+      "components": [
+        "injection-defense"
+      ],
+      "date": "2026-11-01",
+      "depends_on": [
+        "SKA-014"
+      ],
+      "id": "SKA-023",
+      "kind": "inference",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-11-01",
+      "depends_on": [
+        "SKA-003"
+      ],
+      "id": "SKA-024",
+      "kind": "inference",
+      "stage": "checked",
+      "status": "supported"
     }
   ],
   "components": [
@@ -291,22 +317,22 @@
   ],
   "counts": {
     "by_component": {
-      "benchmark": 19,
+      "benchmark": 20,
       "engine": 4,
       "evaluator": 1,
-      "injection-defense": 4,
+      "injection-defense": 5,
       "spec-kit-aee": 2
     },
     "by_status": {
       "draft": 1,
-      "supported": 21
+      "supported": 23
     }
   },
   "generated_from": {
-    "claims": 22,
+    "claims": 24,
     "generator": "tools/build_matrix.py",
     "ledger": "program-ledger/claims.jsonl",
-    "ledger_sha256": "e4abf43f088b465ecb76006188db47eb182813eb87a25b128aaaf2cb94942815"
+    "ledger_sha256": "743d172df03e4431f309d03d8d445998869f7ba80e381025c04996455396a3e1"
   },
   "matrix": {
     "benchmark": {
@@ -331,7 +357,8 @@
         "SKA-019",
         "SKA-020",
         "SKA-021",
-        "SKA-022"
+        "SKA-022",
+        "SKA-024"
       ]
     },
     "engine": {
@@ -354,7 +381,8 @@
         "SKA-014",
         "SKA-015",
         "SKA-016",
-        "SKA-022"
+        "SKA-022",
+        "SKA-023"
       ]
     },
     "spec-kit-aee": {

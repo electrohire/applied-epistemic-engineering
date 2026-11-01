@@ -79,3 +79,24 @@ def test_superseded_dependency_flags_the_dependent(tmp_path: Path) -> None:
     assert proc.returncode == 1, proc.stdout + proc.stderr
     assert "TST-B VIOLATED" in proc.stdout
     assert "superseded claim TST-A" in proc.stdout
+
+
+def test_series_ratio_and_multi_check_aggregation() -> None:
+    ok, detail = evaluate_check(
+        {"kind": "series_ratio", "series": [100, 300, 400], "stated_ratio": 2.0, "tolerance": 0.01}
+    )
+    assert ok, detail
+    bad, _detail = evaluate_check(
+        {"kind": "series_ratio", "series": [100, 300, 400], "stated_ratio": 3.0, "tolerance": 0.01}
+    )
+    assert not bad
+
+
+def evaluate_check(exp: dict) -> tuple[bool, str]:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("evaluate_mod", EVAL)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.check_expectation(exp)  # type: ignore[no-any-return]
