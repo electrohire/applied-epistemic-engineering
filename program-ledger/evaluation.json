@@ -1,0 +1,185 @@
+{
+  "counts": {
+    "consistent": 14,
+    "not_derivable": 5,
+    "verified": 3
+  },
+  "generated_from": {
+    "evaluator": "tools/evaluate.py",
+    "expectations": "program-ledger/expectations.json",
+    "ledger": "program-ledger/claims.jsonl",
+    "ledger_sha256": "e4abf43f088b465ecb76006188db47eb182813eb87a25b128aaaf2cb94942815"
+  },
+  "verdicts": [
+    {
+      "id": "SKA-001",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-002",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "reduction=31.62% vs stated 32%"
+      ]
+    },
+    {
+      "id": "SKA-003",
+      "notes": [
+        "states a percentage with no in-ledger inputs"
+      ],
+      "problems": [],
+      "verdict": "not_derivable",
+      "verified": []
+    },
+    {
+      "id": "SKA-004",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-005",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(63003698+1196302+500000)=64700000 vs 64700000"
+      ]
+    },
+    {
+      "id": "SKA-006",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-007",
+      "notes": [
+        "states a percentage with no in-ledger inputs"
+      ],
+      "problems": [],
+      "verdict": "not_derivable",
+      "verified": []
+    },
+    {
+      "id": "SKA-008",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-009",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-010",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-011",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-012",
+      "notes": [
+        "states a percentage with no in-ledger inputs"
+      ],
+      "problems": [],
+      "verdict": "not_derivable",
+      "verified": []
+    },
+    {
+      "id": "SKA-013",
+      "notes": [
+        "states a percentage with no in-ledger inputs"
+      ],
+      "problems": [],
+      "verdict": "not_derivable",
+      "verified": []
+    },
+    {
+      "id": "SKA-014",
+      "notes": [
+        "states a percentage with no in-ledger inputs"
+      ],
+      "problems": [],
+      "verdict": "not_derivable",
+      "verified": []
+    },
+    {
+      "id": "SKA-015",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "16/28=57.14% vs stated 57.1%"
+      ]
+    },
+    {
+      "id": "SKA-016",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-017",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-018",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-019",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-020",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-021",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-022",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    }
+  ]
+}
