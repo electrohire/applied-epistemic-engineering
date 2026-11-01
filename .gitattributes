@@ -7,3 +7,4 @@ program-ledger/expectations.json text eol=lf
 program-ledger/matrix.json text eol=lf
 program-ledger/matrix.md text eol=lf
 program-ledger/evaluation.json text eol=lf
+program-ledger/map.html text eol=lf

@@ -14,8 +14,8 @@ never by loosening this gate (corollary 4).
      committed evaluation.json is byte-identical to a fresh render.
   G4 lossless regeneration: two independent matrix generations in
      this run produce byte-identical output.
-
-The map joins this gate as G5 when Stage 5 lands it.
+  G5 map freshness: the committed layered map is byte-identical to
+     a fresh render from the ledger + matrix + evaluation.
 
 Usage: python3 tools/gate.py   (exit 0 iff GATE_RESULT PASS)
 Wired into CI (the quality job in .github/workflows/ci.yml) and run
@@ -48,6 +48,7 @@ def load_tool(name: str, path: Path) -> ModuleType:
 intake = load_tool("ledger_intake", LEDGER_DIR / "intake.py")
 build_matrix = load_tool("build_matrix", ROOT / "tools" / "build_matrix.py")
 evaluate_mod = load_tool("evaluate", ROOT / "tools" / "evaluate.py")
+build_map = load_tool("build_map", ROOT / "tools" / "build_map.py")
 
 
 def main() -> int:
@@ -82,6 +83,11 @@ def main() -> int:
     print(f"GATE G4 lossless regeneration {'OK' if g4_ok else 'FAIL'}")
     if not g4_ok:
         failures.append("G4 regeneration not deterministic")
+
+    rc = build_map.main(["--check"])
+    print(f"GATE G5 map freshness {'OK' if rc == 0 else 'FAIL'}")
+    if rc != 0:
+        failures.append("G5 map drift")
 
     print(f"GATE_RESULT {'PASS' if not failures else 'FAIL'}")
     for failure in failures:
