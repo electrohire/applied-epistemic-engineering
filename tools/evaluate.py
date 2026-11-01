@@ -32,7 +32,7 @@ Writes program-ledger/evaluation.json (deterministic) unless
 from __future__ import annotations
 
 import argparse
-import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -41,6 +41,13 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER_DIR = ROOT / "program-ledger"
+if str(ROOT / "src") not in sys.path:
+    sys.path.insert(0, str(ROOT / "src"))
+
+_spec = importlib.util.spec_from_file_location("ledger_intake", LEDGER_DIR / "intake.py")
+assert _spec is not None and _spec.loader is not None
+intake = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(intake)
 HEX64 = re.compile(r"\b[0-9a-f]{64}\b")
 PERCENT = re.compile(r"(\d+(?:\.\d+)?\s*(?:%|percent))")
 
@@ -176,7 +183,7 @@ def main(argv: list[str]) -> int:
     claims = load_claims(args.ledger)
     expectations = json.loads(args.expectations.read_text(encoding="utf-8"))["expectations"]
     result = evaluate(claims, expectations)
-    ledger_sha = hashlib.sha256(args.ledger.read_bytes()).hexdigest()
+    ledger_sha = intake.ledger_sha256(args.ledger)
     for v in result["verdicts"]:
         detail = "; ".join(v["problems"] or v["verified"] or v["notes"])
         print(f"EVAL {v['id']} {v['verdict'].upper()} {detail}".rstrip())
