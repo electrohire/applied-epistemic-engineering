@@ -44,9 +44,7 @@ def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[
 
     lines = [
         (n, raw)
-        for n, raw in enumerate(
-            claims_path.read_text(encoding="utf-8").splitlines(), start=1
-        )
+        for n, raw in enumerate(claims_path.read_text(encoding="utf-8").splitlines(), start=1)
         if raw.strip()
     ]
     parsed: dict[str, Claim] = {}
@@ -101,7 +99,7 @@ def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[
             accepted.append(f"{cid}: ACCEPT")
 
     # R6 reference resolution, once every id is known.
-    for n, data in staged:
+    for _n, data in staged:
         claim = parsed.get(str(data.get("id", "")).strip())
         if claim is None:
             continue
