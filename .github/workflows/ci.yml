@@ -25,6 +25,7 @@ jobs:
       - run: python -m pip install --require-hashes -r requirements/ci.txt
       - run: ruff format --check .
       - run: ruff check .
+      - run: python tools/gate.py
       - run: mypy src/aee
       - run: mkdocs build --strict
       - run: python -m build --no-isolation

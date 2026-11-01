@@ -41,6 +41,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER_DIR = ROOT / "program-ledger"
+sys.dont_write_bytecode = True  # check mode writes nothing, not even .pyc caches
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
@@ -172,18 +173,36 @@ def evaluate(claims: list[dict[str, Any]], expectations: list[dict[str, Any]]) -
     return {"verdicts": verdicts, "counts": counts}
 
 
+def render_payload(ledger: Path, result: dict[str, Any]) -> str:
+    payload = {
+        "generated_from": {
+            "ledger": "program-ledger/claims.jsonl",
+            "ledger_sha256": intake.ledger_sha256(ledger),
+            "expectations": "program-ledger/expectations.json",
+            "evaluator": "tools/evaluate.py",
+        },
+        "counts": result["counts"],
+        "verdicts": result["verdicts"],
+    }
+    return json.dumps(payload, indent=2, sort_keys=True) + "\n"
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ledger", type=Path, default=LEDGER_DIR / "claims.jsonl")
     parser.add_argument("--expectations", type=Path, default=LEDGER_DIR / "expectations.json")
     parser.add_argument("--out", type=Path, default=LEDGER_DIR / "evaluation.json")
     parser.add_argument("--no-write", action="store_true")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="compare the committed evaluation.json byte-exactly; never write",
+    )
     args = parser.parse_args(argv)
 
     claims = load_claims(args.ledger)
     expectations = json.loads(args.expectations.read_text(encoding="utf-8"))["expectations"]
     result = evaluate(claims, expectations)
-    ledger_sha = intake.ledger_sha256(args.ledger)
     for v in result["verdicts"]:
         detail = "; ".join(v["problems"] or v["verified"] or v["notes"])
         print(f"EVAL {v['id']} {v['verdict'].upper()} {detail}".rstrip())
@@ -193,20 +212,19 @@ def main(argv: list[str]) -> int:
         f"verified={c.get('verified', 0)} consistent={c.get('consistent', 0)} "
         f"not_derivable={c.get('not_derivable', 0)} violated={c.get('violated', 0)}"
     )
+    violated = 1 if c.get("violated", 0) else 0
+    if args.check:
+        text = render_payload(args.ledger, result)
+        if not args.out.is_file() or args.out.read_bytes() != text.encode("utf-8"):
+            print("EVAL_CHECK DRIFT in evaluation.json")
+            return 1
+        print("EVAL_CHECK OK byte-identical")
+        return violated
     if not args.no_write:
-        payload = {
-            "generated_from": {
-                "ledger": "program-ledger/claims.jsonl",
-                "ledger_sha256": ledger_sha,
-                "expectations": "program-ledger/expectations.json",
-                "evaluator": "tools/evaluate.py",
-            },
-            "counts": c,
-            "verdicts": result["verdicts"],
-        }
-        args.out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        text = render_payload(args.ledger, result)
+        args.out.write_text(text, encoding="utf-8", newline="\n")
         print(f"EVAL_WROTE {args.out.name}")
-    return 1 if c.get("violated", 0) else 0
+    return violated
 
 
 if __name__ == "__main__":

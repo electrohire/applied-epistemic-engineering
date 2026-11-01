@@ -25,6 +25,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LEDGER_DIR = ROOT / "program-ledger"
+sys.dont_write_bytecode = True  # check mode writes nothing, not even .pyc caches
 if str(ROOT / "src") not in sys.path:
     sys.path.insert(0, str(ROOT / "src"))
 
