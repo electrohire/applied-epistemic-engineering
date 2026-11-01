@@ -22,10 +22,24 @@ nothing is repaired silently.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from datetime import date
 from pathlib import Path
+
+
+def ledger_sha256(path: Path) -> str:
+    """SHA-256 of the ledger's canonical text (LF line endings).
+
+    Raw file bytes differ across platforms (a Windows checkout may
+    carry CRLF), so every generated layer records THIS hash: the same
+    ledger content hashes identically everywhere, and regeneration
+    stays byte-exact cross-platform.
+    """
+    text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
 
 HERE = Path(__file__).resolve().parent
 SRC = HERE.parent / "src"

@@ -17,7 +17,6 @@ downstream layer, never a reason to hand-edit the matrix.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import importlib.util
 import json
 import sys
@@ -46,7 +45,7 @@ def build(claims_path: Path, components_path: Path) -> dict[str, Any]:
     for raw in claims_path.read_text(encoding="utf-8").splitlines():
         if raw.strip():
             claims.append(json.loads(raw))
-    ledger_sha = hashlib.sha256(claims_path.read_bytes()).hexdigest()
+    ledger_sha = intake.ledger_sha256(claims_path)
 
     matrix: dict[str, dict[str, list[str]]] = {}
     by_status: dict[str, list[str]] = {}
@@ -141,7 +140,7 @@ def main(argv: list[str]) -> int:
     if args.check:
         drift = []
         for path, text in targets.items():
-            if not path.is_file() or path.read_text(encoding="utf-8") != text:
+            if not path.is_file() or path.read_bytes() != text.encode("utf-8"):
                 drift.append(path.name)
         if drift:
             print("MATRIX_CHECK DRIFT in: " + ", ".join(sorted(drift)))
@@ -149,7 +148,7 @@ def main(argv: list[str]) -> int:
         print("MATRIX_CHECK OK byte-identical")
         return 0
     for path, text in targets.items():
-        path.write_text(text, encoding="utf-8")
+        path.write_text(text, encoding="utf-8", newline="\n")
         print(f"MATRIX_WROTE {path.name} bytes={len(text.encode('utf-8'))}")
     return 0
 
