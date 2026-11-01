@@ -6,6 +6,10 @@ A claim is parsed by the engine's own claim model (``aee.model.Claim``)
 -- the engine dogfoods its intake -- and then checked against the
 pattern rules:
 
+  R0  conforms to the pinned schema (schema.json beside the ledger,
+      Amendment 3): every required field present and correctly
+      typed, evidence items and metadata carrying their required
+      keys; each field's provenance rule is stated in the schema
   R1  parses as an engine Claim (the model's own loader and validation)
   R2  carries at least one falsification test
   R3  carries at least one boundary line (its "does not establish")
@@ -14,6 +18,13 @@ pattern rules:
   R6  ids are unique; depends_on / conflicts_with references resolve
   R7  metadata.date is an ISO date; metadata.components are known
   R8  a claim marked supported carries supporting evidence
+  R9  proposition fingerprints (computed here from the normalized
+      statement text, never read from the artifact) do not collide
+      across distinct ids
+
+Every run also prints INTAKE_COVERAGE: per-field coverage counts
+for the pattern-required provenance fields, so a legacy gap is a
+standing number, never silence (Amendment 3).
 
 Usage: python3 intake.py [claims.jsonl] [components.json]
 Exit code 0 iff every claim is accepted. The report is the output;
@@ -25,6 +36,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
+import unicodedata
 from datetime import date
 from pathlib import Path
 
@@ -47,6 +59,57 @@ if SRC.is_dir() and str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from aee.model import Claim, ClaimStatus  # noqa: E402
+
+
+def proposition_fingerprint(text: str) -> str:
+    """SHA-256 of the normalized statement text (schema.json, Amendment 3)."""
+    normalized = " ".join(unicodedata.normalize("NFC", text).casefold().split())
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def _type_ok(value: object, declared: str) -> bool:
+    if declared == "string":
+        return isinstance(value, str)
+    if declared == "number":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if declared == "array of strings":
+        return isinstance(value, list) and all(isinstance(v, str) for v in value)
+    if declared == "array of objects":
+        return isinstance(value, list) and all(isinstance(v, dict) for v in value)
+    if declared == "object":
+        return isinstance(value, dict)
+    return True
+
+
+def schema_violations(data: dict, schema: dict) -> list[str]:
+    """R0: required fields present and typed as the pinned schema declares."""
+    problems: list[str] = []
+    for field in schema.get("fields", []):
+        name = field["name"]
+        if name not in data:
+            if field.get("required"):
+                problems.append(f"R0 schema: missing required field {name}")
+            continue
+        if not _type_ok(data[name], str(field.get("type", ""))):
+            problems.append(f"R0 schema: field {name} is not {field.get('type')}")
+            continue
+        for key in field.get("keys_required", []):
+            if isinstance(data[name], dict) and key not in data[name]:
+                problems.append(f"R0 schema: field {name} missing key {key}")
+        for key in field.get("item_required", []):
+            if isinstance(data[name], list):
+                for item in data[name]:
+                    if isinstance(item, dict) and key not in item:
+                        problems.append(f"R0 schema: field {name} item missing key {key}")
+    return problems
+
+
+def _nonempty(value: object) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list):
+        return len(value) > 0
+    return value is not None
 
 
 def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[str]]:
@@ -72,9 +135,19 @@ def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[
         except json.JSONDecodeError as exc:
             rejected.append(f"line {n}: REJECT json-parse: {exc}")
 
+    schema: dict | None = None
+    schema_path = claims_path.parent / "schema.json"
+    if schema_path.is_file():
+        try:
+            schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            schema = None
+
     for n, data in staged:
         cid = str(data.get("id", "")).strip() or f"line {n}"
         problems: list[str] = []
+        if schema is not None:
+            problems.extend(schema_violations(data, schema))
         claim: Claim | None = None
         try:
             claim = Claim.from_dict(data)
@@ -122,6 +195,35 @@ def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[
                 rejected.append(f"{claim.id}: REJECT R6 unresolved reference {ref}")
                 if f"{claim.id}: ACCEPT" in accepted:
                     accepted.remove(f"{claim.id}: ACCEPT")
+
+    # R9 fingerprint collisions, once every statement is known.
+    by_fingerprint: dict[str, list[str]] = {}
+    for _n, data in staged:
+        cid = str(data.get("id", "")).strip()
+        text = data.get("text")
+        if cid and isinstance(text, str) and text.strip():
+            by_fingerprint.setdefault(proposition_fingerprint(text), []).append(cid)
+    for ids in by_fingerprint.values():
+        distinct = sorted(set(ids))
+        if len(distinct) > 1:
+            for cid in distinct:
+                others = ", ".join(i for i in distinct if i != cid)
+                rejected.append(f"{cid}: REJECT R9 fingerprint collision with {others}")
+                if f"{cid}: ACCEPT" in accepted:
+                    accepted.remove(f"{cid}: ACCEPT")
+
+    if schema is None:
+        rejected.append("SCHEMA: REJECT no valid pinned schema.json beside the ledger")
+
+    total = len(staged)
+    coverage = {
+        "falsifier": sum(1 for _n, d in staged if _nonempty(d.get("falsification_tests"))),
+        "boundary": sum(1 for _n, d in staged if _nonempty(d.get("boundary"))),
+        "source_ref": sum(1 for _n, d in staged if _nonempty(d.get("source_ref"))),
+        "evidence": sum(1 for _n, d in staged if _nonempty(d.get("evidence"))),
+    }
+    counts = " ".join(f"{k}={v}/{total}" for k, v in coverage.items())
+    print(f"INTAKE_COVERAGE {counts}")
 
     return accepted, rejected
 
