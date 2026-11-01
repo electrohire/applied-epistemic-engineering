@@ -108,7 +108,12 @@ def test_missing_schema_is_a_loud_refusal(tmp_path: Path) -> None:
 def test_shipped_ledger_publishes_full_coverage(capsys) -> None:  # type: ignore[no-untyped-def]
     accepted, rejected = intake.validate(LEDGER / "claims.jsonl", LEDGER / "components.json")
     out = capsys.readouterr().out
+    total = sum(
+        1
+        for line in (LEDGER / "claims.jsonl").read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    )
     assert rejected == [], rejected
-    assert len(accepted) == 22
-    assert "INTAKE_COVERAGE falsifier=22/22 boundary=22/22" in out
-    assert "source_ref=22/22 evidence=22/22" in out
+    assert len(accepted) == total
+    assert f"INTAKE_COVERAGE falsifier={total}/{total} boundary={total}/{total}" in out
+    assert f"source_ref={total}/{total} evidence={total}/{total}" in out

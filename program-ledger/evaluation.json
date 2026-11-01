@@ -1,14 +1,13 @@
 {
   "counts": {
     "consistent": 14,
-    "not_derivable": 5,
-    "verified": 3
+    "verified": 10
   },
   "generated_from": {
     "evaluator": "tools/evaluate.py",
     "expectations": "program-ledger/expectations.json",
     "ledger": "program-ledger/claims.jsonl",
-    "ledger_sha256": "e4abf43f088b465ecb76006188db47eb182813eb87a25b128aaaf2cb94942815"
+    "ledger_sha256": "743d172df03e4431f309d03d8d445998869f7ba80e381025c04996455396a3e1"
   },
   "verdicts": [
     {
@@ -29,12 +28,14 @@
     },
     {
       "id": "SKA-003",
-      "notes": [
-        "states a percentage with no in-ledger inputs"
-      ],
+      "notes": [],
       "problems": [],
-      "verdict": "not_derivable",
-      "verified": []
+      "verdict": "verified",
+      "verified": [
+        "376587/427062=88.18% vs stated 88.2%",
+        "sum(series)/last=17.150 vs stated 17.1",
+        "sum(series)/last=19.005 vs stated 19.0"
+      ]
     },
     {
       "id": "SKA-004",
@@ -61,12 +62,12 @@
     },
     {
       "id": "SKA-007",
-      "notes": [
-        "states a percentage with no in-ledger inputs"
-      ],
+      "notes": [],
       "problems": [],
-      "verdict": "not_derivable",
-      "verified": []
+      "verdict": "verified",
+      "verified": [
+        "reduction=7.61% vs stated 7.6%"
+      ]
     },
     {
       "id": "SKA-008",
@@ -98,30 +99,39 @@
     },
     {
       "id": "SKA-012",
-      "notes": [
-        "states a percentage with no in-ledger inputs"
-      ],
+      "notes": [],
       "problems": [],
-      "verdict": "not_derivable",
-      "verified": []
+      "verdict": "verified",
+      "verified": [
+        "reduction=85.04% vs stated 85.04%",
+        "40/40=100.00% vs stated 100.0%",
+        "reduction=47.07% vs stated 47.07%",
+        "0/40=0.00% vs stated 0.0%"
+      ]
     },
     {
       "id": "SKA-013",
-      "notes": [
-        "states a percentage with no in-ledger inputs"
-      ],
+      "notes": [],
       "problems": [],
-      "verdict": "not_derivable",
-      "verified": []
+      "verdict": "verified",
+      "verified": [
+        "73/73=100.00% vs stated 100.0%",
+        "1076/50475=2.13% vs stated 2.13%"
+      ]
     },
     {
       "id": "SKA-014",
-      "notes": [
-        "states a percentage with no in-ledger inputs"
-      ],
+      "notes": [],
       "problems": [],
-      "verdict": "not_derivable",
-      "verified": []
+      "verdict": "verified",
+      "verified": [
+        "32/56=57.14% vs stated 57.1%",
+        "6/50=12.00% vs stated 12.0%",
+        "55/56=98.21% vs stated 98.2%",
+        "0/50=0.00% vs stated 0.0%",
+        "55/56=98.21% vs stated 98.2%",
+        "0/50=0.00% vs stated 0.0%"
+      ]
     },
     {
       "id": "SKA-015",
@@ -180,6 +190,26 @@
       "problems": [],
       "verdict": "consistent",
       "verified": []
+    },
+    {
+      "id": "SKA-023",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "55/56=98.21% vs stated 98.2%",
+        "6/50=12.00% vs stated 12.0%"
+      ]
+    },
+    {
+      "id": "SKA-024",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(series)/last=17.150 vs stated 17.15",
+        "sum(series)/last=19.005 vs stated 19.005"
+      ]
     }
   ]
 }
