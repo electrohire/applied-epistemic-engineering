@@ -1,6 +1,8 @@
 {
   "amendment": "Winning Combination Amendment 3 (ratified 2026-11-01): the ledger's schema is declared here, versioned, and pinned beside the artifact; program-ledger/intake.py validates every entry against it in the intake path and in CI.",
   "artifact": "claims.jsonl",
+  "ledger_type": "claim",
+  "ledger_type_rule": "Framework ruling 2026-11-01 (canonical note commit 3bcd1fd): duplicate propositions are layer-scoped. This is a claim ledger: one entry per proposition, and a duplicate proposition fingerprint at intake is refused (intake rule R9). Assertion and evidence ledgers follow the other branch of the ruling (duplicates counted by recomputed fingerprint in the published census, never refused); this ledger has no assertion layer.",
   "fields": [
     {
       "name": "id",
