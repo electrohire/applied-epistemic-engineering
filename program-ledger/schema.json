@@ -1,0 +1,111 @@
+{
+  "amendment": "Winning Combination Amendment 3 (ratified 2026-11-01): the ledger's schema is declared here, versioned, and pinned beside the artifact; program-ledger/intake.py validates every entry against it in the intake path and in CI.",
+  "artifact": "claims.jsonl",
+  "ledger_type": "claim",
+  "ledger_type_rule": "Framework ruling 2026-11-01 (canonical note commit 3bcd1fd): duplicate propositions are layer-scoped. This is a claim ledger: one entry per proposition, and a duplicate proposition fingerprint at intake is refused (intake rule R9). Assertion and evidence ledgers follow the other branch of the ruling (duplicates counted by recomputed fingerprint in the published census, never refused); this ledger has no assertion layer.",
+  "fields": [
+    {
+      "name": "id",
+      "provenance": "assigned at intake; unique across the ledger; never reused",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "text",
+      "provenance": "the atomic claim statement, in the author's words; corrections are new entries, never edits",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "kind",
+      "provenance": "the engine claim kind (for example hypothesis, measurement, decision)",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "status",
+      "provenance": "the engine claim status; moves only by a recomputable verdict or an appended reclassification",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "stage",
+      "provenance": "the digestion stage: created, checked, explained, accepted, or digested",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "domain",
+      "provenance": "the program domain the claim belongs to",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "source_ref",
+      "provenance": "pointer to the record the claim was drawn from (repo path, run id, or document); a claim with no source does not enter",
+      "required": true,
+      "type": "string"
+    },
+    {
+      "name": "falsification_tests",
+      "provenance": "at least one test that would refute the claim, stated by the claim's author at intake",
+      "required": true,
+      "type": "array of strings"
+    },
+    {
+      "name": "boundary",
+      "provenance": "at least one 'this does not establish' line, stated by the claim's author at intake",
+      "required": true,
+      "type": "array of strings"
+    },
+    {
+      "item_required": [
+        "ref",
+        "kind",
+        "direction",
+        "source_quality",
+        "description"
+      ],
+      "name": "evidence",
+      "provenance": "at least one evidence item; each item requires ref, kind, direction, source_quality, and description, all recorded when the evidence was gathered; content_hash and observed_at and source_id are recorded when the source is hashable or dated",
+      "required": true,
+      "type": "array of objects"
+    },
+    {
+      "keys_required": [
+        "date",
+        "components"
+      ],
+      "name": "metadata",
+      "provenance": "requires date (ISO, the date the claim entered) and components (ids from components.json)",
+      "required": true,
+      "type": "object"
+    },
+    {
+      "name": "confidence",
+      "provenance": "the author's confidence as a number between 0 and 1 (the engine model's own range rule), recorded at intake; the qualitative band is derived by the model from the number, never stored in its place",
+      "required": false,
+      "type": "number"
+    },
+    {
+      "name": "depends_on",
+      "provenance": "ids of claims this claim rests on; must resolve inside the ledger",
+      "required": false,
+      "type": "array of strings"
+    },
+    {
+      "name": "conflicts_with",
+      "provenance": "ids of claims this claim contradicts; must resolve inside the ledger",
+      "required": false,
+      "type": "array of strings"
+    }
+  ],
+  "fingerprint": {
+    "algorithm": "sha256",
+    "input": "the claim's text, normalized: Unicode NFC, case-folded, whitespace runs collapsed to single spaces, stripped",
+    "rule": "computed by the validator on every run, never read from the artifact; two entries with distinct ids and equal fingerprints are refused as a proposition collision (the dedupe discipline)",
+    "stored": false
+  },
+  "schema_name": "spec-kit-aee program ledger claim schema",
+  "schema_version": 1
+}

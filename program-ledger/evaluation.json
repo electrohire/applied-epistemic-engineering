@@ -1,0 +1,238 @@
+{
+  "counts": {
+    "consistent": 14,
+    "verified": 12
+  },
+  "generated_from": {
+    "evaluator": "tools/evaluate.py",
+    "expectations": "program-ledger/expectations.json",
+    "ledger": "program-ledger/claims.jsonl",
+    "ledger_sha256": "8713684535e550161eb01466fedef6e57ca034fcf6443986c3848fe8725fcd67"
+  },
+  "verdicts": [
+    {
+      "id": "SKA-001",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-002",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "reduction=31.62% vs stated 32%"
+      ]
+    },
+    {
+      "id": "SKA-003",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "376587/427062=88.18% vs stated 88.2%",
+        "sum(series)/last=17.150 vs stated 17.1",
+        "sum(series)/last=19.005 vs stated 19.0"
+      ]
+    },
+    {
+      "id": "SKA-004",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-005",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(63003698+1196302+500000)=64700000 vs 64700000"
+      ]
+    },
+    {
+      "id": "SKA-006",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-007",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "reduction=7.61% vs stated 7.6%"
+      ]
+    },
+    {
+      "id": "SKA-008",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-009",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-010",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-011",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-012",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "reduction=85.04% vs stated 85.04%",
+        "40/40=100.00% vs stated 100.0%",
+        "reduction=47.07% vs stated 47.07%",
+        "0/40=0.00% vs stated 0.0%"
+      ]
+    },
+    {
+      "id": "SKA-013",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "73/73=100.00% vs stated 100.0%",
+        "1076/50475=2.13% vs stated 2.13%"
+      ]
+    },
+    {
+      "id": "SKA-014",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "32/56=57.14% vs stated 57.1%",
+        "6/50=12.00% vs stated 12.0%",
+        "55/56=98.21% vs stated 98.2%",
+        "0/50=0.00% vs stated 0.0%",
+        "55/56=98.21% vs stated 98.2%",
+        "0/50=0.00% vs stated 0.0%"
+      ]
+    },
+    {
+      "id": "SKA-015",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "16/28=57.14% vs stated 57.1%"
+      ]
+    },
+    {
+      "id": "SKA-016",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-017",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-018",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-019",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-020",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-021",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-022",
+      "notes": [],
+      "problems": [],
+      "verdict": "consistent",
+      "verified": []
+    },
+    {
+      "id": "SKA-023",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "55/56=98.21% vs stated 98.2%",
+        "6/50=12.00% vs stated 12.0%"
+      ]
+    },
+    {
+      "id": "SKA-024",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(series)/last=17.150 vs stated 17.15",
+        "sum(series)/last=19.005 vs stated 19.005"
+      ]
+    },
+    {
+      "id": "SKA-025",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(192355+68401+187169)=447925 vs 447925",
+        "sum(185045+90361+189066)=464472 vs 464472",
+        "464472/447925=103.69% vs stated 103.7%",
+        "135687/95372=142.27% vs stated 142.27%",
+        "sum(63003698+949200)=63952898 vs 63952898"
+      ]
+    },
+    {
+      "id": "SKA-026",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(185104+65307)=250411 vs 250411",
+        "sum(247102+3309)=250411 vs 250411"
+      ]
+    }
+  ]
+}

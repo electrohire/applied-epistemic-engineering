@@ -1,0 +1,414 @@
+{
+  "comment": "Pre-registered mechanical expectations for the program ledger. Each entry names a claim and a computation the evaluator (tools/evaluate.py) must reproduce exactly from the stated inputs. Expectations are data: adding one never changes evaluator code. A claim with no expectation here is checked for consistency only, and a claim stating a percentage without in-ledger inputs is reported NOT_DERIVABLE rather than passed over in silence.",
+  "expectations": [
+    {
+      "claim": "SKA-002",
+      "from": 537987,
+      "kind": "percent_reduction",
+      "label": "pooled probe cost per resolved task fell about 32 percent",
+      "stated_percent": 32,
+      "to": 367891,
+      "tolerance_pp": 0.5
+    },
+    {
+      "claim": "SKA-005",
+      "kind": "sum_equals",
+      "label": "closed spend + spendable remaining + untouched reserve = program cap",
+      "terms": [
+        63003698,
+        1196302,
+        500000
+      ],
+      "total": 64700000
+    },
+    {
+      "claim": "SKA-015",
+      "kind": "percent_of",
+      "label": "tuned model false challenges on controls, 16 of 28 = 57.1 percent",
+      "part": 16,
+      "stated_percent": 57.1,
+      "tolerance_pp": 0.05,
+      "whole": 28
+    },
+    {
+      "claim": "SKA-003",
+      "kind": "percent_of",
+      "label": "Window 6 input share: phase input sums over charged totals (settlement.json)",
+      "part": 376587,
+      "stated_percent": 88.2,
+      "tolerance_pp": 0.05,
+      "whole": 427062
+    },
+    {
+      "claim": "SKA-003",
+      "kind": "series_ratio",
+      "label": "champion xarray attempt: sum of per-call inputs / final call's input (percall.json)",
+      "series": [
+        1100,
+        1958,
+        1446,
+        1696,
+        1684,
+        2672,
+        3053,
+        4211,
+        3856,
+        4984,
+        3821,
+        4584,
+        3862,
+        4688,
+        4689,
+        4935,
+        5100,
+        5650,
+        6577,
+        6814,
+        6365,
+        6694,
+        6698,
+        7355,
+        6202,
+        6773,
+        7289,
+        7265,
+        7859,
+        7747,
+        9361,
+        8821,
+        10267
+      ],
+      "stated_ratio": 17.1,
+      "tolerance": 0.1
+    },
+    {
+      "claim": "SKA-003",
+      "kind": "series_ratio",
+      "label": "router xarray attempt: sum of per-call inputs / final call's input (percall.json)",
+      "series": [
+        1100,
+        1508,
+        1461,
+        1762,
+        2991,
+        2115,
+        3028,
+        2403,
+        2594,
+        10960,
+        3497,
+        4180,
+        4082,
+        3925,
+        4155,
+        5209,
+        4502,
+        4618,
+        5691,
+        6963,
+        5347,
+        5550,
+        6357,
+        5935,
+        13365,
+        6822,
+        7069,
+        7445,
+        6861,
+        7365,
+        7206,
+        8668
+      ],
+      "stated_ratio": 19.0,
+      "tolerance": 0.1
+    },
+    {
+      "claim": "SKA-007",
+      "from": 3298151,
+      "kind": "percent_reduction",
+      "label": "F1 replay margin vs champion, 3,298,151 to 3,047,322 sent (tournament close-out, N-1)",
+      "stated_percent": 7.6,
+      "to": 3047322,
+      "tolerance_pp": 0.05
+    },
+    {
+      "claim": "SKA-012",
+      "from": 7726,
+      "kind": "percent_reduction",
+      "label": "incumbent digest+excerpt+fence on tool outputs (battery_results.json)",
+      "stated_percent": 85.04,
+      "to": 1156,
+      "tolerance_pp": 0.05
+    },
+    {
+      "claim": "SKA-012",
+      "kind": "percent_of",
+      "label": "incumbent marker survival on tool outputs",
+      "part": 40,
+      "stated_percent": 100.0,
+      "tolerance_pp": 0.01,
+      "whole": 40
+    },
+    {
+      "claim": "SKA-012",
+      "from": 7726,
+      "kind": "percent_reduction",
+      "label": "opaque encoding on tool outputs (battery_results.json)",
+      "stated_percent": 47.07,
+      "to": 4089,
+      "tolerance_pp": 0.05
+    },
+    {
+      "claim": "SKA-012",
+      "kind": "percent_of",
+      "label": "opaque marker survival on tool outputs",
+      "part": 0,
+      "stated_percent": 0.0,
+      "tolerance_pp": 0.01,
+      "whole": 40
+    },
+    {
+      "claim": "SKA-013",
+      "kind": "percent_of",
+      "label": "round-trip exactness, formulaic corpus (roundtrip_results.json)",
+      "part": 73,
+      "stated_percent": 100.0,
+      "tolerance_pp": 0.01,
+      "whole": 73
+    },
+    {
+      "claim": "SKA-013",
+      "kind": "percent_of",
+      "label": "round-trip saving with dictionary: 1,076 of 50,475 output tokens",
+      "part": 1076,
+      "stated_percent": 2.13,
+      "tolerance_pp": 0.05,
+      "whole": 50475
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "L1 challenged, injections (security battery_results.json rows)",
+      "part": 32,
+      "stated_percent": 57.1,
+      "tolerance_pp": 0.05,
+      "whole": 56
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "L1 false positives, controls",
+      "part": 6,
+      "stated_percent": 12.0,
+      "tolerance_pp": 0.05,
+      "whole": 50
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "L2 challenged, injections",
+      "part": 55,
+      "stated_percent": 98.2,
+      "tolerance_pp": 0.05,
+      "whole": 56
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "L2 false positives, controls",
+      "part": 0,
+      "stated_percent": 0.0,
+      "tolerance_pp": 0.01,
+      "whole": 50
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "combined challenged (OR of layers), injections",
+      "part": 55,
+      "stated_percent": 98.2,
+      "tolerance_pp": 0.05,
+      "whole": 56
+    },
+    {
+      "claim": "SKA-014",
+      "kind": "percent_of",
+      "label": "combined false positives under the design record's designed-placement reading: the system's false challenges are L2's (see SKA-023 for the strict-OR reading)",
+      "part": 0,
+      "stated_percent": 0.0,
+      "tolerance_pp": 0.01,
+      "whole": 50
+    },
+    {
+      "claim": "SKA-023",
+      "kind": "percent_of",
+      "label": "strict-OR combined challenged, injections",
+      "part": 55,
+      "stated_percent": 98.2,
+      "tolerance_pp": 0.05,
+      "whole": 56
+    },
+    {
+      "claim": "SKA-023",
+      "kind": "percent_of",
+      "label": "strict-OR combined false positives, controls",
+      "part": 6,
+      "stated_percent": 12.0,
+      "tolerance_pp": 0.05,
+      "whole": 50
+    },
+    {
+      "claim": "SKA-024",
+      "kind": "series_ratio",
+      "label": "champion xarray per-attempt re-send ratio, precise",
+      "series": [
+        1100,
+        1958,
+        1446,
+        1696,
+        1684,
+        2672,
+        3053,
+        4211,
+        3856,
+        4984,
+        3821,
+        4584,
+        3862,
+        4688,
+        4689,
+        4935,
+        5100,
+        5650,
+        6577,
+        6814,
+        6365,
+        6694,
+        6698,
+        7355,
+        6202,
+        6773,
+        7289,
+        7265,
+        7859,
+        7747,
+        9361,
+        8821,
+        10267
+      ],
+      "stated_ratio": 17.15,
+      "tolerance": 0.01
+    },
+    {
+      "claim": "SKA-024",
+      "kind": "series_ratio",
+      "label": "router xarray per-attempt re-send ratio, precise",
+      "series": [
+        1100,
+        1508,
+        1461,
+        1762,
+        2991,
+        2115,
+        3028,
+        2403,
+        2594,
+        10960,
+        3497,
+        4180,
+        4082,
+        3925,
+        4155,
+        5209,
+        4502,
+        4618,
+        5691,
+        6963,
+        5347,
+        5550,
+        6357,
+        5935,
+        13365,
+        6822,
+        7069,
+        7445,
+        6861,
+        7365,
+        7206,
+        8668
+      ],
+      "stated_ratio": 19.005,
+      "tolerance": 0.01
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "Window 7 champion arm tokens: sum of the three scored attempts",
+      "terms": [
+        192355,
+        68401,
+        187169
+      ],
+      "total": 447925
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "Window 7 capped arm tokens: sum of the three scored attempts",
+      "terms": [
+        185045,
+        90361,
+        189066
+      ],
+      "total": 464472
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "percent_of",
+      "label": "capped arm tokens as a percentage of champion (about 3.7 percent more)",
+      "part": 464472,
+      "stated_percent": 103.7,
+      "tolerance_pp": 0.05,
+      "whole": 447925
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "percent_of",
+      "label": "clawback bytes as a percentage of gross saving bytes (share 1.42)",
+      "part": 135687,
+      "stated_percent": 142.27,
+      "tolerance_pp": 0.05,
+      "whole": 95372
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "program total after Window 7 = Window 6 close + Window 7 spend",
+      "terms": [
+        63003698,
+        949200
+      ],
+      "total": 63952898
+    },
+    {
+      "claim": "SKA-026",
+      "kind": "sum_equals",
+      "label": "pair-4 completion spend = completed champion attempt + killed capped partial",
+      "terms": [
+        185104,
+        65307
+      ],
+      "total": 250411
+    },
+    {
+      "claim": "SKA-026",
+      "kind": "sum_equals",
+      "label": "pair-4 completion spend = campaign remainder + reserve draw",
+      "terms": [
+        247102,
+        3309
+      ],
+      "total": 250411
+    }
+  ]
+}
