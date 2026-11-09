@@ -339,6 +339,76 @@
       ],
       "stated_ratio": 19.005,
       "tolerance": 0.01
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "Window 7 champion arm tokens: sum of the three scored attempts",
+      "terms": [
+        192355,
+        68401,
+        187169
+      ],
+      "total": 447925
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "Window 7 capped arm tokens: sum of the three scored attempts",
+      "terms": [
+        185045,
+        90361,
+        189066
+      ],
+      "total": 464472
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "percent_of",
+      "label": "capped arm tokens as a percentage of champion (about 3.7 percent more)",
+      "part": 464472,
+      "stated_percent": 103.7,
+      "tolerance_pp": 0.05,
+      "whole": 447925
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "percent_of",
+      "label": "clawback bytes as a percentage of gross saving bytes (share 1.42)",
+      "part": 135687,
+      "stated_percent": 142.27,
+      "tolerance_pp": 0.05,
+      "whole": 95372
+    },
+    {
+      "claim": "SKA-025",
+      "kind": "sum_equals",
+      "label": "program total after Window 7 = Window 6 close + Window 7 spend",
+      "terms": [
+        63003698,
+        949200
+      ],
+      "total": 63952898
+    },
+    {
+      "claim": "SKA-026",
+      "kind": "sum_equals",
+      "label": "pair-4 completion spend = completed champion attempt + killed capped partial",
+      "terms": [
+        185104,
+        65307
+      ],
+      "total": 250411
+    },
+    {
+      "claim": "SKA-026",
+      "kind": "sum_equals",
+      "label": "pair-4 completion spend = campaign remainder + reserve draw",
+      "terms": [
+        247102,
+        3309
+      ],
+      "total": 250411
     }
   ]
 }
