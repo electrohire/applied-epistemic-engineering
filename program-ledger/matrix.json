@@ -1,0 +1,425 @@
+{
+  "claims": [
+    {
+      "components": [
+        "benchmark",
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [
+        "SKA-018"
+      ],
+      "id": "SKA-001",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-24",
+      "depends_on": [],
+      "id": "SKA-002",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-28",
+      "depends_on": [],
+      "id": "SKA-003",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-28",
+      "depends_on": [],
+      "id": "SKA-004",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-28",
+      "depends_on": [],
+      "id": "SKA-005",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-26",
+      "depends_on": [],
+      "id": "SKA-006",
+      "kind": "decision",
+      "stage": "accepted",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-26",
+      "depends_on": [
+        "SKA-006"
+      ],
+      "id": "SKA-007",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-28",
+      "depends_on": [
+        "SKA-004"
+      ],
+      "id": "SKA-008",
+      "kind": "decision",
+      "stage": "accepted",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-25",
+      "depends_on": [],
+      "id": "SKA-009",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-25",
+      "depends_on": [],
+      "id": "SKA-010",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-31",
+      "depends_on": [],
+      "id": "SKA-011",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-012",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-013",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "injection-defense",
+        "engine"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-014",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "injection-defense"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-015",
+      "kind": "inference",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "injection-defense"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-016",
+      "kind": "observation",
+      "stage": "digested",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-24",
+      "depends_on": [],
+      "id": "SKA-017",
+      "kind": "decision",
+      "stage": "accepted",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-29",
+      "depends_on": [],
+      "id": "SKA-018",
+      "kind": "decision",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-31",
+      "depends_on": [
+        "SKA-018",
+        "SKA-011"
+      ],
+      "id": "SKA-019",
+      "kind": "observation",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-10-31",
+      "depends_on": [
+        "SKA-018"
+      ],
+      "id": "SKA-020",
+      "kind": "decision",
+      "stage": "accepted",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark",
+        "engine"
+      ],
+      "date": "2026-10-30",
+      "depends_on": [],
+      "id": "SKA-021",
+      "kind": "observation",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee",
+        "evaluator",
+        "benchmark",
+        "injection-defense"
+      ],
+      "date": "2026-10-31",
+      "depends_on": [],
+      "id": "SKA-022",
+      "kind": "observation",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "injection-defense"
+      ],
+      "date": "2026-11-01",
+      "depends_on": [
+        "SKA-014"
+      ],
+      "id": "SKA-023",
+      "kind": "inference",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-11-01",
+      "depends_on": [
+        "SKA-003"
+      ],
+      "id": "SKA-024",
+      "kind": "inference",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-11-09",
+      "depends_on": [
+        "SKA-003"
+      ],
+      "id": "SKA-025",
+      "kind": "observation",
+      "stage": "checked",
+      "status": "supported"
+    },
+    {
+      "components": [
+        "benchmark"
+      ],
+      "date": "2026-11-09",
+      "depends_on": [
+        "SKA-025"
+      ],
+      "id": "SKA-026",
+      "kind": "observation",
+      "stage": "checked",
+      "status": "supported"
+    }
+  ],
+  "components": [
+    {
+      "id": "engine",
+      "name": "Applied Epistemic Engineering (the AEE engine)",
+      "repo": "electrohire/applied-epistemic-engineering"
+    },
+    {
+      "id": "spec-kit-aee",
+      "name": "Spec Kit AEE extension",
+      "repo": "electrohire/spec-kit-aee"
+    },
+    {
+      "id": "evaluator",
+      "name": "Spec Kit evaluator",
+      "repo": "electrohire/spec-kit-evaluator"
+    },
+    {
+      "id": "benchmark",
+      "name": "Spec Kit AEE benchmark harness",
+      "repo": "electrohire/spec-kit-aee-benchmark"
+    },
+    {
+      "id": "injection-defense",
+      "name": "Injection defense",
+      "repo": "electrohire/injection-defense"
+    }
+  ],
+  "counts": {
+    "by_component": {
+      "benchmark": 22,
+      "engine": 4,
+      "evaluator": 1,
+      "injection-defense": 5,
+      "spec-kit-aee": 2
+    },
+    "by_status": {
+      "draft": 1,
+      "supported": 25
+    }
+  },
+  "generated_from": {
+    "claims": 26,
+    "generator": "tools/build_matrix.py",
+    "ledger": "program-ledger/claims.jsonl",
+    "ledger_sha256": "8713684535e550161eb01466fedef6e57ca034fcf6443986c3848fe8725fcd67"
+  },
+  "matrix": {
+    "benchmark": {
+      "draft": [
+        "SKA-001"
+      ],
+      "supported": [
+        "SKA-002",
+        "SKA-003",
+        "SKA-004",
+        "SKA-005",
+        "SKA-006",
+        "SKA-007",
+        "SKA-008",
+        "SKA-009",
+        "SKA-010",
+        "SKA-011",
+        "SKA-012",
+        "SKA-013",
+        "SKA-017",
+        "SKA-018",
+        "SKA-019",
+        "SKA-020",
+        "SKA-021",
+        "SKA-022",
+        "SKA-024",
+        "SKA-025",
+        "SKA-026"
+      ]
+    },
+    "engine": {
+      "draft": [
+        "SKA-001"
+      ],
+      "supported": [
+        "SKA-014",
+        "SKA-021",
+        "SKA-022"
+      ]
+    },
+    "evaluator": {
+      "supported": [
+        "SKA-022"
+      ]
+    },
+    "injection-defense": {
+      "supported": [
+        "SKA-014",
+        "SKA-015",
+        "SKA-016",
+        "SKA-022",
+        "SKA-023"
+      ]
+    },
+    "spec-kit-aee": {
+      "draft": [
+        "SKA-001"
+      ],
+      "supported": [
+        "SKA-022"
+      ]
+    }
+  }
+}

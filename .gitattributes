@@ -1,0 +1,11 @@
+# The program ledger and its generated layers are hashed and compared
+# byte-exactly across platforms; pin LF so checkouts are identical
+# everywhere (see program-ledger/intake.py ledger_sha256).
+program-ledger/claims.jsonl text eol=lf
+program-ledger/components.json text eol=lf
+program-ledger/expectations.json text eol=lf
+program-ledger/matrix.json text eol=lf
+program-ledger/matrix.md text eol=lf
+program-ledger/evaluation.json text eol=lf
+program-ledger/map.html text eol=lf
+program-ledger/schema.json text eol=lf
