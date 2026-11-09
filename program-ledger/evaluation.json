@@ -1,13 +1,13 @@
 {
   "counts": {
     "consistent": 14,
-    "verified": 10
+    "verified": 12
   },
   "generated_from": {
     "evaluator": "tools/evaluate.py",
     "expectations": "program-ledger/expectations.json",
     "ledger": "program-ledger/claims.jsonl",
-    "ledger_sha256": "743d172df03e4431f309d03d8d445998869f7ba80e381025c04996455396a3e1"
+    "ledger_sha256": "8713684535e550161eb01466fedef6e57ca034fcf6443986c3848fe8725fcd67"
   },
   "verdicts": [
     {
@@ -209,6 +209,29 @@
       "verified": [
         "sum(series)/last=17.150 vs stated 17.15",
         "sum(series)/last=19.005 vs stated 19.005"
+      ]
+    },
+    {
+      "id": "SKA-025",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(192355+68401+187169)=447925 vs 447925",
+        "sum(185045+90361+189066)=464472 vs 464472",
+        "464472/447925=103.69% vs stated 103.7%",
+        "135687/95372=142.27% vs stated 142.27%",
+        "sum(63003698+949200)=63952898 vs 63952898"
+      ]
+    },
+    {
+      "id": "SKA-026",
+      "notes": [],
+      "problems": [],
+      "verdict": "verified",
+      "verified": [
+        "sum(185104+65307)=250411 vs 250411",
+        "sum(247102+3309)=250411 vs 250411"
       ]
     }
   ]
