@@ -1,0 +1,50 @@
+{"path": "applied-epistemic-engineering/src/aee/model.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/src/aee/cli.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/intake.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/tools/gate.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/tests/test_program_gate.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/claims.jsonl", "handwritten": false, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/matrix.json", "handwritten": false, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/matrix.md", "handwritten": false, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/map.html", "handwritten": false, "label_source": "fleet file, generated map, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/program-ledger/evaluation.json", "handwritten": false, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/pyproject.toml", "handwritten": false, "label_source": "fleet file, configuration excluded by registered rule, hand labeled 2026-11-11"}
+{"path": "applied-epistemic-engineering/.github/workflows/ci.yml", "handwritten": false, "label_source": "fleet file, configuration excluded by registered rule, hand labeled 2026-11-11"}
+{"path": "axiovex-website/src/index.html", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "axiovex-website/src/styles.css", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "axiovex-website/src/app.js", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "axiovex-website/src/app.min.js", "handwritten": false, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "axiovex-website/dist/index.html", "handwritten": false, "label_source": "fleet build output pattern, hand labeled 2026-11-11"}
+{"path": "axiovex-website/package-lock.json", "handwritten": false, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/backend/glossa_mcp/server.py", "handwritten": true, "label_source": "fleet file, hand labeled 2026-11-11"}
+{"path": "glossa-lab/backend/app/main.py", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/frontend/src/App.tsx", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/frontend/src/components/Panel.jsx", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/frontend/src/generated/client.ts", "handwritten": false, "label_source": "fleet generated-code pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/data/experiments/results.jsonl", "handwritten": false, "label_source": "fleet data pattern, hand labeled 2026-11-11"}
+{"path": "glossa-lab/data/experiments/results.csv", "handwritten": false, "label_source": "fleet data pattern, hand labeled 2026-11-11"}
+{"path": "spec-kit-aee/extensions/aee/scripts/run.py", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "spec-kit-aee/extensions/aee/templates/claim.md", "handwritten": false, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "spec-kit-evaluator/src/evaluator/check.ts", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "spec-kit-aee-benchmark/harness/runner.py", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "spec-kit-aee-benchmark/harness/__pycache__/runner.cpython-312.pyc", "handwritten": false, "label_source": "fleet generated cache pattern, hand labeled 2026-11-11"}
+{"path": "needle-modeling/window7-work/records/results.json", "handwritten": false, "label_source": "fleet record pattern, hand labeled 2026-11-11"}
+{"path": "needle-modeling/window7-work/tools/run.sh", "handwritten": true, "label_source": "fleet file pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/deploy.ps1", "handwritten": true, "label_source": "fleet script pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/migrations/001_create_tables.sql", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/service/main.go", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/service/main_test.go", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/native/lib.rs", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/native/include/lib.hpp", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/native/src/lib.cpp", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/Cargo.lock", "handwritten": false, "label_source": "fleet lockfile pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/coverage/lcov.info", "handwritten": false, "label_source": "fleet coverage output pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/tests/__snapshots__/cli.snap", "handwritten": false, "label_source": "fleet snapshot pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/web/component.generated.ts", "handwritten": false, "label_source": "fleet generated source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/web/photo.png", "handwritten": false, "label_source": "fleet media pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/web/logo.svg", "handwritten": false, "label_source": "fleet media pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/docs/operator-guide.md", "handwritten": false, "label_source": "fleet prose pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/records/delivery-notes.txt", "handwritten": false, "label_source": "fleet record pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/src/legacy.java", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/src/Program.cs", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
+{"path": "fleet-tools/src/index.php", "handwritten": true, "label_source": "fleet source pattern, hand labeled 2026-11-11"}
