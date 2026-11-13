@@ -26,6 +26,11 @@ Every run also prints INTAKE_COVERAGE: per-field coverage counts
 for the pattern-required provenance fields, so a legacy gap is a
 standing number, never silence (Amendment 3).
 
+The plumbing under the rules -- the canonical ledger hash, the schema
+field walker behind R0, and the coverage/report harness -- is shared
+with the lifecycle ledger's intake and lives in ``aee.intake_common``;
+the R-rules themselves are this ledger's own.
+
 Usage: python3 intake.py [claims.jsonl] [components.json]
 Exit code 0 iff every claim is accepted. The report is the output;
 nothing is repaired silently.
@@ -40,25 +45,21 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 
-
-def ledger_sha256(path: Path) -> str:
-    """SHA-256 of the ledger's canonical text (LF line endings).
-
-    Raw file bytes differ across platforms (a Windows checkout may
-    carry CRLF), so every generated layer records THIS hash: the same
-    ledger content hashes identically everywhere, and regeneration
-    stays byte-exact cross-platform.
-    """
-    text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
 HERE = Path(__file__).resolve().parent
 SRC = HERE.parent / "src"
 if SRC.is_dir() and str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from aee.intake_common import ledger_sha256, print_coverage, report, schema_problems  # noqa: E402
 from aee.model import Claim, ClaimStatus  # noqa: E402
+
+__all__ = [
+    "ledger_sha256",
+    "main",
+    "proposition_fingerprint",
+    "schema_violations",
+    "validate",
+]
 
 
 def proposition_fingerprint(text: str) -> str:
@@ -67,41 +68,9 @@ def proposition_fingerprint(text: str) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-def _type_ok(value: object, declared: str) -> bool:
-    if declared == "string":
-        return isinstance(value, str)
-    if declared == "number":
-        return isinstance(value, (int, float)) and not isinstance(value, bool)
-    if declared == "array of strings":
-        return isinstance(value, list) and all(isinstance(v, str) for v in value)
-    if declared == "array of objects":
-        return isinstance(value, list) and all(isinstance(v, dict) for v in value)
-    if declared == "object":
-        return isinstance(value, dict)
-    return True
-
-
 def schema_violations(data: dict, schema: dict) -> list[str]:
     """R0: required fields present and typed as the pinned schema declares."""
-    problems: list[str] = []
-    for field in schema.get("fields", []):
-        name = field["name"]
-        if name not in data:
-            if field.get("required"):
-                problems.append(f"R0 schema: missing required field {name}")
-            continue
-        if not _type_ok(data[name], str(field.get("type", ""))):
-            problems.append(f"R0 schema: field {name} is not {field.get('type')}")
-            continue
-        for key in field.get("keys_required", []):
-            if isinstance(data[name], dict) and key not in data[name]:
-                problems.append(f"R0 schema: field {name} missing key {key}")
-        for key in field.get("item_required", []):
-            if isinstance(data[name], list):
-                for item in data[name]:
-                    if isinstance(item, dict) and key not in item:
-                        problems.append(f"R0 schema: field {name} item missing key {key}")
-    return problems
+    return schema_problems(data, list(schema.get("fields", [])), "R0")
 
 
 def _nonempty(value: object) -> bool:
@@ -222,8 +191,7 @@ def validate(claims_path: Path, components_path: Path) -> tuple[list[str], list[
         "source_ref": sum(1 for _n, d in staged if _nonempty(d.get("source_ref"))),
         "evidence": sum(1 for _n, d in staged if _nonempty(d.get("evidence"))),
     }
-    counts = " ".join(f"{k}={v}/{total}" for k, v in coverage.items())
-    print(f"INTAKE_COVERAGE {counts}")
+    print_coverage("INTAKE_COVERAGE", coverage, total)
 
     return accepted, rejected
 
@@ -232,13 +200,7 @@ def main(argv: list[str]) -> int:
     claims_path = Path(argv[1]) if len(argv) > 1 else HERE / "claims.jsonl"
     components_path = Path(argv[2]) if len(argv) > 2 else HERE / "components.json"
     accepted, rejected = validate(claims_path, components_path)
-    print(f"INTAKE ledger={claims_path.name} claims={len(accepted) + len(rejected)}")
-    for line in accepted:
-        print(" ", line)
-    for line in rejected:
-        print(" ", line)
-    print(f"INTAKE_RESULT accepted={len(accepted)} rejected={len(rejected)}")
-    return 0 if not rejected else 1
+    return report("INTAKE", "claims", claims_path.name, accepted, rejected)
 
 
 if __name__ == "__main__":
