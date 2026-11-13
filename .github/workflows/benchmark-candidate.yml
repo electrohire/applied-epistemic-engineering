@@ -4,11 +4,7 @@ on:
     branches: [main]
     paths:
       - 'src/**'
-      - 'scripts/**'
-      - 'skills/**'
-      - 'references/**'
       - 'pyproject.toml'
-      - 'extension.yml'
       - 'requirements/**'
       - '.github/workflows/benchmark-candidate.yml'
   workflow_dispatch:

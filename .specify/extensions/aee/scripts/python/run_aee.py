@@ -59,7 +59,31 @@ Version contract
 At startup the runner runs ``aee --version`` and refuses (exit 2) when
 the installed engine is outside ``REQUIRED_AEE_VERSION``, naming both
 the found and required versions. The range mirrors ``extension.yml``
-(``requires.tools`` entry ``aee``); keep the two in sync.
+(``requires.tools`` entry ``aee``); keep the two in sync. The floor is
+engine 1.6.0 (Spec 006): the first engine whose lane-1 outcome is
+computed from lane-1 facts alone, instead of copying the headline,
+and whose gate offers ``--require-lane1-pass``.
+
+Lane pair (Spec 006)
+--------------------
+``assess`` surfaces the two lanes as a pair alongside the headline,
+in ``lane_pair`` (also inside ``verdict_display``): the headline
+outcome, the lane-1 outcome copied from the assessment's own lane
+record, a plain lane-2 state (``open``/``complete``) with the lane-2
+facts behind it, and a one-line ``display`` such as ``headline:
+iterate — lane 1: pass, lane 2: open (4 draft claim(s); 4 claim(s)
+below stage 'explained')``. Lane 1 is what the machine checks proved;
+lane 2 is where human review and acceptance stand; the headline
+stays cautious until both are done. The pair also carries
+``acceptance_basis`` when the assessment records stage events: the
+basis each recorded act stands on — a test verdict (the frozen
+requirement tests passed, recorded by the tool) or a human act (a
+named person recorded an explanation, acceptance, or digestion).
+Acceptance is not presented as a human act by default; the human
+acts are the reserved cases. ``gate --require-lane1-pass``
+forwards the engine's lane-1 requirement unchanged and preserves its
+exit codes exactly: 0 lane-1 pass, 1 lane-1 iterate family, 2 block
+or integrity refusal.
 
 Evaluator extension (required companion, Spec 005)
 --------------------------------------------------
@@ -157,6 +181,7 @@ its probe is still used.
 from __future__ import annotations
 
 import argparse
+import base64
 import functools
 import hashlib
 import http.server
@@ -171,15 +196,150 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
 
+# ---------------------------------------------------------------------------
+# Verified writes (fleet standard, 2026-10-28), embedded because this
+# script ships as a single declared file (extension.yml): temp file
+# in the destination directory + fsync + atomic rename + read-back
+# hash verify, bounded retries including a fresh subprocess (run
+# from an inline bootstrap, so no sibling module is needed), and
+# SafeWriteError when every attempt fails. A 0-byte or partial file
+# never stands as a successful write. SafeWriteError inherits from
+# ValueError as well as RuntimeError so main's refusal contract
+# (ValueError -> "refused: ...", exit 2) covers write failures with
+# no traceback.
+# ---------------------------------------------------------------------------
+
+
+class SafeWriteError(RuntimeError, ValueError):
+    """Every verified-write attempt failed; nothing was committed."""
+
+
+_CHILD_BOOTSTRAP = (
+    "import base64, os, sys, tempfile\n"
+    "data = base64.b64decode(sys.argv[1])\n"
+    "target = sys.argv[2]\n"
+    "directory = os.path.dirname(os.path.abspath(target))\n"
+    "fd, tmp = tempfile.mkstemp(dir=directory, prefix='.vw-', suffix='.tmp')\n"
+    "ok = False\n"
+    "try:\n"
+    "    with os.fdopen(fd, 'wb') as handle:\n"
+    "        handle.write(data); handle.flush(); os.fsync(handle.fileno())\n"
+    "    os.replace(tmp, target)\n"
+    "    with open(target, 'rb') as handle:\n"
+    "        ok = handle.read() == data\n"
+    "except OSError:\n"
+    "    try: os.unlink(tmp)\n"
+    "    except OSError: pass\n"
+    "sys.exit(0 if ok else 1)\n"
+)
+
+
+def _vw_fsync_dir(directory: Path) -> None:
+    try:
+        fd = os.open(directory, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+def _vw_try_write_once(path: Path, data: bytes) -> bool:
+    directory = path.parent
+    tmp_name: str | None = None
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        fd, tmp_name = tempfile.mkstemp(
+            dir=directory, prefix=".aee-verified-", suffix=".tmp"
+        )
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_name, path)
+        tmp_name = None
+        _vw_fsync_dir(directory)
+        return path.read_bytes() == data
+    except OSError:
+        return False
+    finally:
+        if tmp_name is not None:
+            try:
+                os.unlink(tmp_name)
+            except OSError:
+                pass
+
+
+def _vw_try_child_write(path: Path, data: bytes) -> bool:
+    try:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                _CHILD_BOOTSTRAP,
+                base64.b64encode(data).decode("ascii"),
+                str(path),
+            ],
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0
+
+
+def write_bytes_verified(path: Path, data: bytes) -> dict:
+    """Write bytes with the verified-write guarantee (see header).
+
+    Returns {"path", "bytes", "sha256", "via"}; raises ValueError on
+    empty content and SafeWriteError when every attempt fails."""
+    if not data:
+        raise ValueError(f"refusing to write an empty file: {path}")
+    attempts = 0
+    for index in range(3):
+        attempts += 1
+        if _vw_try_write_once(path, data):
+            return {
+                "path": str(path),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "via": f"local-{index + 1}",
+            }
+        time.sleep(0.25 * (index + 1))
+    for index in range(2):
+        attempts += 1
+        if _vw_try_child_write(path, data):
+            return {
+                "path": str(path),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "via": f"child-{index + 1}",
+            }
+        time.sleep(0.5)
+    raise SafeWriteError(
+        f"verified write failed after {attempts} attempts: {path} "
+        f"({len(data)} bytes, sha256 {hashlib.sha256(data).hexdigest()})"
+    )
+
+
+def write_text_verified(path: Path, text: str) -> dict:
+    return write_bytes_verified(path, text.encode("utf-8"))
+
+
 DEFAULT_TIMEOUT_SECONDS = 600.0
 
 # Mirrors extension.yml requires.tools[aee]. Keep in sync.
-REQUIRED_AEE_VERSION = ">=1.5.0,<2"
-_AEE_VERSION_MIN = (1, 5, 0)
+REQUIRED_AEE_VERSION = ">=1.6.0,<2"
+_AEE_VERSION_MIN = (1, 6, 0)
 _AEE_VERSION_MAX = (2, 0, 0)  # exclusive
 _VERSION_PATTERN = re.compile(r"(\d+)\.(\d+)\.(\d+)")
 ENGINE_REQUIREMENT = f"applied-epistemic-engineering{REQUIRED_AEE_VERSION}"
@@ -258,6 +418,15 @@ def parser() -> argparse.ArgumentParser:
         metavar="PHASE",
         help="gate the assessment named by the latest-<phase> pointer "
         "maintained by assess, instead of an explicit --input path",
+    )
+    gate.add_argument(
+        "--require-lane1-pass",
+        action="store_true",
+        help="forward the engine's lane-1 requirement: exit 0 when "
+        "lane 1 (machine verification) passes on its own facts, 1 "
+        "when lane 1 is in the iterate family, and 2 when the "
+        "engine blocks or refuses on integrity grounds. Without "
+        "this flag the gate applies the headline outcome as before.",
     )
 
     gaps = sub.add_parser("gaps")
@@ -564,7 +733,10 @@ def _download_evaluator_archive(target: Path, timeout: float) -> None:
             f"{EVALUATOR_ARCHIVE_URL} has SHA-256 {digest}, expected "
             f"{EVALUATOR_ARCHIVE_SHA256}; refusing to install it"
         )
-    target.write_bytes(data)
+    # The digest above proves the download; the write itself goes
+    # through the verified writer (fleet standard, 2026-10-28) so a
+    # torn archive on disk cannot be installed as genuine.
+    write_bytes_verified(target, data)
 
 
 def _install_evaluator_extension(root: Path, timeout: float) -> None:
@@ -862,9 +1034,11 @@ def _draft_claims(root: Path, args: argparse.Namespace) -> int:
     bundle = json.loads(bundle_text)
     drafted = bundle.get("claims", [])
     before = _snapshot(output)
-    output.write_text(
+    # Verified write (fleet standard, 2026-10-28): the claims bundle
+    # is a durable record; failure raises and fails the run closed.
+    write_text_verified(
+        output,
         bundle_text if bundle_text.endswith("\n") else bundle_text + "\n",
-        encoding="utf-8",
     )
     todo_count = sum(
         1
@@ -927,7 +1101,10 @@ def _stamp_and_ledger(
         metadata["extension_version"] = version
     if ledger is not None:
         metadata["ledger"] = {"mode": "custom", "path": ledger.as_posix()}
-    assessment.write_text(json.dumps(value, indent=2) + "\n", encoding="utf-8")
+    # Verified write (fleet standard, 2026-10-28): the stamp lands
+    # before the ledger append reads the assessment back; a torn
+    # stamp would poison the chain, so failure fails closed here.
+    write_text_verified(assessment, json.dumps(value, indent=2) + "\n")
     verification: dict | None = None
     if ledger is not None:
         assert ledger_class is not None
@@ -1039,7 +1216,15 @@ def _gate(executable: str, root: Path, args: argparse.Namespace) -> int:
         value = _resolve_latest(root, args.latest)
     else:
         value = _safe_existing(root, args.input)
-    return _run_engine([executable, "gate", "--input", str(value)], args.timeout).returncode
+    command = [executable, "gate", "--input", str(value)]
+    if getattr(args, "require_lane1_pass", False):
+        # Forwarded unchanged (Spec 006 LO-02): the engine's exit
+        # code is the verdict — 0 lane-1 pass, 1 lane-1 iterate
+        # family, 2 block or integrity refusal. The flag is never
+        # dropped silently: an engine that does not offer it errors
+        # (exit 2) instead of running a plain headline gate.
+        command.append("--require-lane1-pass")
+    return _run_engine(command, args.timeout).returncode
 
 
 def _resolve_latest(root: Path, phase_arg: str) -> Path:
@@ -1322,6 +1507,9 @@ def _assess(executable: str, root: Path, args: argparse.Namespace) -> int:
             {
                 "assessment": assessment_rel,
                 "verdict_display": verdict_display,
+                "lane_pair": (
+                    verdict_display.get("lane_pair") if verdict_display else None
+                ),
                 "evaluator_result": (
                     None
                     if timed_out
@@ -1374,7 +1562,267 @@ def _verdict_display(assessment_path: Path) -> dict | None:
             "lane_1": lanes.get("lane_1"),
             "lane_2": lanes.get("lane_2"),
         },
+        "lane_pair": _lane_pair(value),
         "not_understood": value.get("not_understood"),
+    }
+
+
+def _lane_fact(lane: dict, name: str) -> object:
+    """One lane fact, read from the lane record or its bundle.
+
+    Engine assessments carry the facts at the top of each lane
+    record; some shapes nest them under ``bundle``. Both are the
+    engine's own record — the runner only reads them.
+    """
+    if name in lane:
+        return lane[name]
+    bundle = lane.get("bundle")
+    if isinstance(bundle, dict):
+        return bundle.get(name)
+    return None
+
+
+def _lane_count(lane: dict, name: str) -> int | None:
+    value = _lane_fact(lane, name)
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
+
+
+# The display word for each basis type the engine stores on a
+# recorded act (Spec 006, engine A4): the stored type, shown as
+# itself — a stored "test-verdict" displays as a test verdict and
+# a stored "human-act" as a human act. The runner never re-derives
+# a stored type.
+_BASIS_TYPE_DISPLAY = {
+    "test-verdict": "test verdict",
+    "human-act": "human act",
+}
+
+# Fallback classification for a stage event the engine stored no
+# basis type for (records written before the engine stored one):
+# stages the engine treats as human acts — advancing to `explained`
+# requires a named human's exposition, and advancing to `accepted`
+# or `digested` on a human act requires the recorder to resolve to
+# a person in the project's identity registry (the engine refuses
+# otherwise). A `checked` event recorded by `aee` itself is the
+# other kind of basis: a test verdict — the frozen requirement
+# tests passed and the tool recorded the result. Any other recorded
+# act was recorded by a named person, so it is a human act on its
+# face.
+_HUMAN_ACT_STAGES = frozenset({"explained", "accepted", "digested"})
+
+
+def _stored_stage_acts(claim: dict) -> list[dict]:
+    """The recorded stage acts the engine stored on the claim
+    (`metadata.recorded_acts`), each carrying its explicit basis
+    type. Only the stage acts are returned — the lane pair's basis
+    display is built from the claim's stage advances, and these are
+    the stored records of those same acts."""
+    metadata = claim.get("metadata")
+    if not isinstance(metadata, dict):
+        return []
+    recorded = metadata.get("recorded_acts")
+    if not isinstance(recorded, list):
+        return []
+    return [
+        act
+        for act in recorded
+        if isinstance(act, dict) and act.get("kind") == "stage"
+    ]
+
+
+def _match_stored_act(stored: list[dict], event: dict) -> dict | None:
+    """The stored act recording this stage event, if one is stored:
+    same stage advanced to, same recorder, same date, same stated
+    basis — the engine writes the act and the event from the same
+    values, so all four agree on a real record."""
+    for act in stored:
+        if (
+            act.get("to_stage") == event.get("kind")
+            and act.get("author") == event.get("author")
+            and act.get("date") == event.get("date")
+            and act.get("basis") == event.get("basis")
+        ):
+            return act
+    return None
+
+
+def _acceptance_basis(value: dict) -> dict | None:
+    """The basis each recorded acceptance act stands on (Spec 006
+    amendment, autonomous-execution doctrine v2).
+
+    Acceptance is not presented as a human act by default. In the
+    normal path, acceptance is the frozen requirement tests passing,
+    recorded as a checking event; human acts are the reserved cases
+    (an explanation, an acceptance, a digestion a person records).
+    The engine stores every recorded act on the claim itself —
+    `metadata.recorded_acts`, each with the stage advanced to, who
+    recorded it, the stated reason, and the act's explicit basis
+    type (`human-act` or `test-verdict`) — alongside the claim's
+    `stage_events`, so the pair shows that basis alongside the
+    lanes whenever the assessment records one:
+
+        acceptance basis: 1 test verdict(s), 1 human act(s)
+
+    A stored basis type is displayed as itself: a test-verdict
+    acceptance shows as a test verdict even though its stage event
+    is an `accepted` advance written by the tool, and a human-act
+    advance shows as a human act even though its stage event is a
+    `checked` advance the tool wrote. Inferring the type from the
+    stage or the author inverts exactly those two cases (Phase D
+    deviation D2), so the stage/author rule below classifies only
+    a stage event the engine stored no basis type for (a record
+    written before basis types were stored). An assessment
+    recording no acts yields None, never an invented basis.
+    """
+    claims = value.get("claims")
+    if not isinstance(claims, list):
+        return None
+    acts: list[dict] = []
+    for claim in claims:
+        if not isinstance(claim, dict):
+            continue
+        events = claim.get("stage_events")
+        if not isinstance(events, list):
+            events = []
+        stored = _stored_stage_acts(claim)
+        for event in events:
+            if not isinstance(event, dict):
+                continue
+            kind = event.get("kind")
+            author = event.get("author")
+            if not isinstance(kind, str) or not kind:
+                continue
+            basis_type = None
+            match = _match_stored_act(stored, event)
+            if match is not None:
+                stored.remove(match)
+                basis_type = _BASIS_TYPE_DISPLAY.get(match.get("basis_type"))
+            if basis_type is None:
+                basis_type = (
+                    "human act"
+                    if kind in _HUMAN_ACT_STAGES
+                    or (isinstance(author, str) and author and author != "aee")
+                    else "test verdict"
+                )
+            acts.append(
+                {
+                    "claim_id": claim.get("id"),
+                    "to_stage": kind,
+                    "basis_type": basis_type,
+                    "recorded_by": author,
+                    "basis": event.get("basis"),
+                }
+            )
+        for act in stored:
+            # A stored act whose stage event is not on this record:
+            # the bundle is the truth, so the act still shows, with
+            # its stored basis type, rather than being dropped.
+            basis_type = _BASIS_TYPE_DISPLAY.get(act.get("basis_type"))
+            if basis_type is None:
+                continue
+            acts.append(
+                {
+                    "claim_id": claim.get("id"),
+                    "to_stage": act.get("to_stage"),
+                    "basis_type": basis_type,
+                    "recorded_by": act.get("author"),
+                    "basis": act.get("basis"),
+                }
+            )
+    if not acts:
+        return None
+    test_verdicts = sum(1 for act in acts if act["basis_type"] == "test verdict")
+    human_acts = len(acts) - test_verdicts
+    return {
+        "recorded_acts": acts,
+        "test_verdict_count": test_verdicts,
+        "human_act_count": human_acts,
+        "display": (
+            f"acceptance basis: {test_verdicts} test verdict(s), "
+            f"{human_acts} human act(s)"
+        ),
+    }
+
+
+def _lane_pair(value: dict) -> dict | None:
+    """The lane pair, shown alongside the headline (Spec 006 LO-01).
+
+    Lane 1 is what the machine checks proved; lane 2 is where human
+    review and acceptance stand; the headline stays cautious until
+    both are done. Until the engine fix (1.6.0), lane 1 simply copied
+    the headline, so a lane-1 pass hidden under draft claims or
+    not-yet-explained claims could never be seen. The pair makes the
+    two readings visible at once, in one line:
+
+        headline: iterate — lane 1: pass, lane 2: open
+        (4 draft claim(s); 4 claim(s) below stage 'explained')
+
+    The lane-1 outcome and every lane-2 reason are copied from the
+    assessment's own lane records and reported statuses; the only
+    judgement the runner adds is the plain word for lane 2's state —
+    ``open`` when the record still shows lane-2 work, ``complete``
+    when it shows none. A record with no usable lane pair yields
+    None, never invented values.
+    """
+    lanes = value.get("lanes")
+    if not isinstance(lanes, dict):
+        return None
+    lane_1 = lanes.get("lane_1")
+    lane_2 = lanes.get("lane_2")
+    if not isinstance(lane_1, dict) or not isinstance(lane_2, dict):
+        return None
+    lane_1_outcome = _lane_fact(lane_1, "outcome")
+    if not isinstance(lane_1_outcome, str) or not lane_1_outcome:
+        return None
+    reasons: list[str] = []
+    reported = value.get("reported_statuses")
+    if isinstance(reported, dict):
+        drafts = sum(1 for status in reported.values() if status == "draft")
+        if drafts:
+            reasons.append(f"{drafts} draft claim(s)")
+    below_explained = _lane_count(lane_2, "claims_below_explained")
+    if below_explained:
+        reasons.append(f"{below_explained} claim(s) below stage 'explained'")
+    else:
+        # Below-explained already covers the earlier stages; only
+        # name the later lane-2 gaps when they are the remaining work,
+        # so the reasons do not say the same thing twice.
+        stage_counts = _lane_fact(lane_2, "stage_counts")
+        if isinstance(stage_counts, dict):
+            counts = [
+                count
+                for count in stage_counts.values()
+                if isinstance(count, int) and not isinstance(count, bool)
+            ]
+            if len(counts) == len(stage_counts):
+                total = sum(counts)
+                settled = stage_counts.get("accepted", 0) + stage_counts.get(
+                    "digested", 0
+                )
+                if total and settled < total:
+                    reasons.append(
+                        f"{total - settled} claim(s) not yet accepted or digested"
+                    )
+        exposition_missing = _lane_count(lane_2, "exposition_missing_claims")
+        if exposition_missing:
+            reasons.append(f"{exposition_missing} claim(s) without exposition")
+    verified_unexplained = _lane_count(lane_2, "verified_unexplained_claims")
+    if verified_unexplained:
+        reasons.append(
+            f"{verified_unexplained} verified but unexplained claim(s)"
+        )
+    state = "open" if reasons else "complete"
+    headline = value.get("outcome")
+    display = f"headline: {headline} — lane 1: {lane_1_outcome}, lane 2: {state}"
+    if reasons:
+        display += f" ({'; '.join(reasons)})"
+    return {
+        "headline_outcome": headline,
+        "lane_1_outcome": lane_1_outcome,
+        "lane_2_state": state,
+        "lane_2_reasons": reasons,
+        "display": display,
+        "acceptance_basis": _acceptance_basis(value),
     }
 
 
@@ -1389,7 +1837,12 @@ def _write_latest_pointer(root: Path, phase: str, assessment_rel: str) -> str:
     pointer = _safe_output(
         root, Path(f".specify/extensions/aee/assessments/latest-{phase}.json")
     )
-    pointer.write_text(
+    # Verified write (fleet standard, 2026-10-28): gate --latest
+    # resolves this pointer; a torn pointer must fail the assess
+    # run closed rather than name a record that was never durably
+    # recorded.
+    write_text_verified(
+        pointer,
         json.dumps(
             {
                 "assessment": assessment_rel,
@@ -1399,7 +1852,6 @@ def _write_latest_pointer(root: Path, phase: str, assessment_rel: str) -> str:
             indent=2,
         )
         + "\n",
-        encoding="utf-8",
     )
     return pointer.relative_to(root).as_posix()
 

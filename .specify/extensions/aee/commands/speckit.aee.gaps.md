@@ -16,7 +16,7 @@ Accept `matrix=<path>`, `evidence=<dir>`, and optional `output=<path>`, `close=<
 
 ## Prerequisites
 
-1. Do not install the engine yourself. The runner uses an `aee` engine in the range >=1.5.0,<2 from the active Python; otherwise its first run installs `applied-epistemic-engineering>=1.5.0,<2` into `.specify/extensions/aee/.runtime` (this needs network access once). If the runner refuses (exit 2) because that install is disabled (`SPECKIT_AEE_AUTO_INSTALL=0`) or failed, stop and relay its message, which names the manual `python -m pip install "applied-epistemic-engineering>=1.5.0,<2"` command.
+1. Do not install the engine yourself. The runner uses an `aee` engine in the range >=1.6.0,<2 from the active Python; otherwise its first run installs `applied-epistemic-engineering>=1.6.0,<2` into `.specify/extensions/aee/.runtime` (this needs network access once). If the runner refuses (exit 2) because that install is disabled (`SPECKIT_AEE_AUTO_INSTALL=0`) or failed, stop and relay its message, which names the manual `python -m pip install "applied-epistemic-engineering>=1.6.0,<2"` command.
 2. Confirm the verification matrix file exists. If absent, stop and recommend creating `docs/verification-matrix.md` first.
 3. Resolve the project root. Never follow symlinks or read outside the project root.
 

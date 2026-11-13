@@ -5,24 +5,25 @@ description: Set up and use the AEE Spec Kit extension from an ordinary-language
 
 # AEE through Spec Kit
 
-This is an onboarding/router skill. Product operations live in the ten skill
+This is an onboarding/router skill. Product operations live in the eleven skill
 documents rendered by Spec Kit from this repository's `commands/` files.
 
 1. Resolve the requested project root and active agent integration. For an existing
    project, inspect `.specify/init-options.json` and the extension registry before
    changing anything. Preserve the user's constitution and custom artifacts.
 2. If setup is requested and missing, initialize Spec Kit for the user's agent,
-   then run `specify extension add aee`. If an older installation refuses,
-   consult [troubleshooting](https://github.com/electrohire/spec-kit-aee/blob/main/DEVELOPMENT.md#troubleshooting-older-installations)
-   before selecting a reviewed fallback.
+   then follow the [one-time publisher catalog setup](https://github.com/electrohire/spec-kit-aee#installation)
+   and run `specify extension add aee`. Current Specify releases keep the default
+   community catalog discovery-only; an upgrade alone does not enable installation
+   by name. Inspect existing catalog configuration before registering a source.
    Do not silently change catalog trust or use `--force` over local work.
 3. AEE provisions its Python engine (`applied-epistemic-engineering`, import/CLI
    `aee`), `jsonschema`, and evaluator companion (extension ID `evaluator`) on
    first use. Do not require users to install them manually before trying the
    runner. Relay a real provisioning error; respect `SPECKIT_AEE_AUTO_INSTALL=0`.
 4. Read and follow the installed skill for the requested operation: draft-claims,
-   assess, challenge, trace, verify, gate, review, gaps, route-evidence, or
-   report-savings. Skills are installed in the active integration's skill
+   assess, challenge, trace, verify, gate, review, gaps, route-evidence,
+   report-savings, or message-security. Skills are installed in the active integration's skill
    directory, such as `.agents/skills/`, `.github/skills/`, or `.claude/skills/`.
    Do not assume a particular agent's slash-command spelling. If newly installed
    skills are not visible yet, tell the user to reload their agent session.

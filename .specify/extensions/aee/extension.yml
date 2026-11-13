@@ -3,7 +3,7 @@ schema_version: '1.0'
 extension:
   id: aee
   name: Applied Epistemic Engineering
-  version: 1.5.2
+  version: 1.7.0
   description: Challenge claims, trace evidence, propagate uncertainty, and route epistemic failures across phases
   category: process
   effect: read-write
@@ -23,15 +23,19 @@ requires:
     # gates, reliability blending, and review subcommand; 1.5.0 is
     # the realigned engine (Spec 004 vocabulary: lifecycle
     # stages, stage-capped reported statuses, lane-paired outcomes,
-    # not_understood, methodology 2.0) - the floor moves to it so
-    # pre-realignment engines are refused cleanly. Spec Kit installs no
+    # not_understood, methodology 2.0); 1.6.0 computes the lane-1
+    # outcome from lane-1 facts alone (it no longer copies the
+    # headline), adds the gate's --require-lane1-pass option, and
+    # carries methodology 2.1 - the floor moves to it so engines
+    # whose lane 1 cannot show its own result are refused cleanly.
+    # Spec Kit installs no
     # Python packages, so the runner provisions this range itself into
     # .specify/extensions/aee/.runtime when the invoking Python lacks it,
     # together with jsonschema>=4.0 for the evaluator composer that
     # `run_aee.py compose` runs there.
     - name: aee
       required: true
-      version: '>=1.5.0,<2'
+      version: '>=1.6.0,<2'
     # Spec Kit extension, not a shell executable. REQUIRED companion:
     # AEE is one evaluator among many by design, and its results are
     # composed through the common evaluator extension so every
@@ -96,10 +100,22 @@ provides:
     - name: speckit.aee.report-savings
       file: commands/speckit.aee.report-savings.md
       description: Report measured RTK and Headroom token savings, never estimated
+    - name: speckit.aee.message-security
+      file: commands/speckit.aee.message-security.md
+      description: Run the message-security battery gate and check a spec's authority surface
   templates:
     - name: aee-claims
       file: templates/aee-claims.json
       description: Structured claim and evidence input for the AEE engine
+    - name: message-security-authority-surface
+      file: templates/message-security-authority-surface.md
+      description: Authority-surface spec section - who may instruct the system, through which channels, which actions and destinations are authorized
+    - name: message-security-challenge-record
+      file: templates/message-security-challenge-record.json
+      description: Example message-security challenge record (span hash, source, claim, check fired, verdict, action taken, timestamp)
+    - name: message-security-challenge-record-schema
+      file: templates/message-security-challenge-record.schema.json
+      description: JSON Schema for the append-only message-security challenge record format
   config:
     - name: aee-config.yml
       template: templates/aee-config.template.yml
@@ -114,6 +130,16 @@ provides:
     - name: aee-token-economy
       file: scripts/python/aee_token_economy.py
       description: Policy layer over optional token-economy tools (rtk, headroom, token-router)
+      runtimes:
+        - python
+    - name: message-security-screen
+      file: scripts/python/message_security_screen.py
+      description: Deterministic message-security screener - structural layer L1 and epistemic layer L2 over tagged spans
+      runtimes:
+        - python
+    - name: message-security-battery
+      file: scripts/python/message_security_battery.py
+      description: Planted-injection battery assessment gate over the vendored screener (bars stated in the script)
       runtimes:
         - python
 
