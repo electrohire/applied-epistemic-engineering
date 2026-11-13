@@ -27,6 +27,7 @@ of loading them whole.
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -34,8 +35,131 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Verified append (fleet standard, 2026-10-28), embedded because this
+# script ships as a single declared file (extension.yml): record the
+# pre-append size, append + fsync, read back the exact appended
+# range, and on any mismatch roll back to the pre-append size and
+# raise SafeWriteError — an append is never blind-retried, so a
+# telemetry record can never land twice or stand torn.
+# ---------------------------------------------------------------------------
+
+
+class SafeWriteError(RuntimeError, ValueError):
+    """Every verified-append attempt failed; the file was rolled back."""
+
+
+_CHILD_APPEND_BOOTSTRAP = (
+    "import base64, os, sys\n"
+    "data = base64.b64decode(sys.argv[1])\n"
+    "target = sys.argv[2]\n"
+    "size_before = os.path.getsize(target) if os.path.exists(target) else 0\n"
+    "ok = False\n"
+    "try:\n"
+    "    with open(target, 'ab') as handle:\n"
+    "        handle.write(data); handle.flush(); os.fsync(handle.fileno())\n"
+    "    with open(target, 'rb') as handle:\n"
+    "        handle.seek(size_before)\n"
+    "        ok = handle.read() == data\n"
+    "except OSError:\n"
+    "    ok = False\n"
+    "if not ok:\n"
+    "    try:\n"
+    "        with open(target, 'r+b') as handle:\n"
+    "            handle.truncate(size_before)\n"
+    "            handle.flush(); os.fsync(handle.fileno())\n"
+    "    except OSError: pass\n"
+    "sys.exit(0 if ok else 1)\n"
+)
+
+
+def _append_once(path: Path, data: bytes, existed: bool) -> bool:
+    size_before = path.stat().st_size if existed else 0
+    try:
+        with path.open("ab") as handle:
+            handle.write(data)
+            handle.flush()
+            os.fsync(handle.fileno())
+        with path.open("rb") as handle:
+            handle.seek(size_before)
+            landed = handle.read()
+        if landed == data and path.stat().st_size == size_before + len(data):
+            return True
+    except OSError:
+        pass
+    try:
+        if existed:
+            with path.open("r+b") as handle:
+                handle.truncate(size_before)
+                handle.flush()
+                os.fsync(handle.fileno())
+        elif path.exists():
+            path.unlink()
+    except OSError:
+        pass
+    return False
+
+
+def _try_child_append(path: Path, data: bytes) -> bool:
+    try:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                _CHILD_APPEND_BOOTSTRAP,
+                base64.b64encode(data).decode("ascii"),
+                str(path),
+            ],
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0
+
+
+def append_verified(path: Path, data: bytes) -> dict:
+    """Append bytes with the verified-append guarantee (see header).
+
+    Returns {"path", "bytes", "sha256", "via"}; raises ValueError on
+    empty content and SafeWriteError when the append cannot be
+    landed and proven (the file is rolled back in that case)."""
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+    if not data:
+        raise ValueError(f"refusing an empty append: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existed = path.exists()
+    attempts = 0
+    for index in range(3):
+        attempts += 1
+        if _append_once(path, data, existed):
+            return {
+                "path": str(path),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "via": f"local-{index + 1}",
+            }
+        time.sleep(0.25 * (index + 1))
+    for index in range(2):
+        attempts += 1
+        if _try_child_append(path, data):
+            return {
+                "path": str(path),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "via": f"child-{index + 1}",
+            }
+        time.sleep(0.5)
+    raise SafeWriteError(
+        f"verified append failed after {attempts} attempts: {path} "
+        f"({len(data)} bytes, sha256 {hashlib.sha256(data).hexdigest()})"
+    )
 
 DEFAULT_MAX_DIRECT_LINES = 300
 DEFAULT_WINDOW = 8
@@ -663,8 +787,15 @@ def _shell(root: Path, args: argparse.Namespace) -> int:
             "that look like secrets are redacted in this record."
         ),
     }
-    with telemetry.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(record) + "\n")
+    # Verified append (fleet standard, 2026-10-28): the telemetry
+    # record is this wrapper's product; losing it silently would be
+    # a degraded run reported as success, so a failed append fails
+    # the run closed (exit 2) with the reason on stderr.
+    try:
+        append_verified(telemetry, json.dumps(record) + "\n")
+    except SafeWriteError as exc:
+        print(f"error: telemetry record not written: {exc}", file=sys.stderr)
+        return 2
     return 2 if timed_out else exit_code
 
 

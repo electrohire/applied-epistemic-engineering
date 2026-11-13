@@ -2,9 +2,9 @@
   "schema_version": "1.0",
   "extensions": {
     "aee": {
-      "version": "1.5.2",
+      "version": "1.7.0",
       "source": "local",
-      "manifest_hash": "sha256:975f7a70d87f28cfca3df1fae2ae57d5c966482cfe69a6ab6f5575d06fcbd848",
+      "manifest_hash": "sha256:d4b4541a22cbaebcd4751f7cc08fc597bb5cc88d231dc0c2f0c83727db14e3e5",
       "enabled": true,
       "priority": 10,
       "registered_commands": {},
@@ -18,7 +18,8 @@
         "speckit-aee-review",
         "speckit-aee-gaps",
         "speckit-aee-route-evidence",
-        "speckit-aee-report-savings"
+        "speckit-aee-report-savings",
+        "speckit-aee-message-security"
       ],
       "installed_at": "2026-10-16T20:53:26.904475+00:00"
     },

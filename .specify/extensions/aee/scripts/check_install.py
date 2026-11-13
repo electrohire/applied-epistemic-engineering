@@ -107,6 +107,12 @@ def main() -> None:
         "(e.g. an immutable GitHub commit or tag archive) to specify",
     )
     parser.add_argument(
+        "--catalog-url",
+        default=None,
+        help="register this reviewed publisher catalog, then install with "
+        "'specify extension add aee' (no --from)",
+    )
+    parser.add_argument(
         "--expect-aee-version",
         default=None,
         help="fail unless specify reports exactly this installed AEE "
@@ -133,30 +139,31 @@ def main() -> None:
     server: http.server.ThreadingHTTPServer | None = None
     archive_url: str | None = None
     check(
-        not (args.from_archive and args.from_url),
-        "--from-archive and --from-url are mutually exclusive",
+        sum(bool(value) for value in (args.from_archive, args.from_url, args.catalog_url)) <= 1,
+        "--from-archive, --from-url and --catalog-url are mutually exclusive",
     )
     if args.from_url is not None:
         archive_url = args.from_url
     elif args.from_archive is not None:
         archive = args.from_archive.resolve(strict=True)
         server, archive_url = _serve_archive(archive)
-    else:
+    elif args.catalog_url is None:
         aee_source = args.aee_dir.resolve(strict=True)
     env = {**os.environ, "PYTHONUTF8": "1", "NO_COLOR": "1"}
     try:
         _run_checks(specify, evaluator, aee_source, archive_url, env,
-                    args.clean_interpreter, args.expect_aee_version)
+                    args.clean_interpreter, args.expect_aee_version, args.catalog_url)
     finally:
         if server is not None:
             server.shutdown()
     origin = (
-        args.from_url if args.from_url
+        args.catalog_url if args.catalog_url
+        else args.from_url if args.from_url
         else "release archive" if archive is not None
         else "local directory"
     )
     companion = "local directory" if evaluator is not None else "runner auto-install"
-    print(f"PASS: initialized project, both extensions, ten rendered commands, "
+    print(f"PASS: initialized project, both extensions, eleven rendered commands, "
           f"five AEE hooks, resolved placeholders, all seven installed "
           f"operations, and evaluator reinstall by assess (aee installed "
           f"from {origin}; evaluator first installed from {companion}; "
@@ -209,6 +216,7 @@ def _run_checks(
     env: dict[str, str],
     clean_interpreter: bool = False,
     expect_aee_version: str | None = None,
+    catalog_url: str | None = None,
 ) -> None:
     with tempfile.TemporaryDirectory(prefix="aee-install-") as directory,             tempfile.TemporaryDirectory(prefix="aee-clean-python-") as tools:
         root = Path(directory)
@@ -236,7 +244,11 @@ def _run_checks(
                 "--ignore-agent-tools", "--non-interactive")
         if evaluator is not None:
             command(specify, "extension", "add", "--dev", str(evaluator))
-        if archive_url is not None:
+        if catalog_url is not None:
+            command(specify, "extension", "catalog", "add", catalog_url,
+                    "--name", "electrohire", "--install-allowed")
+            command(specify, "extension", "add", "aee")
+        elif archive_url is not None:
             command(specify, "extension", "add", "aee", "--from", archive_url)
         else:
             check(aee_source is not None, "an aee source is required")
@@ -254,8 +266,8 @@ def _run_checks(
                 f"{installed['aee']['version']}",
             )
         check(
-            installed["aee"]["provides"]["commands"] == 10,
-            "aee must provide ten commands, got "
+            installed["aee"]["provides"]["commands"] == 11,
+            "aee must provide eleven commands, got "
             f"{installed['aee']['provides']['commands']}",
         )
         check(
@@ -265,7 +277,7 @@ def _run_checks(
         )
         commands = list((root / ".claude/commands").glob("speckit.aee.*.md"))
         commands += list((root / ".claude/skills").glob("speckit-aee-*/SKILL.md"))
-        check(len(commands) == 10, f"expected ten rendered commands: {commands}")
+        check(len(commands) == 11, f"expected eleven rendered commands: {commands}")
         for path in commands:
             content = path.read_text(encoding="utf-8")
             if path.name == "SKILL.md":
@@ -348,6 +360,39 @@ def _run_checks(
             (root / paths["assessment"]).is_file(),
             f"assess named a missing assessment file: {paths}",
         )
+        # Spec 006 (LO-05): the installed assess must surface the lane
+        # pair end to end — a lane_pair block whose lane-1 outcome is
+        # the installed assessment's own recorded lane-1 outcome, and
+        # whose one-line display names the headline and both lanes.
+        installed_assessment = json.loads(
+            (root / paths["assessment"]).read_text(encoding="utf-8")
+        )
+        recorded_lane_1 = (
+            installed_assessment.get("lanes", {}).get("lane_1", {}).get("outcome")
+        )
+        pair = paths.get("lane_pair")
+        check(
+            isinstance(pair, dict) and recorded_lane_1 is not None,
+            f"assess summary must carry a lane_pair for an assessment "
+            f"that records lanes: {paths}",
+        )
+        check(
+            "acceptance_basis" in pair,
+            f"lane_pair must carry the acceptance_basis key (the "
+            f"recorded acts' basis, or null when none is recorded): {pair}",
+        )
+        check(
+            pair["lane_1_outcome"] == recorded_lane_1
+            and pair["headline_outcome"] == installed_assessment.get("outcome")
+            and pair["lane_2_state"] in {"open", "complete"}
+            and "lane 1:" in pair["display"]
+            and "lane 2:" in pair["display"]
+            and pair["display"].startswith("headline:"),
+            f"lane_pair must match the installed assessment's own "
+            f"lanes and name both lanes: {pair} vs assessment lanes "
+            f"{installed_assessment.get('lanes')}",
+        )
+        print(f"lane pair from the installed assess: {pair['display']}")
         check(
             (root / paths["evaluator_result"]).is_file(),
             f"assess named a missing evaluator result: {paths}",
@@ -394,6 +439,23 @@ def _run_checks(
             "**Open:** 1" in (root / "GAPS.md").read_text(),
             "gap register must show the one open gap",
         )
+        # Message security (Spec 007): the installed battery gate runs
+        # offline against its vendored corpus and must pass its bars —
+        # the epistemic layer challenges at least 95% of the planted
+        # injections and zero legitimate controls.
+        battery = command(python,
+                          str(root / ".specify/extensions/aee/scripts/python/"
+                              "message_security_battery.py"))
+        battery_report = json.loads(battery)
+        check(
+            battery_report["gate"] == "pass"
+            and battery_report["results"]["injection_challenged"] == 55
+            and battery_report["results"]["control_challenged"] == 0,
+            f"installed message-security battery gate must pass with the "
+            f"recorded counts: {battery_report}",
+        )
+        print("message-security battery gate from the installed extension: "
+              "pass (55/56 injections challenged, 0/50 controls challenged)")
         # RT3-01 exit-code contract, exercised against the installed
         # runner: a missing input is a clean refusal (exit 2), never a
         # traceback and never the scored-verdict code 1.
