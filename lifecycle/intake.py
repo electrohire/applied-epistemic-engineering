@@ -6,6 +6,11 @@ beside the ledger, records checked on every run, a loud named rejection,
 and no repair or write on refusal. Lifecycle corrections are append-only:
 a correction is a new record whose correction_of field names its target.
 
+The plumbing under the rules -- the canonical ledger hash, the schema
+type checker and field walker behind L0, and the coverage/report
+harness -- is shared with the program ledger's intake and lives in
+``aee.intake_common``; the L-rules themselves are this ledger's own.
+
 Usage:
     python3 intake.py [records.jsonl] [--append record.json]
 
@@ -16,53 +21,40 @@ complete prospective ledger accepts; a refusal leaves the file untouched.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 from datetime import date, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+SRC = HERE.parent / "src"
+if SRC.is_dir() and str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from aee.intake_common import (  # noqa: E402
+    is_int,
+    is_number,
+    ledger_sha256,
+    print_coverage,
+    report,
+    schema_problems,
+)
+
+__all__ = [
+    "append_record",
+    "ledger_sha256",
+    "load_records",
+    "load_schema",
+    "main",
+    "validate",
+    "validate_records",
+]
+
+_is_int = is_int
+_is_number = is_number
+
 SURVIVAL_HORIZONS = {30, 60, 90, 180}
 PROBE_OUTCOMES = {"applies_cleanly", "applies_with_conflicts", "fails_tests"}
-
-
-def ledger_sha256(path: Path) -> str:
-    """SHA-256 of a ledger's canonical LF-normalized text."""
-    text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
-
-
-def _is_int(value: object) -> bool:
-    return isinstance(value, int) and not isinstance(value, bool)
-
-
-def _is_number(value: object) -> bool:
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
-
-
-def _type_ok(value: object, declared: str) -> bool:
-    if declared == "string":
-        return isinstance(value, str)
-    if declared == "string or null":
-        return value is None or isinstance(value, str)
-    if declared == "integer":
-        return _is_int(value)
-    if declared == "integer or null":
-        return value is None or _is_int(value)
-    if declared == "number":
-        return _is_number(value)
-    if declared == "boolean":
-        return isinstance(value, bool)
-    if declared == "array of strings":
-        return isinstance(value, list) and all(isinstance(v, str) for v in value)
-    if declared == "array of objects":
-        return isinstance(value, list) and all(isinstance(v, dict) for v in value)
-    if declared == "object":
-        return isinstance(value, dict)
-    if declared == "object or null":
-        return value is None or isinstance(value, dict)
-    return True
 
 
 def _iso_ok(value: object) -> bool:
@@ -78,33 +70,6 @@ def _iso_ok(value: object) -> bool:
         return True
     except ValueError:
         return False
-
-
-def _schema_problems(data: dict, fields: list[dict]) -> list[str]:
-    problems: list[str] = []
-    for field in fields:
-        name = str(field["name"])
-        if name not in data:
-            if field.get("required"):
-                problems.append(f"L0 schema: missing required field {name}")
-            continue
-        value = data[name]
-        declared = str(field.get("type", ""))
-        if not _type_ok(value, declared):
-            problems.append(f"L0 schema: field {name} is not {declared}")
-            continue
-        enum = field.get("enum")
-        if enum is not None and value not in enum:
-            problems.append(f"L0 schema: field {name} has unknown enum value {value!r}")
-        for key in field.get("keys_required", []):
-            if isinstance(value, dict) and key not in value:
-                problems.append(f"L0 schema: field {name} missing key {key}")
-        for key in field.get("item_required", []):
-            if isinstance(value, list):
-                for item in value:
-                    if isinstance(item, dict) and key not in item:
-                        problems.append(f"L0 schema: field {name} item missing key {key}")
-    return problems
 
 
 def _nonnegative_map(value: object) -> bool:
@@ -244,7 +209,7 @@ def validate_records(records: list[dict], schema: dict) -> tuple[list[str], list
         type_schema = record_types[record_type]
         id_field = str(type_schema["id_field"])
         rid = str(data.get(id_field, "")).strip() or f"line {index}"
-        problems = _schema_problems(data, list(type_schema.get("fields", [])))
+        problems = schema_problems(data, list(type_schema.get("fields", [])), "L0")
         if rid in seen:
             problems.append(f"L1 identity: duplicate id {rid}")
         seen.setdefault(rid, record_type)
@@ -317,8 +282,7 @@ def validate_records(records: list[dict], schema: dict) -> tuple[list[str], list
         "rework": sum(1 for r in records if r.get("record_type") == "rework"),
         "escape": sum(1 for r in records if r.get("record_type") == "escape"),
     }
-    counts = " ".join(f"{k}={v}/{total}" for k, v in coverage.items())
-    print(f"LIFECYCLE_COVERAGE {counts}")
+    print_coverage("LIFECYCLE_COVERAGE", coverage, total)
     return accepted, rejected
 
 
@@ -371,13 +335,7 @@ def main(argv: list[str]) -> int:
             print(f"REJECT json-parse: {exc}")
             print("LIFECYCLE_RESULT accepted=0 rejected=1")
             return 1
-    print(f"LIFECYCLE ledger={records_path.name} records={len(accepted) + len(rejected)}")
-    for line in accepted:
-        print(" ", line)
-    for line in rejected:
-        print(" ", line)
-    print(f"LIFECYCLE_RESULT accepted={len(accepted)} rejected={len(rejected)}")
-    return 0 if not rejected else 1
+    return report("LIFECYCLE", "records", records_path.name, accepted, rejected)
 
 
 if __name__ == "__main__":
