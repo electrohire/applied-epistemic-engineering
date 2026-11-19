@@ -312,6 +312,78 @@
       "kind": "observation",
       "stage": "checked",
       "status": "supported"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-1",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-2",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-3",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-4",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-5",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
+    },
+    {
+      "components": [
+        "engine",
+        "spec-kit-aee"
+      ],
+      "date": "2026-11-19",
+      "depends_on": [],
+      "id": "KB-6",
+      "kind": "hypothesis",
+      "stage": "created",
+      "status": "draft"
     }
   ],
   "components": [
@@ -344,21 +416,21 @@
   "counts": {
     "by_component": {
       "benchmark": 22,
-      "engine": 4,
+      "engine": 10,
       "evaluator": 1,
       "injection-defense": 5,
-      "spec-kit-aee": 2
+      "spec-kit-aee": 8
     },
     "by_status": {
-      "draft": 1,
+      "draft": 7,
       "supported": 25
     }
   },
   "generated_from": {
-    "claims": 26,
+    "claims": 32,
     "generator": "tools/build_matrix.py",
     "ledger": "program-ledger/claims.jsonl",
-    "ledger_sha256": "8713684535e550161eb01466fedef6e57ca034fcf6443986c3848fe8725fcd67"
+    "ledger_sha256": "c25ba54535b4feec91d381a07ede90bbd96ea02479caf6f844af740bd2f13cc4"
   },
   "matrix": {
     "benchmark": {
@@ -391,7 +463,13 @@
     },
     "engine": {
       "draft": [
-        "SKA-001"
+        "SKA-001",
+        "KB-1",
+        "KB-2",
+        "KB-3",
+        "KB-4",
+        "KB-5",
+        "KB-6"
       ],
       "supported": [
         "SKA-014",
@@ -415,7 +493,13 @@
     },
     "spec-kit-aee": {
       "draft": [
-        "SKA-001"
+        "SKA-001",
+        "KB-1",
+        "KB-2",
+        "KB-3",
+        "KB-4",
+        "KB-5",
+        "KB-6"
       ],
       "supported": [
         "SKA-022"

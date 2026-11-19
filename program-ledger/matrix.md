@@ -1,11 +1,11 @@
 # Program matrix (generated)
 
-Generated from program-ledger/claims.jsonl (sha256 8713684535e55016...), 26 claims, by tools/build_matrix.py.
+Generated from program-ledger/claims.jsonl (sha256 c25ba54535b4feec...), 32 claims, by tools/build_matrix.py.
 Do not hand-edit: regenerate with `python3 tools/build_matrix.py`.
 
 ## Counts by status
 
-- draft: 1
+- draft: 7
 - supported: 25
 
 ## Claims x components
@@ -38,15 +38,21 @@ Do not hand-edit: regenerate with `python3 tools/build_matrix.py`.
 | SKA-024 | supported |  |  |  | x |  |
 | SKA-025 | supported |  |  |  | x |  |
 | SKA-026 | supported |  |  |  | x |  |
+| KB-1 | draft | x | x |  |  |  |
+| KB-2 | draft | x | x |  |  |  |
+| KB-3 | draft | x | x |  |  |  |
+| KB-4 | draft | x | x |  |  |  |
+| KB-5 | draft | x | x |  |  |  |
+| KB-6 | draft | x | x |  |  |  |
 
 ## Claims by component and status
 
-### engine (4)
-- draft: SKA-001
+### engine (10)
+- draft: SKA-001, KB-1, KB-2, KB-3, KB-4, KB-5, KB-6
 - supported: SKA-014, SKA-021, SKA-022
 
-### spec-kit-aee (2)
-- draft: SKA-001
+### spec-kit-aee (8)
+- draft: SKA-001, KB-1, KB-2, KB-3, KB-4, KB-5, KB-6
 - supported: SKA-022
 
 ### evaluator (1)
