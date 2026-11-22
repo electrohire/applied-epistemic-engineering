@@ -4,12 +4,20 @@ import sys
 import time
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from board import append as append_mod  # noqa: E402
 from board import canonical, fold  # noqa: E402
+
+if sys.platform == "win32":
+    pytest.skip(
+        "board substrate is POSIX-only (plan: fcntl.flock; boards live on Linux hosts)",
+        allow_module_level=True,
+    )
 
 GENESIS = {
     "board_id": "board-fold",

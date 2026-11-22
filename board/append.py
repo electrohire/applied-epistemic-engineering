@@ -32,7 +32,6 @@ Usage:
 
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import socket
@@ -42,6 +41,13 @@ from pathlib import Path
 from typing import Any
 
 from . import canonical, fold, state, validate
+
+try:  # The substrate is POSIX-only (plan: fcntl.flock; boards live on
+    # Linux hosts). The guarded import keeps the package importable on
+    # other platforms, where appends refuse by name instead.
+    import fcntl
+except ImportError:  # pragma: no cover - non-POSIX platforms
+    fcntl = None  # type: ignore[assignment]
 
 LOCK_FILE = "board.lock"
 GITATTRIBUTES = "(.gitattributes is written by create_board)"
@@ -93,6 +99,11 @@ class _AppendLock:
         self.fd: int | None = None
 
     def __enter__(self) -> _AppendLock:
+        if fcntl is None:
+            raise BoardRefusal(
+                "UNSUPPORTED_PLATFORM",
+                "the board append lock requires POSIX fcntl.flock; boards live on Linux hosts",
+            )
         self.fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o644)
         deadline = time.monotonic() + self.timeout
         while True:
