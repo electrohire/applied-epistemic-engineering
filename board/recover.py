@@ -165,6 +165,12 @@ def recover_fork(board_dir: Path, planner: str) -> dict[str, Any]:
         if original["kind"] in ("genesis", "recovery"):
             discarded.append(original["event_id"])
             continue
+        replay_payload = dict(original.get("payload") or {})
+        # Append-service stamps are not caller input: a replayed wait
+        # registration is re-evaluated and re-stamped by the append
+        # path (FR-P3), so the original's wake_check is dropped here
+        # rather than refused as caller-supplied.
+        replay_payload.pop("wake_check", None)
         replay = {
             "event_id": f"recovered-{uuid.uuid4().hex[:16]}",
             "board_id": original["board_id"],
@@ -172,7 +178,7 @@ def recover_fork(board_dir: Path, planner: str) -> dict[str, Any]:
             "actor": original["actor"],
             "kind": original["kind"],
             "payload": {
-                **(original.get("payload") or {}),
+                **replay_payload,
                 "recovered_from": original["event_id"],
             },
         }
