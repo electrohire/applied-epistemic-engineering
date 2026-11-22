@@ -285,9 +285,7 @@ def default_board_checker() -> TransitionChecker:
     return kernel.kernel_checker
 
 
-def fold_board(
-    board_dir: Path, transition_checker: TransitionChecker | None = None
-) -> FoldResult:
+def fold_board(board_dir: Path, transition_checker: TransitionChecker | None = None) -> FoldResult:
     """Fold a board directory's log.
 
     The board-level fold enforces the kernel's transition table

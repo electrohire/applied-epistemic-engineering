@@ -104,9 +104,7 @@ class Chain:
         self.transition(row_id, "planned")
         self.transition(row_id, "ready")
         self.transition(row_id, "in_progress")
-        self.transition(
-            row_id, "in_review", work_product=work_product or ["commit:" + "b" * 40]
-        )
+        self.transition(row_id, "in_review", work_product=work_product or ["commit:" + "b" * 40])
 
 
 def refusal_reason(chain: Chain) -> str:
@@ -161,9 +159,7 @@ def test_block_and_unblock_rows():
     row = result.state["rows"]["r1"]
     assert row["status"] == "blocked" and row["wait"] == WAIT
     assert "Current position" in row["resumption_note"]
-    chain.transition(
-        "r1", "in_progress", changes_extra={"wait": None}, wake_ref="wake-event-1"
-    )
+    chain.transition("r1", "in_progress", changes_extra={"wait": None}, wake_ref="wake-event-1")
     result = chain.fold()
     assert result.ok
     row = result.state["rows"]["r1"]

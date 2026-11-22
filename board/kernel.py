@@ -82,8 +82,7 @@ TRANSITIONS: dict[tuple[str | None, str], dict[str, str]] = {
     },
     (None, "planned"): {
         "actor": "generator (planner-authorized)",
-        "guard": "genesis records spec_hash; the row traces to a line "
-        "of the frozen artifact",
+        "guard": "genesis records spec_hash; the row traces to a line of the frozen artifact",
     },
     ("proposed", "planned"): {
         "actor": "planner",
@@ -253,8 +252,7 @@ def _check_creation(event: dict[str, Any], state: dict[str, Any]) -> str | None:
         )
     if payload.get("gate_row") is True and payload.get("assignee_kind") is not None:
         return (
-            "kernel FR-K5: a gate row takes a named assignee_instance; "
-            "a kind assignee is refused"
+            "kernel FR-K5: a gate row takes a named assignee_instance; a kind assignee is refused"
         )
     depends_on = payload.get("depends_on") or []
     if creates_cycle(state, row_id, list(depends_on)):
@@ -316,8 +314,7 @@ def _check_transition(
     elif (from_status, to_status) == ("blocked", "in_progress"):
         if changes.get("wait") is not None or "wait" not in changes:
             return (
-                "kernel guard: unblocking consumes the registered wait "
-                "(changes set wait to null)"
+                "kernel guard: unblocking consumes the registered wait (changes set wait to null)"
             )
         wake_ref = payload.get("wake_ref")
         override = payload.get("override_reason")
@@ -419,8 +416,7 @@ def _check_amendment(
         and row["row_id"] in (state.get("gate_rows") or [])
     ):
         return (
-            "kernel FR-K5: a gate row takes a named assignee_instance; "
-            "a kind assignee is refused"
+            "kernel FR-K5: a gate row takes a named assignee_instance; a kind assignee is refused"
         )
     if ("assignee_kind" in changes or "assignee_instance" in changes) and row["status"] in (
         "in_progress",
@@ -447,8 +443,7 @@ def _check_attachment(
     verdict_ref = payload.get("verdict_ref")
     if parse_verdict_ref_shape(verdict_ref) is None:
         return (
-            "kernel FR-K1: a verdict_ref is class:identifier#hash in the "
-            "pinned format of spec 4.3"
+            "kernel FR-K1: a verdict_ref is class:identifier#hash in the pinned format of spec 4.3"
         )
     current = row.get("verdict_ref")
     if current is None:
@@ -457,17 +452,13 @@ def _check_attachment(
     else:
         if payload.get("previous_ref") != current:
             return (
-                "kernel FR-K1a: a superseding attachment records the previous "
-                "reference it replaces"
+                "kernel FR-K1a: a superseding attachment records the previous reference it replaces"
             )
         reason = payload.get("reason")
         if not (isinstance(reason, str) and reason.strip()):
             return "kernel FR-K1a: a superseding attachment records its reason"
     if row.get("assignee_instance") is not None and event.get("actor") == row["assignee_instance"]:
-        return (
-            "kernel FR-K1a: the row's current holder may not attach the "
-            "row's own verdict"
-        )
+        return "kernel FR-K1a: the row's current holder may not attach the row's own verdict"
     evaluation = payload.get("verdict_evaluation")
     if not isinstance(evaluation, dict) or evaluation.get("outcome") not in (
         "favorable",
@@ -520,8 +511,7 @@ def kernel_checker(event: dict[str, Any], state: dict[str, Any]) -> str | None:
         return None  # structural checker names unknown rows
     if row["status"] in TERMINAL_STATUSES:
         return (
-            f"kernel table: row {row['row_id']!r} is {row['status']} "
-            "(terminal); no further events"
+            f"kernel table: row {row['row_id']!r} is {row['status']} (terminal); no further events"
         )
     if kind == "row_update":
         return _check_transition(event, state, row)
