@@ -169,3 +169,30 @@ python3 -m board.audits drift [--extension-definitions PATH]
   `board/schema.json`'s pinned enums) and says so in its report's
   `scope`; with `--extension-definitions` it also hash-compares
   the shipped definitions against the canonical table.
+
+## Weekly metrics (spec 5.3, task T024)
+
+`board/metrics.py` generates the weekly metrics and pilot
+overhead report from the log:
+
+```
+python3 -m board.metrics <board_dir> [--since N]
+    [--overhead overhead.json] [--sources sources.json]
+    [--render report.md]
+```
+
+The report covers rows by status and age, waits by kind with
+wake outcomes (match, sweep, escalated, closed without a wake,
+still waiting), planner overrides of blocked rows as their own
+category, keeper missed wakes (a lower bound between sweeps, and
+the report says so), false wakes re-verified against the log, the
+board staleness flag (24 hours without stamped log activity while
+non-terminal rows exist), and the pilot overhead section. Ages
+and staleness are computed from the log's stamped time evidence
+(keeper heartbeat `run_at`, wait registrations' `wake_check`
+stamps, detector `detected_at`); where the log carries no such
+evidence the report says unknown rather than guessing. Keeper
+session cost, audit labor, and note-authoring cost are not in
+the log: the weekly rhythm supplies them in the overhead input
+and they are carried verbatim, null when not supplied, never
+estimated.
