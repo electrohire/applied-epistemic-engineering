@@ -151,32 +151,32 @@ not, and a dead keeper is itself a detected, escalated event.
 **Purpose**: The weekly GATEs of spec 6 and the metrics of spec 5.3. No
 board goes live (Phase 6) before the audits that watch it exist.
 
-- [ ] T018 [AUD] KB-2 audit (done means a favorable record): weekly, every row that entered `done` since the last audit — all of them, at any count; resolution is scripted: resolve each `verdict_ref`, compare the record's current content hash against the hash captured at citation time, and check the outcome is favorable under spec 4.3's table; a reference that does not resolve, whose hash has changed, or whose outcome is not favorable is a finding that halts the pilot's expansion until explained
+- [x] T018 [AUD] KB-2 audit (done means a favorable record): weekly, every row that entered `done` since the last audit — all of them, at any count; resolution is scripted: resolve each `verdict_ref`, compare the record's current content hash against the hash captured at citation time, and check the outcome is favorable under spec 4.3's table; a reference that does not resolve, whose hash has changed, or whose outcome is not favorable is a finding that halts the pilot's expansion until explained
   - Behavior: every completion is re-verified against the record it cited, not just sampled.
   - Acceptance: GATE — the audit runs in the pilot's weekly rhythm (T031); script behavior is TEST-covered in `tests/test_board_audits.py`.
   - This does not establish: the authority of the actor who fired `done`; actor-based guards are accountability controls (T008), and the claim registration must say so.
 
-- [ ] T019 [AUD] KB-5 audit (the view agrees): weekly, regenerate the tasks view from the log and byte-compare with the published view; divergence not explained by an in-flight event is a finding
+- [x] T019 [AUD] KB-5 audit (the view agrees): weekly, regenerate the tasks view from the log and byte-compare with the published view; divergence not explained by an in-flight event is a finding
   - Behavior: the human surface is proven against the log on a rhythm, not trusted.
   - Acceptance: GATE — weekly run in the pilot rhythm (T031).
   - This does not establish: that board state is correct, only that the two surfaces never disagree silently.
 
-- [ ] T020 [AUD] KB-6 audit (state is the log): weekly, fold the log from genesis into a fresh state and byte-compare against the served state file; any difference is a finding of the highest severity this spec defines, and a KB-6 failure is a pilot tripwire (spec 7.5)
+- [x] T020 [AUD] KB-6 audit (state is the log): weekly, fold the log from genesis into a fresh state and byte-compare against the served state file; any difference is a finding of the highest severity this spec defines, and a KB-6 failure is a pilot tripwire (spec 7.5)
   - Behavior: the substrate's load-bearing guarantee is re-proven from genesis every week.
   - Acceptance: GATE — weekly run in the pilot rhythm (T031).
   - This does not establish: that the log's events were truthful; KB-6 is a self-consistency proof and is not described as more.
 
-- [ ] T021 [AUD] Artifact-trace audit: weekly, every row traces to a line of the genesis artifact named by `spec_hash`, or to a chain of amendment events ending at such a line; rows whose lineage cannot be reconstructed are findings
+- [x] T021 [AUD] Artifact-trace audit: weekly, every row traces to a line of the genesis artifact named by `spec_hash`, or to a chain of amendment events ending at such a line; rows whose lineage cannot be reconstructed are findings
   - Behavior: the board is proven to still be the plan it was generated from, plus its recorded amendments.
   - Acceptance: GATE — weekly run in the pilot rhythm (T031).
   - This does not establish: that the plan was good; it establishes that the board is that plan, amended only on the record. This is the only audit that compares the board against something outside itself.
 
-- [ ] T022 [AUD] Boundary audit (the contamination detector): weekly, run by the owning program's coordinator chat as part of the weekly rhythm — a script check that no governance-board row's `spec_ref` or `task_ref` resolves into a registered study-arm artifact of the ninety-day program, and that no board exists whose rows belong to a study arm; a hit is the spec 7.5 tripwire firing, not a lesser finding
+- [x] T022 [AUD] Boundary audit (the contamination detector): weekly, run by the owning program's coordinator chat as part of the weekly rhythm — a script check that no governance-board row's `spec_ref` or `task_ref` resolves into a registered study-arm artifact of the ninety-day program, and that no board exists whose rows belong to a study arm; a hit is the spec 7.5 tripwire firing, not a lesser finding
   - Behavior: the contamination boundary has a detector, not just a rule.
   - Acceptance: GATE — weekly run in the pilot rhythm (T031); the check itself is TEST-covered against synthetic violating boards.
   - This does not establish: that the boundary held between audits; it establishes that a leak is detected within one weekly cycle and halts the pilot.
 
-- [ ] T023 [AUD] Kernel drift check: weekly, until generation replaces pinning (T026) — the extension's shipped kernel definitions (Phase 5) hash-compare against the canonical table in this repo (T008); divergence is a finding of the same class as a stale catalog entry
+- [x] T023 [AUD] Kernel drift check: weekly, until generation replaces pinning (T026) — the extension's shipped kernel definitions (Phase 5) hash-compare against the canonical table in this repo (T008); divergence is a finding of the same class as a stale catalog entry
   - Behavior: the two kernel homes can never diverge silently.
   - Acceptance: GATE — weekly run in the pilot rhythm (T031); the comparison is TEST-covered.
   - This does not establish: that the canonical table is right; it establishes that there is only one table in effect.

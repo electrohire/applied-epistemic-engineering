@@ -127,3 +127,45 @@ pending ones at the start of each run, or directly:
 ```
 python3 -m board.detector record <board_dir> <outbox_dir>
 ```
+
+## Weekly audits (spec 6, tasks T018–T023)
+
+The audits are scripted checks in `board/audits.py`, run per board
+in the weekly rhythm. Each prints a JSON report and exits 0 only
+when it ran to completion and found nothing; an audit that cannot
+read its inputs reports failure, never a pass.
+
+```
+python3 -m board.audits kb2 <board_dir> [--since N]
+    [--gatekeeper-queue-dir D] [--ci-records-dir D]
+python3 -m board.audits kb5 <board_dir>
+python3 -m board.audits kb6 <board_dir>
+python3 -m board.audits trace <board_dir> <artifact_path>
+python3 -m board.audits boundary <registry.json> <board_dir>...
+python3 -m board.audits drift [--extension-definitions PATH]
+```
+
+- **KB-2** re-resolves the `verdict_ref` of every row that entered
+  `done` since the last audit (pass the previous report's
+  `audited_through_index` as `--since`); a record swapped after
+  citation, or one whose outcome is not favorable, is a finding.
+- **KB-5** regenerates the tasks view from the log at the head the
+  view names and byte-compares; later events are in-flight and
+  explain themselves.
+- **KB-6** folds the log from genesis and byte-compares the fresh
+  state against the served state file; any difference is a finding
+  of the highest severity.
+- **Trace** checks every row against the genesis artifact, which
+  is identified by hash (the genesis `spec_hash`); a row traces to
+  a line carrying its `task_ref`, or through a supersede chain or
+  a recovery citation to a row that does.
+- **Boundary** is the contamination detector: the registry file
+  (`{"study_arm_artifacts": [...]}`) names the ninety-day
+  program's registered study-arm artifacts, and any board genesis
+  or row reference resolving into one is the Section 7.5 tripwire.
+- **Drift** compares the kernel's two homes. Until the extension
+  ships its pinned definitions (Phase 5), the check runs its
+  schema pre-check leg (canonical definitions against
+  `board/schema.json`'s pinned enums) and says so in its report's
+  `scope`; with `--extension-definitions` it also hash-compares
+  the shipped definitions against the canonical table.

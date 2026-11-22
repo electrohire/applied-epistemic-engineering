@@ -51,9 +51,12 @@ limit what that can buy.
 
 from __future__ import annotations
 
+import hashlib
+import json
+from pathlib import Path
 from typing import Any
 
-from . import fold, validate, verdicts
+from . import canonical, fold, validate, verdicts
 
 STATUSES = (
     "proposed",
@@ -157,6 +160,48 @@ NOTE_PARTS = (
 # favorability. The fold's structural check on a reference goes
 # through that parser; a second copy of the format here is how the
 # two halves of a check drift apart.
+
+
+def kernel_definitions() -> dict[str, Any]:
+    """The canonical kernel definitions as one JSON-able object.
+
+    Spec 4.7: this module is the one canonical machine form of the
+    kernel. The definitions object is the surface the spec-kit-aee
+    extension pins by hash (Phase 5, task T025) and the weekly drift
+    check compares against (task T023): the statuses, the pinned
+    transition table with its actor and guard columns, the
+    resumption note's parts, the amendable fields, and the schema's
+    wait-kind and execution-state enums. Any change to the table
+    above changes this object's hash, which is the point.
+    """
+    schema = json.loads((Path(__file__).parent / "schema.json").read_text(encoding="utf-8"))
+    transitions = [
+        {
+            "from": from_status,
+            "to": to_status,
+            "actor": entry["actor"],
+            "guard": entry["guard"],
+        }
+        for (from_status, to_status), entry in sorted(
+            TRANSITIONS.items(), key=lambda item: (item[0][0] or "", item[0][1])
+        )
+    ]
+    return {
+        "schema": "aee-board-kernel/1",
+        "statuses": list(STATUSES),
+        "terminal_statuses": sorted(TERMINAL_STATUSES),
+        "transitions": transitions,
+        "note_parts": list(NOTE_PARTS),
+        "amendable_fields": sorted(AMENDABLE_FIELDS),
+        "row_update_change_fields": sorted(ROW_UPDATE_CHANGE_FIELDS),
+        "wait_kinds": list(schema["wait_kind_enum"]),
+        "execution_states": list(schema["execution_state_enum"]),
+    }
+
+
+def kernel_definitions_hash() -> str:
+    """SHA-256 of the canonical form of ``kernel_definitions()``."""
+    return hashlib.sha256(canonical.canonical_bytes(kernel_definitions())).hexdigest()
 
 
 def validate_resumption_note(note: Any) -> list[str]:
