@@ -1,0 +1,9 @@
+{
+  "conclusion": "success",
+  "databaseId": 44981799043,
+  "event": "pull_request",
+  "headSha": "0123456789abcdef0123456789abcdef01234567",
+  "status": "completed",
+  "url": "https://example.invalid/runs/44981799043",
+  "workflowName": "CI"
+}

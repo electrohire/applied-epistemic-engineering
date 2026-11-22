@@ -1,0 +1,3 @@
+decision: approve
+decider: reviewer-one
+note: Text form of an external gate record.

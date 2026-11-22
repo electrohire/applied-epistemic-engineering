@@ -1,0 +1,23 @@
+{
+  "created": "2026-11-21T00:00:00Z",
+  "cwd": "/var/lib/runner",
+  "id": "job-payload-pass",
+  "key": "fixture",
+  "lane": "tower-compute-quick",
+  "log_tail": [
+    "payload starting",
+    "REHOST_DIAG1_PAYLOAD_EXIT=0"
+  ],
+  "markers": [
+    "REHOST_DIAG1_PAYLOAD_EXIT=0"
+  ],
+  "notify_chat": "00000000-0000-0000-0000-000000000000",
+  "program": "benchmarking",
+  "run_conclusion": "success",
+  "run_id": 44000000001,
+  "run_status": "completed",
+  "script": "jobs/fixture.sh",
+  "state": "completed",
+  "verdict_source": "log_tail",
+  "workflow": "linux.yml"
+}

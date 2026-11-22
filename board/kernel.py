@@ -51,10 +51,9 @@ limit what that can buy.
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
-from . import fold, validate
+from . import fold, validate, verdicts
 
 STATUSES = (
     "proposed",
@@ -153,27 +152,11 @@ NOTE_PARTS = (
     "What would change the plan",
 )
 
-# The verdict_ref format (spec 4.3): class, identifier, and the
-# content hash (engine, gatekeeper, gate) or head SHA (ci) captured
-# at citation time. board.verdicts owns resolution and favorability;
-# this pattern is the fold's structural check on the reference.
-_VERDICT_REF = re.compile(
-    r"^(?P<cls>engine|gatekeeper|ci|gate):(?P<identifier>.+)#(?P<digest>[0-9a-f]{40,64})$"
-)
-
-
-def parse_verdict_ref_shape(verdict_ref: Any) -> dict[str, str] | None:
-    """The ref's parts if it matches the pinned format, else None."""
-    if not isinstance(verdict_ref, str):
-        return None
-    match = _VERDICT_REF.match(verdict_ref)
-    if match is None:
-        return None
-    parts = match.groupdict()
-    expected = 40 if parts["cls"] == "ci" else 64
-    if len(parts["digest"]) != expected:
-        return None
-    return parts
+# The verdict_ref format (spec 4.3) has exactly one parser,
+# board.verdicts.parse_verdict_ref, which also owns resolution and
+# favorability. The fold's structural check on a reference goes
+# through that parser; a second copy of the format here is how the
+# two halves of a check drift apart.
 
 
 def validate_resumption_note(note: Any) -> list[str]:
@@ -441,7 +424,7 @@ def _check_attachment(
 ) -> str | None:
     payload = event.get("payload") or {}
     verdict_ref = payload.get("verdict_ref")
-    if parse_verdict_ref_shape(verdict_ref) is None:
+    if verdicts.parse_verdict_ref(verdict_ref) is None:
         return (
             "kernel FR-K1: a verdict_ref is class:identifier#hash in the pinned format of spec 4.3"
         )
