@@ -1,0 +1,329 @@
+{
+  "amendable_fields": {
+    "fields": [
+      "assignee_instance",
+      "assignee_kind",
+      "body",
+      "depends_on",
+      "wait"
+    ],
+    "note": "FR-K4: the fields an amendment event may change, exactly. verdict_ref changes only by superseding attachment (FR-K1a); any other field change is a supersede-and-replace of the row. Read by board/kernel.py (the guard) and board/fold.py (applying an amendment that sets a previously absent field, e.g. body)."
+  },
+  "wake_event_payload_fields": {
+    "fields": [
+      "row",
+      "wait_event",
+      "via",
+      "detail",
+      "citation"
+    ],
+    "note": "Fields a wake event's payload carries. Wake events are appended by the append path itself (actor 'system', via 'wake_on_watch' or 'dependency', spec 5.1 FR-P3/A5.1.3) or by the keeper (actor 'keeper', via 'match' or 'sweep', FR-P2/FR-P4, with a citation of the record read). 'row' names the waiting row in the payload; the event's row_id also names it. 'wait_event' is the registration event the wake answers, and is the wake_ref an unblock transition cites."
+  },
+  "wake_check_stamp": {
+    "note": "FR-P3: the append service evaluates a wait registration's ending condition inside the append lock and stamps the result into the registration event's payload as 'wake_check' ({outcome: holds|not_yet|unresolvable, detail, evaluated_at, evaluator, citation}) before the event is hashed, on the FR-K1a verdict_evaluation precedent. Caller-supplied 'wake_check' is refused by board/validate.py."
+  },
+  "heartbeat_payload_fields": {
+    "fields": [
+      "run_at",
+      "cadence",
+      "waits_open",
+      "posts",
+      "findings",
+      "wakes",
+      "escalations",
+      "missed_wakes"
+    ],
+    "note": "Fields a heartbeat event's payload carries (FR-P1, task T013). Board-level (row_id null), actor 'keeper', appended last on every keeper run including empty ones. The heartbeat is the keeper's verdict and the dead-keeper detector's only liveness signal (Section 5.4): the detector reads run_at from heartbeat payloads and nothing else."
+  },
+  "keeper_post_payload_fields": {
+    "fields": [
+      "row",
+      "wait_event",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields a keeper_post event's payload carries (FR-P1, task T013). Board-level (row_id null), actor 'keeper'; 'row' names the waiting row, 'wait_event' its registration event, and 'citation' is the record read ({record, field, value, record_hash} from board.records). A keeper post asserting an outcome without a citation is a kernel violation, flagged mechanically by board.keeper.find_uncited_assertions."
+  },
+  "keeper_finding_payload_fields": {
+    "fields": [
+      "finding",
+      "row",
+      "wait_event",
+      "source",
+      "registered_at",
+      "age_seconds",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields a keeper_finding event's payload carries (tasks T013/T015). Board-level, actor 'keeper'. 'finding' names the finding class: 'source_dead' (a configured record source cannot be read; carries 'source'), 'missed_wake' (a sweep re-read found an already-satisfied wait; carries 'row', 'wait_event', 'registered_at', 'age_seconds' and the re-read's 'citation'), 'sweep_deadline_unparseable'."
+  },
+  "escalation_payload_fields": {
+    "fields": [
+      "row",
+      "wait_event",
+      "target",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields an escalation event's payload carries (FR-P4, task T015). Board-level, actor 'keeper': a wait that survived its sweep unresolved is escalated to its named target ('target' is the wait's escalation field), with the sweep re-read's citation. Posted once per registration. Delivery to the target's channel is the staffing job's work; this event is the in-log record of the escalation."
+  },
+  "detector_escalation_payload_fields": {
+    "fields": [
+      "row",
+      "rows",
+      "target",
+      "detected_at",
+      "last_heartbeat_at",
+      "outbox_file",
+      "detail"
+    ],
+    "note": "Fields a detector_escalation event's payload carries (Section 5.4, task T017). Board-level, actor = the board's genesis detector_chat. The detector posts its escalation outside the board (a record file in its outbox, named by 'outbox_file'); when appends resume the record is appended as this event, once per outbox file."
+  },
+  "caller_event_fields": {
+    "fields": [
+      "event_id",
+      "board_id",
+      "row_id",
+      "actor",
+      "kind",
+      "payload"
+    ],
+    "note": "Fields a caller supplies to the append command. writer, prev_hash and event_hash are never caller-supplied: the append service stamps writer and computes the hashes under the lock."
+  },
+  "description": "Pinned schema for the Agent Board (spec AB-001 as amended, Sections 3.1 and 3.2). Validated by board/validate.py; refusals are named per field.",
+  "event_fields": {
+    "actor": {
+      "required": true,
+      "type": "string"
+    },
+    "board_id": {
+      "required": true,
+      "type": "string"
+    },
+    "event_hash": {
+      "required": true,
+      "type": "sha256_hex"
+    },
+    "event_id": {
+      "required": true,
+      "type": "string"
+    },
+    "kind": {
+      "required": true,
+      "type": "string"
+    },
+    "payload": {
+      "required": true,
+      "type": "object"
+    },
+    "prev_hash": {
+      "required": true,
+      "type": "sha256_hex"
+    },
+    "row_id": {
+      "required": true,
+      "type": "string_or_null"
+    },
+    "writer": {
+      "required": true,
+      "stamped_by": "append_service",
+      "type": "string"
+    }
+  },
+  "execution_state_enum": [
+    "none",
+    "queued",
+    "running",
+    "wrapper_complete",
+    "failed_transport"
+  ],
+  "genesis_fields": {
+    "board_id": {
+      "required": true,
+      "type": "string"
+    },
+    "detector_chat": {
+      "required": true,
+      "type": "string"
+    },
+    "escalation_target_2": {
+      "required": true,
+      "type": "string"
+    },
+    "keeper_cadence": {
+      "required": true,
+      "type": "string"
+    },
+    "program": {
+      "required": true,
+      "type": "string"
+    },
+    "spec_hash": {
+      "required": true,
+      "type": "sha256_hex"
+    },
+    "spec_ref": {
+      "required": true,
+      "type": "string"
+    },
+    "wip_limit": {
+      "required": true,
+      "type": "integer"
+    }
+  },
+  "row_creation_payload_fields": {
+    "fields": [
+      "row_id",
+      "task_ref",
+      "status",
+      "depends_on",
+      "assignee_kind",
+      "assignee_instance",
+      "claim_ids",
+      "execution_state",
+      "verdict_ref",
+      "wait",
+      "body",
+      "resumption_note",
+      "blocker_note",
+      "recovered_from",
+      "gate_row"
+    ],
+    "note": "Fields a row_created payload may carry. Fold-derived fields (amendment_seq, created_event, last_event) are never payload fields; the fold sets them. recovered_from cites the original event_id when the row is re-appended by fork recovery (FR-S3a). gate_row (boolean, payload-only) declares a gate row for the kernel's assignment rule (FR-K5): a gate row takes a named assignee_instance, and the fold refuses a kind assignee for it; the fold records gate rows in its state, not as a row field."
+  },
+  "verdict_attachment_payload_fields": {
+    "fields": [
+      "verdict_ref",
+      "previous_ref",
+      "reason",
+      "verdict_evaluation"
+    ],
+    "note": "Fields a verdict_attached payload may carry (FR-K1a). verdict_ref is the caller's; verdict_evaluation is stamped by the append service at attachment time (board/verdicts.py) and is never caller-supplied."
+  },
+  "row_fields": {
+    "amendment_seq": {
+      "derived": true,
+      "required": true,
+      "type": "integer"
+    },
+    "assignee_instance": {
+      "required": true,
+      "type": "string_or_null"
+    },
+    "assignee_kind": {
+      "required": true,
+      "type": "string_or_null"
+    },
+    "blocker_note": {
+      "required": false,
+      "type": "string"
+    },
+    "board_id": {
+      "required": true,
+      "type": "string"
+    },
+    "body": {
+      "required": false,
+      "type": "string"
+    },
+    "claim_ids": {
+      "required": true,
+      "type": "list_of_string"
+    },
+    "created_event": {
+      "required": true,
+      "type": "string"
+    },
+    "depends_on": {
+      "required": true,
+      "type": "list_of_string"
+    },
+    "execution_state": {
+      "required": true,
+      "type": "execution_state_enum"
+    },
+    "last_event": {
+      "required": true,
+      "type": "string"
+    },
+    "program": {
+      "required": true,
+      "type": "string"
+    },
+    "resumption_note": {
+      "required": false,
+      "type": "string"
+    },
+    "row_id": {
+      "required": true,
+      "type": "string"
+    },
+    "spec_hash": {
+      "required": true,
+      "type": "string"
+    },
+    "spec_ref": {
+      "required": true,
+      "type": "string"
+    },
+    "status": {
+      "required": true,
+      "type": "status_enum"
+    },
+    "task_ref": {
+      "required": true,
+      "type": "string"
+    },
+    "verdict_ref": {
+      "required": true,
+      "type": "string_or_null"
+    },
+    "wait": {
+      "required": true,
+      "type": "wait_or_null"
+    }
+  },
+  "schema": "aee-board/1",
+  "status_enum": [
+    "proposed",
+    "planned",
+    "ready",
+    "in_progress",
+    "blocked",
+    "in_review",
+    "done",
+    "withdrawn",
+    "superseded"
+  ],
+  "wait_fields": {
+    "escalation": {
+      "required": true,
+      "type": "string"
+    },
+    "match": {
+      "required": false,
+      "type": "object"
+    },
+    "prose_condition": {
+      "required": false,
+      "type": "string_or_null"
+    },
+    "sweep_deadline": {
+      "required": true,
+      "type": "string"
+    },
+    "wait_kind": {
+      "required": true,
+      "type": "wait_kind_enum"
+    },
+    "wake_falsifier": {
+      "required": true,
+      "type": "object"
+    }
+  },
+  "wait_kind_enum": [
+    "dependency",
+    "named_event",
+    "external_prose"
+  ]
+}
