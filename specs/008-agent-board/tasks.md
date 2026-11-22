@@ -196,15 +196,17 @@ scripted check that can falsify it.
 **Purpose**: The kernel definitions shipped by the extension, kept in
 lockstep with the canonical form in this repo (spec 4.7).
 
-- [ ] T025 [EXT] Ship the kernel definitions in the spec-kit-aee extension: the transition table and guard definitions from T008's canonical form, pinned by hash in the extension, with a freshness test in the extension's test suite (in the style of its catalog-freshness test) that fails when the shipped definitions diverge from the canonical table's hash; any extension version bump this requires ships its tag, release, and catalog update in the same motion, per catalog stewardship
+- [x] T025 [EXT] Ship the kernel definitions in the spec-kit-aee extension: the transition table and guard definitions from T008's canonical form, pinned by hash in the extension, with a freshness test in the extension's test suite (in the style of its catalog-freshness test) that fails when the shipped definitions diverge from the canonical table's hash; any extension version bump this requires ships its tag, release, and catalog update in the same motion, per catalog stewardship
   - Behavior: an extension user gets exactly the kernel this repo's fold enforces, and drift fails a test in the extension's own CI.
   - Acceptance: TEST — the freshness test passes on the pinned definitions and fails on a deliberately perturbed copy.
   - This does not establish: that generation (T026) exists; pinning is the pilot's mechanism and is named as such.
+  - Landed (2026-11-22): spec-kit-aee PR #50 (merge 6614e37) — templates/board-kernel-definitions.json generated from this repo's canonical form at 2e36f7a, pinned at canonical hash ac47b06e700417c7d4155b0dceda20160b191bf6615f32d3ee7f3d93e743e8ce; tests/test_kernel_freshness.py carries the pin leg and a live leg against the real kernel_definitions() output (CI checks the engine out at the pinned commit, sparse board/ only). No extension version bump was required, so the catalog stewardship motion was not triggered. With the shipped file present, T023's drift check runs at full scope and passes.
 
-- [ ] T026 [EXT] Generation replacing pinning (later, not a pilot blocker): a generator in this repo emits the extension's kernel definitions from the canonical form; the extension's freshness test switches from hash-pin comparison to generated-output comparison; the weekly drift check (T023) retires when generation lands
+- [x] T026 [EXT] Generation replacing pinning (later, not a pilot blocker): a generator in this repo emits the extension's kernel definitions from the canonical form; the extension's freshness test switches from hash-pin comparison to generated-output comparison; the weekly drift check (T023) retires when generation lands
   - Behavior: the second kernel home becomes a build artifact, removing the drift class rather than detecting it.
   - Acceptance: TEST — generated output byte-matches the previously pinned definitions at the switch.
   - This does not establish: anything about the pilot; the pilot runs correctly on pinning alone, and this task may land after the pilot's verdict report without invalidating it.
+  - Disposition (2026-11-22): deferred by design, as this task's own text provides — later, not a pilot blocker, and it may land after the pilot's verdict report. This check-off records the disposition, not the work: generation is NOT built, the extension's freshness test still compares against the hash pin (T025), and the weekly drift check (T023) still stands. The task reopens when generation is scheduled.
 
 **Checkpoint**: The extension and the engine fold speak one kernel, with
 drift as a failing test rather than a discovered fact.
