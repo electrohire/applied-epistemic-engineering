@@ -12,11 +12,14 @@ offending event and reports it; the fold never repairs silently.
 Transition legality comes from the kernel's table (spec 4.2, task T008)
 by injection: ``transition_checker`` is a callable taking
 ``(event, state)`` and returning a refusal reason or None. The default
-checker enforces only the substrate's structural rules: genesis first
-and unique, row events naming existing rows, no duplicate row creation,
-and no row changes while the board is halted (resume, recovery, and
-board-level events excepted). Phase 2's kernel supplies the full table
-through the same seam; the fold's refusal mechanics do not change.
+checker for raw event lists enforces only the substrate's structural
+rules: genesis first and unique, row events naming existing rows, no
+duplicate row creation, and no row changes while the board is halted
+(resume, recovery, and board-level events excepted). The kernel
+(``board.kernel``) composes its full table over those rules, and
+``fold_board`` — the board-level fold the append path, recovery, and
+audits use — applies the kernel by default; the fold's refusal
+mechanics do not change.
 
 A repeated ``event_id`` is not a fold refusal: the append path prevents
 it, and in a recovered log it is reported as a finding against the
@@ -69,6 +72,8 @@ def empty_state(board_id: str = "") -> dict[str, Any]:
         "board_id": board_id,
         "genesis": None,
         "rows": {},
+        "attachments": {},
+        "gate_rows": [],
         "halted": False,
         "halt_event": None,
         "head_hash": canonical.GENESIS_PREV_HASH,
@@ -135,15 +140,37 @@ def _apply(event: dict[str, Any], state: dict[str, Any]) -> None:
             if optional in payload:
                 row[optional] = payload[optional]
         state["rows"][row["row_id"]] = row
+        if payload.get("gate_row") is True:
+            state["gate_rows"].append(row["row_id"])
     elif kind in ("row_update", "amendment"):
         row = state["rows"].get(event.get("row_id") or payload.get("row_id"))
         if row is not None:
             changes = payload.get("changes") or {}
             for key, value in changes.items():
-                if key in row and key not in ("amendment_seq", "created_event"):
+                if key in ("amendment_seq", "created_event"):
+                    continue
+                if key in row or (kind == "amendment" and key in validate.AMENDABLE_FIELDS):
+                    # An amendment may set an amendable field the row
+                    # does not carry yet (e.g. body); other changes
+                    # apply only to fields the row already carries.
                     row[key] = value
+            if kind == "row_update" and "resumption_note" in payload:
+                # A block's note is payload-level (FR-K3); it lands on
+                # the row so the resumption position is served state.
+                row["resumption_note"] = payload["resumption_note"]
             if kind == "amendment":
                 row["amendment_seq"] += 1
+            row["last_event"] = event["event_id"]
+    elif kind == "verdict_attached":
+        row = state["rows"].get(event.get("row_id") or payload.get("row_id"))
+        if row is not None:
+            row["verdict_ref"] = payload.get("verdict_ref")
+            state["attachments"][row["row_id"]] = {
+                "verdict_ref": payload.get("verdict_ref"),
+                "evaluation": payload.get("verdict_evaluation"),
+                "event_id": event["event_id"],
+                "previous_ref": payload.get("previous_ref"),
+            }
             row["last_event"] = event["event_id"]
     elif kind == "halt":
         state["halted"] = True
@@ -247,11 +274,32 @@ def fold_lines(
     return result
 
 
-def fold_board(board_dir: Path) -> FoldResult:
+def default_board_checker() -> TransitionChecker:
+    """The checker board-level folds enforce: the kernel's table.
+
+    The kernel import is lazy: the kernel composes over this module's
+    structural checker, so a module-level import would be circular.
+    """
+    from . import kernel
+
+    return kernel.kernel_checker
+
+
+def fold_board(
+    board_dir: Path, transition_checker: TransitionChecker | None = None
+) -> FoldResult:
+    """Fold a board directory's log.
+
+    The board-level fold enforces the kernel's transition table
+    (``board.kernel``) unless a checker is injected; raw list folds
+    (``fold_events`` / ``fold_lines``) keep the structural default.
+    """
+    if transition_checker is None:
+        transition_checker = default_board_checker()
     path = Path(board_dir) / EVENTS_FILE
     if not path.exists():
         return FoldResult(empty_state())
-    return fold_lines(path.read_bytes().splitlines())
+    return fold_lines(path.read_bytes().splitlines(), transition_checker)
 
 
 def log_head_hash(board_dir: Path) -> str:

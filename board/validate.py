@@ -30,6 +30,8 @@ GENESIS_FIELDS = _SCHEMA["genesis_fields"]
 ROW_FIELDS = _SCHEMA["row_fields"]
 ROW_CREATION_FIELDS = _SCHEMA["row_creation_payload_fields"]["fields"]
 WAIT_FIELDS = _SCHEMA["wait_fields"]
+VERDICT_ATTACHMENT_FIELDS = _SCHEMA["verdict_attachment_payload_fields"]["fields"]
+AMENDABLE_FIELDS = frozenset(_SCHEMA["amendable_fields"]["fields"])
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
@@ -131,8 +133,41 @@ def validate_row_creation_payload(payload: Any) -> list[str]:
                 f"row_created payload: field {name!r} must be "
                 f"{ROW_FIELDS[name]['type']}, got {type(value).__name__}"
             )
+    if "gate_row" in payload and not isinstance(payload["gate_row"], bool):
+        problems.append(
+            f"row_created payload: field 'gate_row' must be a boolean, "
+            f"got {type(payload['gate_row']).__name__}"
+        )
     if "wait" in payload:
         problems.extend(validate_wait(payload["wait"], "row_created payload wait"))
+    return problems
+
+
+def validate_verdict_attachment_payload(payload: Any) -> list[str]:
+    """Problems with a verdict_attached event's payload ([] = acceptable).
+
+    The attachment carries the caller's ``verdict_ref`` (and, for a
+    superseding attachment, ``previous_ref`` and ``reason``). The
+    ``verdict_evaluation`` is stamped by the append service, never
+    caller-supplied; its presence is a kernel concern (the fold
+    refuses unstamped attachments), not a caller-schema one.
+    """
+    if not isinstance(payload, dict):
+        return ["verdict_attached payload: must be an object"]
+    problems: list[str] = []
+    for name in payload:
+        if name not in VERDICT_ATTACHMENT_FIELDS:
+            problems.append(
+                f"verdict_attached payload: unknown field {name!r} is not in the pinned schema"
+            )
+    if "verdict_ref" not in payload:
+        problems.append("verdict_attached payload: missing required field 'verdict_ref'")
+    elif not isinstance(payload["verdict_ref"], str):
+        problems.append("verdict_attached payload: field 'verdict_ref' must be a string")
+    if "previous_ref" in payload and not _type_ok(payload["previous_ref"], "string_or_null"):
+        problems.append("verdict_attached payload: field 'previous_ref' must be string_or_null")
+    if "reason" in payload and not isinstance(payload["reason"], str):
+        problems.append("verdict_attached payload: field 'reason' must be a string")
     return problems
 
 
@@ -181,11 +216,18 @@ def validate_caller_event(event: Any) -> list[str]:
                 "event payload: 'writer' is stamped by the append service "
                 "and must never be caller-supplied"
             )
+        if "verdict_evaluation" in payload:
+            problems.append(
+                "event payload: 'verdict_evaluation' is stamped by the "
+                "append service and must never be caller-supplied"
+            )
         kind = event.get("kind")
         if kind == "genesis":
             problems.extend(validate_genesis_payload(payload))
         elif kind == "row_created":
             problems.extend(validate_row_creation_payload(payload))
+        elif kind == "verdict_attached":
+            problems.extend(validate_verdict_attachment_payload(payload))
     elif "payload" in event:
         problems.append("event: field 'payload' must be an object")
     if "row_id" in event and not _type_ok(event["row_id"], "string_or_null"):
