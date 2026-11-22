@@ -145,17 +145,78 @@ def _read_events(board_dir: Path) -> list[dict[str, Any]]:
     return events
 
 
+def _stamped_attachment_payload(
+    board_dir: Path,
+    events: list[dict[str, Any]],
+    event: dict[str, Any],
+    verdict_context: dict[str, Any],
+) -> dict[str, Any]:
+    """Evaluate the cited verdict record and stamp the outcome.
+
+    FR-K1a: the attachment event carries the append service's own
+    evaluation of the record the reference cites — the row's claims
+    and the work products from its latest in_review transition are
+    read from the folded log, the record is resolved by
+    ``board.verdicts`` under the per-class rules, and the outcome is
+    stamped into the stored event. The fold then enforces the
+    favorable requirement as a pure function of the log (KB-6). A
+    caller-supplied evaluation is refused at schema validation.
+    """
+    from . import kernel, verdicts
+
+    current = fold.fold_events(events, kernel.kernel_checker)
+    if not current.ok:
+        refusal = current.refusal
+        assert refusal is not None
+        raise BoardRefusal(
+            "FOLD_REFUSED",
+            f"the log does not fold before the attachment: event "
+            f"{refusal.event_id} at index {refusal.index}: {refusal.reason}",
+        )
+    row = current.state["rows"].get(event.get("row_id") or "")
+    claim_ids = tuple(row.get("claim_ids") or []) if row else ()
+    work_product: list[str] = []
+    for past in events:
+        if past.get("kind") != "row_update" or past.get("row_id") != event.get("row_id"):
+            continue
+        payload = past.get("payload") or {}
+        if (payload.get("changes") or {}).get("status") == "in_review":
+            recorded = payload.get("work_product")
+            if isinstance(recorded, list):
+                work_product = [str(item) for item in recorded]
+    queue_dir = verdict_context.get("gatekeeper_queue_dir")
+    ci_dir = verdict_context.get("ci_records_dir")
+    check = verdicts.evaluate_verdict(
+        event["payload"]["verdict_ref"],
+        claim_ids=claim_ids,
+        work_product=tuple(work_product),
+        board_dir=board_dir,
+        gatekeeper_queue_dir=Path(queue_dir) if queue_dir else None,
+        ci_records_dir=Path(ci_dir) if ci_dir else None,
+    )
+    payload = dict(event["payload"])
+    payload["verdict_evaluation"] = {
+        "outcome": check.outcome,
+        "detail": check.detail,
+        "record_hash": check.record_hash,
+    }
+    return payload
+
+
 def append_event(
     board_dir: Path,
     event: dict[str, Any],
     expected_prev_hash: str,
     lock_timeout: float = DEFAULT_LOCK_TIMEOUT,
+    verdict_context: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Append one caller event; returns the stored event.
 
     Raises BoardRefusal with a named code on any refusal. On an
     idempotent retry (event_id already present) returns the existing
-    stored event and writes nothing.
+    stored event and writes nothing. ``verdict_context`` supplies the
+    record locations a verdict attachment resolves against:
+    ``gatekeeper_queue_dir`` and ``ci_records_dir``.
     """
     board_dir = Path(board_dir)
     problems = validate.validate_caller_event(event)
@@ -174,6 +235,10 @@ def append_event(
                 f"is {head}; re-read and retry",
             )
         stored = dict(event)
+        if event["kind"] == "verdict_attached":
+            stored["payload"] = _stamped_attachment_payload(
+                board_dir, events, event, verdict_context or {}
+            )
         stored["writer"] = writer_stamp(event["board_id"])
         stored["prev_hash"] = head
         stored["event_hash"] = canonical.event_hash(stored)
@@ -248,7 +313,12 @@ def main(argv: list[str]) -> int:
         if command == "create":
             stored = create_board(board_dir, request["payload"], request["actor"])
         else:
-            stored = append_event(board_dir, request["event"], request["expected_prev_hash"])
+            stored = append_event(
+                board_dir,
+                request["event"],
+                request["expected_prev_hash"],
+                verdict_context=request.get("verdict_context"),
+            )
     except BoardRefusal as refusal:
         print(f"REFUSED {refusal.code}: {refusal.message}")
         return 1

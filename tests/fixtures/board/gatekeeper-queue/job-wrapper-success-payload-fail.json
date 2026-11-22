@@ -1,0 +1,22 @@
+{
+  "created": "2026-11-21T00:00:00Z",
+  "cwd": "/var/lib/runner",
+  "id": "job-wrapper-success-payload-fail",
+  "key": "fixture",
+  "lane": "tower-compute-quick",
+  "log_tail": [
+    "wrapper completed",
+    "RESTORE_PAYLOAD_EXIT=3",
+    "captured"
+  ],
+  "markers": [],
+  "notify_chat": "00000000-0000-0000-0000-000000000000",
+  "program": "benchmarking",
+  "run_conclusion": "success",
+  "run_id": 44000000001,
+  "run_status": "completed",
+  "script": "jobs/fixture.sh",
+  "state": "completed",
+  "verdict_source": "log_tail",
+  "workflow": "linux.yml"
+}
