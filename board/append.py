@@ -177,6 +177,22 @@ def append_event(
         stored["writer"] = writer_stamp(event["board_id"])
         stored["prev_hash"] = head
         stored["event_hash"] = canonical.event_hash(stored)
+        # The fold check runs BEFORE the write: an event the fold
+        # refuses must never enter the log. (Phase 1 wrote first and
+        # checked after; a refused event then stood in the log and
+        # every later append re-refused at the same event, bricking
+        # the board. The pre-write check is the fix; the post-write
+        # fold below remains as the state-writing step and a safety
+        # net.)
+        check = fold.fold_events([*events, stored], fold.default_board_checker())
+        if not check.ok:
+            refusal = check.refusal
+            assert refusal is not None
+            raise BoardRefusal(
+                "FOLD_REFUSED",
+                f"the event does not fold: event {refusal.event_id} "
+                f"at index {refusal.index}: {refusal.reason}",
+            )
         line = canonical.canonical_line(stored)
         log_path = board_dir / fold.EVENTS_FILE
         if not _append_verified(log_path, line):

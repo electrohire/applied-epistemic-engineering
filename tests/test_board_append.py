@@ -76,6 +76,25 @@ def test_writer_supplied_by_caller_is_refused(tmp_path):
     assert exc.value.code == "SCHEMA" and "writer" in exc.value.message
 
 
+def test_fold_refused_append_never_enters_the_log(tmp_path):
+    # Regression (Phase 2 integration find): the append command used
+    # to write the line first and fold after, so an event the fold
+    # refused stood in the log and every later append re-refused at
+    # the same event. A refused append now writes nothing, and the
+    # board stays usable.
+    board_dir = make_board(tmp_path)
+    append_mod.append_event(board_dir, row_event("e1", "r1"), head(board_dir))
+    with pytest.raises(append_mod.BoardRefusal) as exc:
+        # A second creation of the same row is a fold refusal.
+        append_mod.append_event(board_dir, row_event("e2", "r1"), head(board_dir))
+    assert exc.value.code == "FOLD_REFUSED"
+    lines = (board_dir / "events.jsonl").read_text().strip().splitlines()
+    assert len(lines) == 2  # genesis + e1; the refused event is absent
+    stored = append_mod.append_event(board_dir, row_event("e3", "r2"), head(board_dir))
+    assert stored["kind"] == "row_created"
+    assert fold.fold_board(board_dir).ok
+
+
 def test_head_moved_refusal(tmp_path):
     board_dir = make_board(tmp_path)
     append_mod.append_event(board_dir, row_event("e1", "r1"), head(board_dir))
