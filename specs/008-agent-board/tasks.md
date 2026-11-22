@@ -33,12 +33,12 @@ separate governed motion (plan.md, "What this plan does not do").
 **Purpose**: The append-only log, its one write path, the fold, state
 snapshots, recovery, and the generated view.
 
-- [ ] T001 [P] [SUB] Canonical serialization and hashing in `board/canonical.py`: an event serializes as JSON with sorted keys, Unicode NFC, separators `,` and `:`, UTF-8, LF line ending, excluding `event_hash`; `event_hash` is the SHA-256 of that canonical form concatenated with `prev_hash`; the state file uses the same rule applied to the state object (spec 3.2, FR-S1)
+- [x] T001 [P] [SUB] Canonical serialization and hashing in `board/canonical.py`: an event serializes as JSON with sorted keys, Unicode NFC, separators `,` and `:`, UTF-8, LF line ending, excluding `event_hash`; `event_hash` is the SHA-256 of that canonical form concatenated with `prev_hash`; the state file uses the same rule applied to the state object (spec 3.2, FR-S1)
   - Behavior: the same logical event hashes identically on any host and checkout, including a checkout that would otherwise introduce CRLF.
   - Acceptance: TEST — known-answer vectors, including a CRLF-poisoned input that must normalize before hashing.
   - This does not establish: protection against an actor who rewrites the whole log and recomputes the chain; committed state snapshots (T005) are the answer to that, not the chain.
 
-- [ ] T002 [P] [SUB] Pinned schema in `board/schema.json` plus its validator: the row fields of spec 3.1 (including `amendment_seq` as a fold-derived field, never an event payload), the event fields (`event_id`, `board_id`, `row_id`, `actor`, `writer`, `kind`, `payload`, `prev_hash`, `event_hash`), and the board genesis fields (`wip_limit`, `keeper_cadence`, `detector_chat`, `escalation_target_2`)
+- [x] T002 [P] [SUB] Pinned schema in `board/schema.json` plus its validator: the row fields of spec 3.1 (including `amendment_seq` as a fold-derived field, never an event payload), the event fields (`event_id`, `board_id`, `row_id`, `actor`, `writer`, `kind`, `payload`, `prev_hash`, `event_hash`), and the board genesis fields (`wip_limit`, `keeper_cadence`, `detector_chat`, `escalation_target_2`)
   - Behavior: a row or event missing a pinned field, or carrying `amendment_seq` or a caller-supplied `writer` in a payload, is refused by name before any write.
   - Acceptance: TEST — schema acceptance and refusal cases per field class.
   - This does not establish: that events admitted under the schema were truthful when written.
