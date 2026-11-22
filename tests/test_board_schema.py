@@ -162,3 +162,9 @@ def test_folded_row_validation():
     assert validate.validate_row(row) == []
     row["execution_state"] = "done"  # transport state is never completion
     assert any("execution_state" in p for p in validate.validate_row(row))
+
+
+def test_row_creation_recovered_from_citation_accepted():
+    payload = {"row_id": "r1", "task_ref": "T001", "recovered_from": "evt-original"}
+    event = caller_event(kind="row_created", row_id="r1", payload=payload)
+    assert validate.validate_caller_event(event) == []
