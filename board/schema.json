@@ -1,4 +1,14 @@
 {
+  "amendable_fields": {
+    "fields": [
+      "assignee_instance",
+      "assignee_kind",
+      "body",
+      "depends_on",
+      "wait"
+    ],
+    "note": "FR-K4: the fields an amendment event may change, exactly. verdict_ref changes only by superseding attachment (FR-K1a); any other field change is a supersede-and-replace of the row. Read by board/kernel.py (the guard) and board/fold.py (applying an amendment that sets a previously absent field, e.g. body)."
+  },
   "caller_event_fields": {
     "fields": [
       "event_id",
@@ -106,9 +116,19 @@
       "body",
       "resumption_note",
       "blocker_note",
-      "recovered_from"
+      "recovered_from",
+      "gate_row"
     ],
-    "note": "Fields a row_created payload may carry. Fold-derived fields (amendment_seq, created_event, last_event) are never payload fields; the fold sets them. recovered_from cites the original event_id when the row is re-appended by fork recovery (FR-S3a)."
+    "note": "Fields a row_created payload may carry. Fold-derived fields (amendment_seq, created_event, last_event) are never payload fields; the fold sets them. recovered_from cites the original event_id when the row is re-appended by fork recovery (FR-S3a). gate_row (boolean, payload-only) declares a gate row for the kernel's assignment rule (FR-K5): a gate row takes a named assignee_instance, and the fold refuses a kind assignee for it; the fold records gate rows in its state, not as a row field."
+  },
+  "verdict_attachment_payload_fields": {
+    "fields": [
+      "verdict_ref",
+      "previous_ref",
+      "reason",
+      "verdict_evaluation"
+    ],
+    "note": "Fields a verdict_attached payload may carry (FR-K1a). verdict_ref is the caller's; verdict_evaluation is stamped by the append service at attachment time (board/verdicts.py) and is never caller-supplied."
   },
   "row_fields": {
     "amendment_seq": {

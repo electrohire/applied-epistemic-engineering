@@ -45,12 +45,29 @@ def make_board(tmp_path: Path) -> Path:
             "payload": {
                 "row_id": "r1",
                 "task_ref": "T001",
-                "status": "in_progress",
+                "status": "proposed",
+                "assignee_kind": "worker",
                 "execution_state": "running",
             },
         },
         fold.log_head_hash(board_dir),
     )
+    # Drive the row to in_progress through the kernel's legal path
+    # (proposed -> planned -> ready -> in_progress); the view's
+    # assertions below are unchanged from the substrate-only fixture.
+    for index, status in enumerate(("planned", "ready", "in_progress")):
+        append_mod.append_event(
+            board_dir,
+            {
+                "event_id": f"t{index}",
+                "board_id": "board-view",
+                "row_id": "r1",
+                "actor": "planner",
+                "kind": "row_update",
+                "payload": {"changes": {"status": status}},
+            },
+            fold.log_head_hash(board_dir),
+        )
     return board_dir
 
 
