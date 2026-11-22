@@ -144,6 +144,12 @@ def _apply(event: dict[str, Any], state: dict[str, Any]) -> None:
             state["gate_rows"].append(row["row_id"])
     elif kind in ("row_update", "amendment"):
         row = state["rows"].get(event.get("row_id") or payload.get("row_id"))
+        if kind == "amendment" and row is None and state["genesis"] is not None:
+            # A board-level amendment (the kernel admits exactly one
+            # field): the keeper cadence change of the T016 runbook.
+            changes = payload.get("changes") or {}
+            if "keeper_cadence" in changes:
+                state["genesis"]["keeper_cadence"] = changes["keeper_cadence"]
         if row is not None:
             changes = payload.get("changes") or {}
             for key, value in changes.items():

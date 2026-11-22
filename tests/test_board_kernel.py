@@ -48,7 +48,10 @@ WAIT = {
     "wait_kind": "named_event",
     "match": {"event": "ci-green"},
     "wake_falsifier": {"record": "ci:123", "field": "conclusion"},
-    "sweep_deadline": "2026-11-21T12:00:00Z",
+    # Far-future: the append path refuses a registration whose deadline
+    # leaves less than two cadence intervals (FR-P4, Phase 3), and the
+    # end-to-end test below appends this wait through it.
+    "sweep_deadline": "2027-11-21T12:00:00Z",
     "escalation": "owner",
 }
 CI_REF = "ci:123456789#" + "b" * 40

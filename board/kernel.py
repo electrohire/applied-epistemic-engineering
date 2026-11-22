@@ -456,6 +456,43 @@ def _check_attachment(
     return None
 
 
+def _check_board_amendment(event: dict[str, Any], state: dict[str, Any]) -> str | None:
+    """A board-level amendment (no row named): genesis discipline.
+
+    The one board-level field an amendment may change is
+    ``keeper_cadence`` — the keeper runbook's cadence change by
+    amendment event (task T016). It carries FR-K4's discipline
+    (reason and authority recorded) and the new value must parse as
+    a cadence. Any other genesis field changes by a new board
+    generation, never by amendment.
+    """
+    from . import records
+
+    payload = event.get("payload") or {}
+    reason = payload.get("reason")
+    if not (isinstance(reason, str) and reason.strip()):
+        return "kernel FR-K4: a board amendment records its reason"
+    authority = payload.get("authority")
+    if not (isinstance(authority, str) and authority.strip()):
+        return "kernel FR-K4: a board amendment records its authority"
+    changes = payload.get("changes") or {}
+    if not changes:
+        return "kernel FR-K4: a board amendment carries changes"
+    refused = set(changes) - {"keeper_cadence"}
+    if refused:
+        return (
+            "kernel: a board-level amendment may change only keeper_cadence; "
+            f"refused fields: {sorted(refused)} (any other genesis change is a "
+            "new board generation)"
+        )
+    if records.parse_cadence(changes.get("keeper_cadence")) is None:
+        return (
+            "kernel: keeper_cadence must be a cadence string such as '30m', "
+            f"got {changes.get('keeper_cadence')!r}"
+        )
+    return None
+
+
 def kernel_checker(event: dict[str, Any], state: dict[str, Any]) -> str | None:
     """The kernel's transition legality, composed over the substrate's.
 
@@ -489,6 +526,12 @@ def kernel_checker(event: dict[str, Any], state: dict[str, Any]) -> str | None:
         return None
     if kind == "row_created":
         return _check_creation(event, state)
+    if (
+        kind == "amendment"
+        and event.get("row_id") is None
+        and not ((event.get("payload") or {}).get("row_id"))
+    ):
+        return _check_board_amendment(event, state)
     row = _row(state, event)
     if row is None:
         return None  # structural checker names unknown rows

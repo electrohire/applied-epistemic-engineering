@@ -221,6 +221,11 @@ def validate_caller_event(event: Any) -> list[str]:
                 "event payload: 'verdict_evaluation' is stamped by the "
                 "append service and must never be caller-supplied"
             )
+        if "wake_check" in payload:
+            problems.append(
+                "event payload: 'wake_check' is stamped by the append "
+                "service (FR-P3) and must never be caller-supplied"
+            )
         kind = event.get("kind")
         if kind == "genesis":
             problems.extend(validate_genesis_payload(payload))
