@@ -22,6 +22,63 @@
   "wake_check_stamp": {
     "note": "FR-P3: the append service evaluates a wait registration's ending condition inside the append lock and stamps the result into the registration event's payload as 'wake_check' ({outcome: holds|not_yet|unresolvable, detail, evaluated_at, evaluator, citation}) before the event is hashed, on the FR-K1a verdict_evaluation precedent. Caller-supplied 'wake_check' is refused by board/validate.py."
   },
+  "heartbeat_payload_fields": {
+    "fields": [
+      "run_at",
+      "cadence",
+      "waits_open",
+      "posts",
+      "findings",
+      "wakes",
+      "escalations",
+      "missed_wakes"
+    ],
+    "note": "Fields a heartbeat event's payload carries (FR-P1, task T013). Board-level (row_id null), actor 'keeper', appended last on every keeper run including empty ones. The heartbeat is the keeper's verdict and the dead-keeper detector's only liveness signal (Section 5.4): the detector reads run_at from heartbeat payloads and nothing else."
+  },
+  "keeper_post_payload_fields": {
+    "fields": [
+      "row",
+      "wait_event",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields a keeper_post event's payload carries (FR-P1, task T013). Board-level (row_id null), actor 'keeper'; 'row' names the waiting row, 'wait_event' its registration event, and 'citation' is the record read ({record, field, value, record_hash} from board.records). A keeper post asserting an outcome without a citation is a kernel violation, flagged mechanically by board.keeper.find_uncited_assertions."
+  },
+  "keeper_finding_payload_fields": {
+    "fields": [
+      "finding",
+      "row",
+      "wait_event",
+      "source",
+      "registered_at",
+      "age_seconds",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields a keeper_finding event's payload carries (tasks T013/T015). Board-level, actor 'keeper'. 'finding' names the finding class: 'source_dead' (a configured record source cannot be read; carries 'source'), 'missed_wake' (a sweep re-read found an already-satisfied wait; carries 'row', 'wait_event', 'registered_at', 'age_seconds' and the re-read's 'citation'), 'sweep_deadline_unparseable'."
+  },
+  "escalation_payload_fields": {
+    "fields": [
+      "row",
+      "wait_event",
+      "target",
+      "citation",
+      "detail"
+    ],
+    "note": "Fields an escalation event's payload carries (FR-P4, task T015). Board-level, actor 'keeper': a wait that survived its sweep unresolved is escalated to its named target ('target' is the wait's escalation field), with the sweep re-read's citation. Posted once per registration. Delivery to the target's channel is the staffing job's work; this event is the in-log record of the escalation."
+  },
+  "detector_escalation_payload_fields": {
+    "fields": [
+      "row",
+      "rows",
+      "target",
+      "detected_at",
+      "last_heartbeat_at",
+      "outbox_file",
+      "detail"
+    ],
+    "note": "Fields a detector_escalation event's payload carries (Section 5.4, task T017). Board-level, actor = the board's genesis detector_chat. The detector posts its escalation outside the board (a record file in its outbox, named by 'outbox_file'); when appends resume the record is appended as this event, once per outbox file."
+  },
   "caller_event_fields": {
     "fields": [
       "event_id",

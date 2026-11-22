@@ -59,6 +59,71 @@ The substrate is POSIX-only: the append lock is `fcntl.flock`, and
 boards live on Linux hosts. Off POSIX, appends refuse by name
 (`UNSUPPORTED_PLATFORM`).
 
-The keeper's runbook (cadence, start/stop, amendment-driven cadence
-change) lands with the keeper in Phase 3 of
-`specs/008-agent-board/tasks.md`.
+## Keeper and detector runbook (spec 5.1/5.4, tasks T013–T017)
+
+The keeper is one scheduled job per board, staffed by the program's
+own chat; the dead-keeper detector is one scheduled job per board,
+staffed by the board's genesis `detector_chat` — a different chat.
+Their scheduling definitions live in `board/jobs/keeper-job.json`
+and `board/jobs/detector-job.json`; live jobs for a board are
+created when the board is (Phase 6 genesis instantiates them).
+
+**Start the keeper.** Create the board's sources file (a JSON
+object naming `gatekeeper_queue_dir`, `gatekeeper_ledger`,
+`ci_records_dir`, and `detector_outbox_dir` — the detector's outbox
+for this board), then schedule:
+
+```
+python3 -m board.keeper run <board_dir> <sources.json>
+```
+
+on the board's genesis `keeper_cadence` (pilot: every 30 minutes).
+External-prose waits are judged by the staffing chat: the job's
+caller passes its judgment into the run as the prose evaluator (see
+`board/jobs/keeper-job.json`); the machinery confines prose to
+`external_prose` waits and refuses to post a prose match without a
+record citation.
+
+**Stop the keeper.** Disable the schedule. Nothing else is needed:
+the board keeps its state, and the detector escalates the silence
+while any wait is open or any non-terminal row exists.
+
+**Change the cadence.** Append a board-level amendment event
+changing exactly `keeper_cadence`, with FR-K4's reason and
+authority recorded:
+
+```
+{"kind": "amendment", "row_id": null,
+ "payload": {"changes": {"keeper_cadence": "15m"},
+             "reason": "...", "authority": "..."}}
+```
+
+then update the job's schedule to the new cadence. Any other
+genesis field changes only by a new board generation.
+
+**The verdict rule.** The scheduling job's completion state is
+never the keeper's verdict. The keeper's verdict is the heartbeat
+events in the board's own log: every run, including an empty one,
+ends by appending a heartbeat, and a run without one did not
+complete, whatever the scheduler reports. Keeper health is checked
+from the log (`heartbeat` events' `run_at`), never from the
+scheduler's status.
+
+**The detector.** Schedule, owned by the `detector_chat`:
+
+```
+python3 -m board.detector run <board_dir> <outbox_dir>
+```
+
+every 2 hours. It reads only heartbeat events; if none has landed
+for more than two cadence intervals while work is open, it writes
+one escalation record per target (every open wait's target, plus
+genesis `escalation_target_2`) into the outbox, keyed by episode so
+repeat runs do not duplicate. The staffing job delivers each record
+to its target's channel. When appends resume, the records land on
+the board as `detector_escalation` events — the keeper records any
+pending ones at the start of each run, or directly:
+
+```
+python3 -m board.detector record <board_dir> <outbox_dir>
+```
