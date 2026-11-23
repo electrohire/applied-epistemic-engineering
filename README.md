@@ -10,6 +10,17 @@
 
 OpenSSF Best Practices Passing criteria: 100% met (self-assessment, verified 2026-10-16).
 
+![Terminal session: the aee CLI assesses a draft claim that has no evidence. The claim scores 0.217 against the 0.70 threshold, the outcome is iterate, and the assessment records that the claim is not established by its evidence as recorded.](assets/aee-cli-first-run.png)
+
+**The problem:** AI agents and engineers state claims like "done" or "fast enough" with little recorded evidence behind them, and the usual workflow never forces the evidence, the boundaries, or the doubts into the open.
+
+- **Claims, not prose:** every important claim is recorded with its boundary, its source, and the test that would prove it wrong.
+- **Evidence is scored, assertions are not observations:** confidence comes from recorded evidence and explicit rules, and an unsupported claim stays labeled unsupported.
+- **Uncertainty propagates:** a claim built on a weak claim inherits the weakness, so confidence cannot inflate as it travels from one agent or document to the next.
+- **Contradictions stay visible:** counterevidence and conflicting findings stay in the record instead of being averaged away.
+- **Every failure gets a next step:** each failure mode comes with a bounded recovery action and the check that would verify it.
+- **A ledger you can audit:** assessments are appended to a hash-chained ledger, so what was assessed can be verified later.
+
 An evidence-centered Python toolkit for turning important claims into inspectable engineering
 artifacts. It makes boundaries, evidence, provenance, uncertainty, contradictions,
 falsification tests, recovery work, and decision history explicit.
